@@ -1,5 +1,5 @@
 # Tappt #
-### A Game-based Class Engagement Software for all Students. ###
+### A Game-based Class Engagement Software for all K-12 Students. ###
 
 **Group 8, CSCE 3444.001**
 
