@@ -8,6 +8,9 @@ export default function Index() {
       <Link href={"/login"} style={styles.button}>
         Go to login screen
       </Link>
+      <Link href={"/slogin"} style={styles.button}>
+        Go to student login screen
+      </Link>
     </View>
   );
 }

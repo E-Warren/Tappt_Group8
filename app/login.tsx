@@ -38,6 +38,7 @@ export default function LoginScreen() {
         source={require('../assets/images/Oval2.png')}
       />
   */}
+  
 
       <View style={styles.middle}>
         {/* The following is the welcome message on left */}
@@ -122,6 +123,9 @@ export default function LoginScreen() {
           </View>
         </View>
       </View>
+      <Link href="/slogin" style={styles.studentLink}>
+              Are you a student? Join a game here!
+            </Link>
     </View>
   );
 }
@@ -276,5 +280,12 @@ const styles = StyleSheet.create({
   remember: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  studentLink: { //For navigationg to Student Login
+    alignSelf: "center",
+    bottom: 30, 
+    color: "#fff",
+    fontSize: 16,
+    textDecorationLine: "underline",
   },
 });

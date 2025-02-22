@@ -19,6 +19,9 @@ export default function RootLayout() {
       <Stack.Screen name="rules" options={{
         headerShown: false,
       }} />
+      <Stack.Screen name="slogin" options={{
+        headerShown: false,
+      }} />
     </Stack>
   );
 }
