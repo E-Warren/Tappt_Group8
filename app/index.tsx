@@ -8,8 +8,7 @@ export default function HomeScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    // 여기서 실제 로그인 상태를 확인하는 로직을 추가할 수 있음
-    setIsLoggedIn(false); // 기본적으로 로그인 안 된 상태
+    setIsLoggedIn(false);
   }, []);
 
   if (!isLoggedIn) {
@@ -22,7 +21,7 @@ export default function HomeScreen() {
         source={require('@/assets/images/partial-react-logo.png')}
         style={styles.reactLogo}
       />
-      <Button title="로그아웃" onPress={() => setIsLoggedIn(false)} />
+      <Button title="logout" onPress={() => setIsLoggedIn(false)} />
     </View>
   );
 }
