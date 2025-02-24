@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Tappt",
-    "slug": "Tappt",
+    "name": "my-website",
+    "slug": "my-website",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -36,6 +36,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "add7d558-53ab-4842-a3f8-b8e28ff35462"
+      }
+    },
+    "owner": "sseolha12"
   }
 }

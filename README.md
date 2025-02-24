@@ -1,13 +1,50 @@
-# Tappt #
-### A Game-based Class Engagement Software for all K-12 Students. ###
+# Welcome to your Expo app 👋
 
-**Group 8, CSCE 3444.001**
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-**Group Members:** Emily Warren, Carlie Reynoso, Sualeha Irshad, Alec Holland, Madison Westbrook, & Sul Ha Yang
+## Get started
 
+1. Install dependencies
 
-## Vision Statement (Moore's Template) ##
-**FOR** visually impaired students in grades K-12 **WHO** struggle to participate in online class game activities, **THE** product “Tappt” is a gamified quizzing website with customized accessibility features for visually impaired students **THAT** can provide an immersive educational experience and allow educational games to be played by all students in class without sidelining students due to lack of accessibility features. **UNLIKE** existing quiz platforms like Kahoot! and GIMKIT **OUR PRODUCT** provides accessibility features for visually impaired students, such as text-to-speech for the whole classroom and a simplified control setup, where students utilize a computer’s keyboard to answer questions. After the game is over, the website also offers an overview of missed questions for studying purposes.
+   ```bash
+   npm install
+   ```
 
-## Prototype Samples ##
-<img width="950" alt="Prototype sample screenshots depicting 4 screens from the student's perspective and 4 screens from the teacher's perspective. The student's perspective shows a join-game screen, a click-count screen, a question-and-answer screen, and an end-game screen. The teacher's perspective shows a welcome-and-login screen, a deck-creation screen, a student-results screen, and a leaderboard screen." src="https://github.com/user-attachments/assets/f59c8866-15a7-4fa0-b1f1-4752a08b2d5c" />
+2. Start the app
+
+   ```bash
+    npx expo start
+   ```
+
+In the output, you'll find options to open the app in a
+
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
+
+```bash
+npm run reset-project
+```
+
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+
+## Learn more
+
+To learn more about developing your project with Expo, look at the following resources:
+
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Join the community
+
+Join our community of developers creating universal apps.
+
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
