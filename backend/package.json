@@ -1,0 +1,21 @@
+{
+  "name": "tappt",
+  "version": "1.0.0",
+  "description": "CODE DEPENDECIES:\r Database connection dependecies: PostgresSQL\r - Installation:\r   + type \"npm i nodemon pg\" into the terminal\r Server dependencies: Express.js\r - Installation: \r   + type \"npm i express\" into the terminal",
+  "main": "backend-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon backend_server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "expo": "^52.0.37",
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9",
+    "pg": "^8.13.3"
+  }
+}
