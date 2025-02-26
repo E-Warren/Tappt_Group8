@@ -1,19 +1,30 @@
-import { Link } from "expo-router";
-import { useState } from "react";
+import { Link} from "expo-router";
+import { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Button, TouchableOpacity, TextInput, ImageBackgroundComponent, ImageBackground, Image, Pressable } from "react-native";
 import Checkbox from 'expo-checkbox';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import {useRouter} from 'expo-router'
+import * as Google from 'expo-auth-session/providers/google';
 
 export default function LoginScreen() {
+  const router = useRouter();
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: "871617226030-iuse6u2osodim6ru0b7mg6eufrdmp125.apps.googleusercontent.com", // client ID
+  });
+
   const onPressGoogleSignIn = () => {
     console.log("Google sign in pressed");
+    promptAsync();
   };
-  const onPressFacebookSignIn = () => {
-    console.log("Facebook sign in pressed");
-  };
-  const onPressAppleSignIn = () => {
-    console.log("Apple sign in pressed");
-  };
+  
+  useEffect(()=> {
+    if (response?.type === "success"){
+      console.log ("Google Login Success:", response);
+      router.push("/index"); // Go back to index page for now It was not connected db yet
+    }
+
+  })
   const onPressSignIn = async () => {
     console.log("Sign in pressed");
     const x = await fetch('https://api.restful-api.dev/objects', {
@@ -55,18 +66,6 @@ export default function LoginScreen() {
               onPress={onPressGoogleSignIn}
             >
               <Text style={styles.signInText}>Sign in with Google</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.faceBookButton}
-              onPress={onPressFacebookSignIn}
-            >
-              <Text style={styles.signInText}>Sign in with Facebook</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.appleButton}
-              onPress={onPressAppleSignIn}
-            >
-              <Text style={styles.signInText}>Sign in with Apple</Text>
             </TouchableOpacity>
             <Text style={styles.or}>
                 --------------------- OR ---------------------
@@ -289,3 +288,4 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
 });
+
