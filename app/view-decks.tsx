@@ -4,8 +4,8 @@ import { Link } from 'expo-router';
 export default function Index() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>da rulez</Text>
-      <Text style={styles.text}>//emily keeps getting errors bc of this page. this is a new placeholder!</Text>
+      <Text style={styles.text}>View Decks</Text>
+      <Text style={styles.text}>Login/sign-up successful!</Text>
     </View>
   );
 }
