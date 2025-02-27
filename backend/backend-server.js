@@ -2,6 +2,13 @@
 const express=require("express")
 const app=express()
 
+//get sensitive data
+require("dotenv").config()
+
+//set up bcrypt hashing
+const bcrypt = require('bcrypt');
+const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
+
 //random port number -> can change if we want something different
 const port = 5000
 
@@ -14,18 +21,119 @@ app.use(express.urlencoded({extended: false}))
 
 //to permit incoming data from frontend
 const cors = require("cors")
-app.use(cors())
+
+app.use(cors({
+    origin: 'http://localhost:8081',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+
+}));
+
 
 //interacts with the sign in button at /login
 //sends 200 status and success JSON file when sign in button is pressed
 app.get("/login", (req, res) => {
     try {
+        console.log("login-attempt");
+        
         res.status(200).json({'message': 'success'})
     }
     catch(error) {
         res.status(500).json(error)
     }
 })
+
+//------------------------LOGIN WORK-------------------------------
+
+//root route to avoid "Cannot GET /" in backend terminal
+app.get("/", (req, res) => {
+    res.send("Server is running!");
+});
+
+
+//sign IN --> checking U&P
+app.post("/login", async (req, res) => {
+    console.log("Login route hit!"); // Add this
+    const {email, password} = req.body; 
+    console.log("Login attempt with:", email);
+
+    try {    
+        //check if user email in db
+        const checkEmailExists = 
+        `SELECT fld_login_email, fld_login_pwd 
+        FROM login_first.tbl_login
+        WHERE fld_login_email = $1;`;
+        
+        //actually do the query
+        const result1 = await pool.query(checkEmailExists, [email]);
+        
+        if(result1.rowCount == 0){
+            return res.status(401).json({ message: "No accounts with this email saved in system." });
+        }
+
+
+        //hash user's entered pwd and compare
+        const fromDB = result1.rows[0].fld_login_pwd;
+        const samePwd = await bcrypt.compare(password, fromDB);
+
+        if(samePwd){
+            res.status(200).json({ message: "Login success!" });
+        }
+        else{
+            res.status(401).json({ message: "Incorrect password." });
+        }
+    }
+    //throw 500 error if any error occurred during or after querying
+    catch(error) {
+        res.status(500).json(error)
+    }
+})
+
+
+//sign UP --> check if U exists, then add U&P to db
+app.post("/signup", async (req, res) => {
+    console.log("Sign-up route hit!");
+    const { email, password } = req.body; 
+    console.log("Sign-up attempt with:", email);
+
+    try {
+        //check if entered email already exists
+        const isEmailAvailable = `
+        SELECT fld_login_email 
+        FROM login_first.tbl_login
+        WHERE fld_login_email = $1;`;
+        
+        const result1 = await pool.query(isEmailAvailable, [email]);
+        
+        if (result1.rowCount > 0) {
+            return res.status(400).json({ message: "Email already in use." });
+        }
+
+        //hash user's chosen password
+        const salt = await bcrypt.genSalt(SALT_ROUNDS);
+        const hashedValue = await bcrypt.hash(password, salt);
+
+        //insert new user into the database
+        const addUser = `
+        INSERT INTO login_first.tbl_login (fld_login_email, fld_login_pwd) 
+        VALUES ($1, $2);`;
+
+        await pool.query(addUser, [email, hashedValue]);
+
+        console.log("New user created:", email);
+        res.status(201).json({ message: "Sign-up success" });
+
+    } catch (error) {
+        console.error("Error during sign-up:", error);
+        res.status(500).json({ message: "Server error, please try again later" });
+    }
+});
+
+
+
+//------------------------DECK WORK-------------------------------
+
 
 //getting decks (without the cards)
 app.get("/decks", async (req, res) => {
