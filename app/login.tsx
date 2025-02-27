@@ -1,4 +1,4 @@
-import { Link} from "expo-router";
+import { Link } from "expo-router";
 import { useState, useEffect } from "react";
 import { Text, View, StyleSheet, Button, TouchableOpacity, TextInput, ImageBackgroundComponent, ImageBackground, Image, Pressable } from "react-native";
 import Checkbox from 'expo-checkbox';
@@ -13,30 +13,108 @@ export default function LoginScreen() {
     webClientId: "871617226030-iuse6u2osodim6ru0b7mg6eufrdmp125.apps.googleusercontent.com", // client ID
   });
 
+  
   const onPressGoogleSignIn = () => {
     console.log("Google sign in pressed");
     promptAsync();
   };
-  
+
   useEffect(()=> {
     if (response?.type === "success"){
       console.log ("Google Login Success:", response);
       router.push("/"); // Go back to index page for now It was not connected db yet
     }
-
   })
+
+  //declaring/defining helper fxns used in main native login fxn
+  const isValidEmail = (email) => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email.trim());
+  };
+
+  const isAlphanumeric = (password) => {
+    const alphanumericPattern = /^[a-zA-Z0-9]+$/;
+    return alphanumericPattern.test(password.trim());
+  };
+
+
+  //MAIN NATIVE LOGIN FUNCTION
   const onPressSignIn = async () => {
     console.log("Sign in pressed");
-    const x = await fetch('https://api.restful-api.dev/objects', { //CHANGE THIS ONCE WE HAVE THE DATABASE!!
-      method: 'GET',
-    });
+    console.log("Entered email:", text.trim(), "Entered password:", password.trim());
+  
+    //check if both fields entered
+    if (!text.trim() || !password.trim()) {
+        alert("Please enter both email and password.");
+        return;
+    }  
 
-    console.log('x', x);
+    //check if user has a valid email
+    if(!isValidEmail(text)){
+      alert("Invalid email format.");
+      return;
+    }
+
+    //check if password is alphanumeric
+    if(!isAlphanumeric(password)){
+      alert("Password contains at least one invalid character. Passwords must be 8-30 characters long and alphanumeric.");
+      return;
+    }
+
+    //check is password is between 8 and 30 characters long
+    if(password.length < 8){
+      alert("Password contains fewer than 8 characters. Passwords must be 8-30 characters long and alphanumeric.");
+      return;
+    } 
+    else if (password.length > 30){
+      alert("Password contains more than 30 characters. Passwords must be 8-30 characters long and alphanumeric.")
+      return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:5000/login', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Ensure cookies/sessions are sent
+          body: JSON.stringify({
+            email: text.trim(),
+            password: password.trim(),
+          }),
+        });
+  
+        console.log("Response status:", response.status);
+  
+        const data = await response.json();
+        
+        if (response.ok) {
+          console.log("Login success:", data);
+          router.push("/view-decks"); // Redirect on success
+        } else {
+          console.log("Login failed:", data.message);
+          alert(data.message);
+        }
+        
+    } catch (error) {
+        console.log("Error during sign in:", error);
+        alert("Server error, please try again later.");
+    }
+
   };
-  const [email, onChangeText] = useState('');
-  const [password, onChangePassword] = useState('');
-  const [isChecked, setChecked] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(true);
+  
+
+const [isChecked, setChecked] = useState(false);
+const [passwordVisible, setPasswordVisible] = useState(true);
+
+//for login
+const [text, onChangeText] = useState('');
+const [password, onChangePassword] = useState('');
+
+
+
+//---------------------------------------------------------------------------------
+
   return (
     
     <View style={styles.container}>
@@ -82,19 +160,22 @@ export default function LoginScreen() {
             >
               <Text style={styles.signInText}>Sign in with Google</Text>
             </TouchableOpacity>
+
             <Text style={styles.or}>
                 --------------------- OR ---------------------
             </Text>
+
             {/* The following is the user input sections for email and password */}
-            <Text style={styles.emailText}>
+            <Text style={styles.emailText} >
               Email
             </Text>
             <TextInput
               style={styles.input}
               onChangeText={onChangeText}
-              value={email}
+              value={ text }
               placeholder="Enter your email"
               placeholderTextColor={"#BEBEBE"}
+              onSubmitEditing={onPressSignIn}
             />
             <Text style={styles.emailText}>
               Password
@@ -106,9 +187,10 @@ export default function LoginScreen() {
               placeholder="Enter your password"
               secureTextEntry={passwordVisible}
               placeholderTextColor={"#BEBEBE"}
+              onSubmitEditing={onPressSignIn}
             />
-            <Pressable style={{ position: 'absolute', top: 240, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
-              <Ionicons name="eye" size={25} color="black" /> {/* The eye emoji in the password section */}
+            <Pressable style={{ position: 'absolute', top: 240, right: 20, paddingTop:4,}} onPress={() => setPasswordVisible(!passwordVisible)}>
+              <Text><Ionicons name="eye" size={25} color="black" /> {/* The eye emoji in the password section */}</Text>
             </Pressable>
           
             {/* The following is the sign in button */}
@@ -117,7 +199,7 @@ export default function LoginScreen() {
               style={styles.signInButton}
               onPress={onPressSignIn}
             >
-              <Text style={styles.signInButton}>Sign In</Text>
+              <Text style={styles.signInButtonText}>Sign In</Text>
             </TouchableOpacity>
             {/* The following a link to the sign up page */}
             <View style={styles.signUp}>
@@ -200,24 +282,6 @@ const styles = StyleSheet.create({
     borderWidth: 5,
     borderColor: "#4E85EBFF",
   },
-  faceBookButton: {
-    backgroundColor: "#455EA9FF",
-    alignItems: "center",
-    marginBottom: 10,
-    borderRadius: 6,
-    padding: 5,
-    borderWidth: 5,
-    borderColor: "#455EA9FF",
-  },
-  appleButton: {
-    backgroundColor: "#171A1FFF",
-    alignItems: "center",
-    marginBottom: 10,
-    borderRadius: 6,
-    padding: 5,
-    borderWidth: 5,
-    borderColor: "#171A1FFF",
-  },
   or: {
     alignSelf: 'center',
     color: '#9095A1FF',
@@ -239,11 +303,16 @@ const styles = StyleSheet.create({
     padding: 5,
     color: 'white',
   },
+  signInButtonText: {
+    color: 'white',
+    padding: 5,
+  },
   welcome: {
     alignSelf: 'center',
     color: '#EFB034FF',
     fontSize: 100,
     fontWeight: "600",
+    paddingRight: 150,
   },
   prepare: {
     alignSelf: 'center',
@@ -287,13 +356,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     paddingRight: 3,
   },
-  remember: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   studentLink: { //For navigationg to Student Login
     alignSelf: "center",
-    bottom: 30, 
+    bottom: 5, //formerly 30; this matches link height in slogin page
     color: "#fff",
     fontSize: 16,
     textDecorationLine: "underline",
@@ -327,7 +392,7 @@ const styles = StyleSheet.create({
     //resizeMode: "contain",
   },
   whitespace: {
-    height: 200,
+    height: 90, //formerly 200; this is all in one screen/cleaner
   }
 });
 

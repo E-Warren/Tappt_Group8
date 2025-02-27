@@ -3,24 +3,97 @@ import { useState } from "react";
 import { Text, View, StyleSheet, Button, TouchableOpacity, TextInput, ImageBackgroundComponent, ImageBackground, Image, Pressable } from "react-native";
 import Checkbox from 'expo-checkbox';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import {useRouter} from 'expo-router'
 
 export default function LoginScreen() {
-  const onPressGoogleSignIn = () => {
-    console.log("Google sign up pressed");
-  };
-  
-  const onPressSignIn = async () => {
-    console.log("Sign up pressed");
-    const x = await fetch('https://api.restful-api.dev/objects', { //CHANGE THIS ONCE WE HAVE THE DATABASE!!
-      method: 'GET',
-    });
+  const router = useRouter();
 
-    console.log('x', x);
+  //declaring/defining helper fxns used in main native login fxn
+  const isValidEmail = (email) => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailPattern.test(email.trim());
   };
-  const [email, onChangeText] = useState('');
-  const [password, onChangePassword] = useState('');
+
+  const isAlphanumeric = (password) => {
+    const alphanumericPattern = /^[a-zA-Z0-9]+$/;
+    return alphanumericPattern.test(password.trim());
+  };
+
+  //MAIN NATIVE SIGN UP FUNCTION
+  const onPressSignUp = async () => {
+    console.log("Sign up pressed");
+    console.log("Entered email:", text.trim(), "Entered password:", password.trim());
+  
+
+    //check if both fields entered
+    if (!text.trim() || !password.trim()) {
+        alert("Please enter both email and password.");
+        return;
+    }  
+  
+    //check if user has a valid email
+    if(!isValidEmail(text)){
+      alert("Invalid email format.");
+      return;
+    }
+
+    //check if password is alphanumeric
+    if(!isAlphanumeric(password)){
+      alert("Password contains at least one invalid character. Passwords must be 8-30 characters long and alphanumeric.");
+      return;
+    }
+
+    //check is password is between 8 and 30 characters long
+    if(password.length < 8){
+      alert("Password contains fewer than 8 characters. Passwords must be 8-30 characters long and alphanumeric.");
+      return;
+    } 
+    else if (password.length > 30){
+      alert("Password contains more than 30 characters. Passwords must be 8-30 characters long and alphanumeric.")
+      return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:5000/signUp', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          credentials: 'include', //cookie stuff in case needed
+          body: JSON.stringify({
+            email: text.trim(),
+            password: password.trim(),
+          }),
+        });
+  
+        console.log("Response status:", response.status);
+  
+        const data = await response.json();
+        
+        if (response.ok) {
+          console.log("Sign-up success:", data);
+          router.push("/view-decks"); // Redirect on success
+        } else {
+          console.log("Sign-up failed:", data.message);
+          alert(data.message);
+        }
+        
+    } catch (error) {
+        console.log("Error during sign-up:", error);
+        alert("Server error, please try again later.");
+    }
+  };
+
+
   const [isChecked, setChecked] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(true);
+
+  //for login
+  const [text, onChangeText] = useState('');
+  const [password, onChangePassword] = useState('');
+ 
+  //---------------------------------------------------------------------------------
+
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -64,9 +137,10 @@ export default function LoginScreen() {
             <TextInput
               style={styles.input}
               onChangeText={onChangeText}
-              value={email}
+              value={ text }
               placeholder="Enter your email"
               placeholderTextColor={"#BEBEBE"}
+              onSubmitEditing={onPressSignUp}
             />
             <Text style={styles.emailText}>
               Password
@@ -78,9 +152,10 @@ export default function LoginScreen() {
               placeholder="Enter your password"
               secureTextEntry={passwordVisible}
               placeholderTextColor={"#BEBEBE"}
+              onSubmitEditing={onPressSignUp}
             />
-            <Pressable style={{ position: 'absolute', top: 135, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
-              <Ionicons name="eye" size={25} color="black" /> {/* This is the eye emoji to see the password */}
+            <Pressable style={{ position: 'absolute', top: 135, right: 20, paddingTop:2,}} onPress={() => setPasswordVisible(!passwordVisible)}>
+              <Text><Ionicons name="eye" size={25} color="black" /> {/* This is the eye emoji to see the password */}</Text>
             </Pressable>
             
             <View style={styles.whitespace}/>
@@ -88,7 +163,7 @@ export default function LoginScreen() {
             
             <TouchableOpacity
               style={styles.signInButton}
-              onPress={onPressSignIn}
+              onPress={onPressSignUp}
             >
               <Text style={styles.signInButton}>Sign Up</Text>
             </TouchableOpacity>
@@ -218,6 +293,7 @@ const styles = StyleSheet.create({
     color: '#EFB034FF',
     fontSize: 100,
     fontWeight: "600",
+    paddingRight: 150,
   },
   prepare: {
     alignSelf: 'center',
@@ -301,6 +377,6 @@ const styles = StyleSheet.create({
     //resizeMode: "contain",
   },
   whitespace: {
-    height: 306,
+    height: 196, //formerly 306
   }
 });
