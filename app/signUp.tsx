@@ -56,17 +56,7 @@ export default function LoginScreen() {
             {/* The following is the white sign in box */}
           <View style={styles.sign}>
             <Text style={styles.signHeader}>Sign Up</Text>
-            {/* The following is the google, apple, and facebook buttons */}
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={onPressGoogleSignIn}
-            >
-              <Text style={styles.signInText}>Sign up with Google</Text>
-            </TouchableOpacity>
-          
-            <Text style={styles.or}>
-                --------------------- OR ---------------------
-            </Text>
+            
             {/* The following is the user input section for email and password */}
             <Text style={styles.emailText}>
               Email
@@ -89,7 +79,7 @@ export default function LoginScreen() {
               secureTextEntry={passwordVisible}
               placeholderTextColor={"#BEBEBE"}
             />
-            <Pressable style={{ position: 'absolute', top: 240, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
+            <Pressable style={{ position: 'absolute', top: 135, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
               <Ionicons name="eye" size={25} color="black" /> {/* This is the eye emoji to see the password */}
             </Pressable>
             
@@ -311,6 +301,6 @@ const styles = StyleSheet.create({
     //resizeMode: "contain",
   },
   whitespace: {
-    height: 200,
+    height: 306,
   }
 });
