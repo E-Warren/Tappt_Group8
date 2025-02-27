@@ -1,32 +1,16 @@
-import { Link} from "expo-router";
-import { useState, useEffect } from "react";
+import { Link } from "expo-router";
+import { useState } from "react";
 import { Text, View, StyleSheet, Button, TouchableOpacity, TextInput, ImageBackgroundComponent, ImageBackground, Image, Pressable } from "react-native";
 import Checkbox from 'expo-checkbox';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import {useRouter} from 'expo-router'
-import * as Google from 'expo-auth-session/providers/google';
 
 export default function LoginScreen() {
-  const router = useRouter();
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: "871617226030-iuse6u2osodim6ru0b7mg6eufrdmp125.apps.googleusercontent.com", // client ID
-  });
-
   const onPressGoogleSignIn = () => {
-    console.log("Google sign in pressed");
-    promptAsync();
+    console.log("Google sign up pressed");
   };
   
-  useEffect(()=> {
-    if (response?.type === "success"){
-      console.log ("Google Login Success:", response);
-      router.push("/"); // Go back to index page for now It was not connected db yet
-    }
-
-  })
   const onPressSignIn = async () => {
-    console.log("Sign in pressed");
+    console.log("Sign up pressed");
     const x = await fetch('https://api.restful-api.dev/objects', { //CHANGE THIS ONCE WE HAVE THE DATABASE!!
       method: 'GET',
     });
@@ -36,9 +20,8 @@ export default function LoginScreen() {
   const [email, onChangeText] = useState('');
   const [password, onChangePassword] = useState('');
   const [isChecked, setChecked] = useState(false);
-  const [passwordVisible, setPasswordVisible] = useState(true);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   return (
-    
     <View style={styles.container}>
       <ImageBackground
         source={require('../assets/images/Oval2.png')}
@@ -55,15 +38,13 @@ export default function LoginScreen() {
         style={styles.pinkRectangle}
       />
 
-
-      {/* The following is top bar with the Tappt logo and rules */}
       <View style={styles.top}>
         <Text style={styles.text}>Tappt</Text>
         <Link href="/rules" style={styles.text}>
           Learn the rules
         </Link>
       </View>
-      {/* The following is the entire middle section*/}
+  
       <View style={styles.middle}>
         {/* The following is the welcome message on left */}
         <View style={styles.left}>
@@ -72,20 +53,11 @@ export default function LoginScreen() {
         </View>
         {/* The following is the right side of the middle section */}
         <View style={styles.outer}>
-          {/* The following is the white sign in box */}
+            {/* The following is the white sign in box */}
           <View style={styles.sign}>
-            <Text style={styles.signHeader}>Sign in</Text>
-            {/* The following is google, apple, and facebook buttons */}
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={onPressGoogleSignIn}
-            >
-              <Text style={styles.signInText}>Sign in with Google</Text>
-            </TouchableOpacity>
-            <Text style={styles.or}>
-                --------------------- OR ---------------------
-            </Text>
-            {/* The following is the user input sections for email and password */}
+            <Text style={styles.signHeader}>Sign Up</Text>
+            
+            {/* The following is the user input section for email and password */}
             <Text style={styles.emailText}>
               Email
             </Text>
@@ -107,31 +79,32 @@ export default function LoginScreen() {
               secureTextEntry={passwordVisible}
               placeholderTextColor={"#BEBEBE"}
             />
-            <Pressable style={{ position: 'absolute', top: 240, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
-              <Ionicons name="eye" size={25} color="black" /> {/* The eye emoji in the password section */}
+            <Pressable style={{ position: 'absolute', top: 135, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
+              <Ionicons name="eye" size={25} color="black" /> {/* This is the eye emoji to see the password */}
             </Pressable>
-          
-            {/* The following is the sign in button */}
+            
             <View style={styles.whitespace}/>
+            {/* The following is the sign up button */}
+            
             <TouchableOpacity
               style={styles.signInButton}
               onPress={onPressSignIn}
             >
-              <Text style={styles.signInButton}>Sign In</Text>
+              <Text style={styles.signInButton}>Sign Up</Text>
             </TouchableOpacity>
-            {/* The following a link to the sign up page */}
             <View style={styles.signUp}>
               <Text style={styles.signUpText}>
-                Don't have an account? 
+                Already have an account? 
               </Text>
-              <Link href='/signUp' style={styles.signUpButton}>
-                Sign Up
+              {/* The following is the link to the log in page */}
+              <Link href='/login' style={styles.signUpButton}>
+                Sign In
               </Link>
             </View>
           </View>
         </View>
       </View>
-      {/* The following is a link to the student page (where students enter a PIN) */}
+      {/* The following is the link to the student page (where they enter a PIN) */}
       <Link href="/slogin" style={styles.studentLink}>
               Are you a student? Join a game here!
             </Link>
@@ -139,7 +112,7 @@ export default function LoginScreen() {
   );
 }
 
-{/* The following is the styles used for this page */}
+{/* The following is the styles used in this page */}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -238,6 +211,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 5,
     color: 'white',
+    
   },
   welcome: {
     alignSelf: 'center',
@@ -327,7 +301,6 @@ const styles = StyleSheet.create({
     //resizeMode: "contain",
   },
   whitespace: {
-    height: 200,
+    height: 306,
   }
 });
-
