@@ -21,7 +21,7 @@ export default function LoginScreen() {
   useEffect(()=> {
     if (response?.type === "success"){
       console.log ("Google Login Success:", response);
-      router.push("/index"); // Go back to index page for now It was not connected db yet
+      router.push("/"); // Go back to index page for now It was not connected db yet
     }
 
   })
@@ -107,7 +107,7 @@ export default function LoginScreen() {
               secureTextEntry={passwordVisible}
               placeholderTextColor={"#BEBEBE"}
             />
-            <Pressable style={{ position: 'absolute', top: 315, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
+            <Pressable style={{ position: 'absolute', top: 240, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
               <Ionicons name="eye" size={25} color="black" /> {/* The eye emoji in the password section */}
             </Pressable>
           
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4E85EBFF",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 10,
+    marginBottom: 20,
     borderRadius: 6,
     padding: 5,
     borderWidth: 5,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 25,
     fontWeight: "600",
-    marginBottom: 10,
+    marginBottom: 20,
   },
   emailText: {
     color: 'Black',
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     //resizeMode: "contain",
   },
   whitespace: {
-    height: 100,
+    height: 200,
   }
 });
 

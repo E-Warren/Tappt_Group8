@@ -8,12 +8,7 @@ export default function LoginScreen() {
   const onPressGoogleSignIn = () => {
     console.log("Google sign up pressed");
   };
-  const onPressFacebookSignIn = () => {
-    console.log("Facebook sign up pressed");
-  };
-  const onPressAppleSignIn = () => {
-    console.log("Apple sign up pressed");
-  };
+  
   const onPressSignIn = async () => {
     console.log("Sign up pressed");
     const x = await fetch('https://api.restful-api.dev/objects', { //CHANGE THIS ONCE WE HAVE THE DATABASE!!
@@ -68,18 +63,7 @@ export default function LoginScreen() {
             >
               <Text style={styles.signInText}>Sign up with Google</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.faceBookButton}
-              onPress={onPressFacebookSignIn}
-            >
-              <Text style={styles.signInText}>Sign up with Facebook</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.appleButton}
-              onPress={onPressAppleSignIn}
-            >
-              <Text style={styles.signInText}>Sign up with Apple</Text>
-            </TouchableOpacity>
+          
             <Text style={styles.or}>
                 --------------------- OR ---------------------
             </Text>
@@ -105,7 +89,7 @@ export default function LoginScreen() {
               secureTextEntry={passwordVisible}
               placeholderTextColor={"#BEBEBE"}
             />
-            <Pressable style={{ position: 'absolute', top: 315, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
+            <Pressable style={{ position: 'absolute', top: 240, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
               <Ionicons name="eye" size={25} color="black" /> {/* This is the eye emoji to see the password */}
             </Pressable>
             
@@ -193,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#4E85EBFF",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 10,
+    marginBottom: 20,
     borderRadius: 6,
     padding: 5,
     borderWidth: 5,
@@ -261,7 +245,7 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 25,
     fontWeight: "600",
-    marginBottom: 10,
+    marginBottom: 20,
   },
   emailText: {
     color: 'Black',
@@ -327,6 +311,6 @@ const styles = StyleSheet.create({
     //resizeMode: "contain",
   },
   whitespace: {
-    height: 100,
+    height: 200,
   }
 });
