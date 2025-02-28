@@ -16,18 +16,19 @@ export default function RootLayout() {
       <Stack.Screen name="login" options={{
         headerShown: false,
       }} />
-{/*      <Stack.Screen name="rules" options={{      //commenting out so that the "back" arrow is built-in during dev
+      <Stack.Screen name="rules" options={{
         headerShown: false,
-      }} />   */}
+      }} />
       <Stack.Screen name="slogin" options={{
         headerShown: false,
       }} />
-      <Stack.Screen name="signUp" options={{
+      <Stack.Screen name="viewdecks" options={{
         headerShown: false,
       }} />
-{/*     <Stack.Screen name="view-decks" options={{  //commenting out so that the "back" arrow is built-in during dev
+      <Stack.Screen name="createdecks" options={{
         headerShown: false,
-      }} />*/}
-      </Stack>
+      }} />
+  
+    </Stack>
   );
 }

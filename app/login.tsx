@@ -1,181 +1,85 @@
 import { Link } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Text, View, StyleSheet, Button, TouchableOpacity, TextInput, ImageBackgroundComponent, ImageBackground, Image, Pressable } from "react-native";
 import Checkbox from 'expo-checkbox';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import {useRouter} from 'expo-router'
-import * as Google from 'expo-auth-session/providers/google';
 
 export default function LoginScreen() {
-  const router = useRouter();
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: "871617226030-iuse6u2osodim6ru0b7mg6eufrdmp125.apps.googleusercontent.com", // client ID
-  });
-
-  
   const onPressGoogleSignIn = () => {
     console.log("Google sign in pressed");
-    promptAsync();
   };
-
-  useEffect(()=> {
-    if (response?.type === "success"){
-      console.log ("Google Login Success:", response);
-      router.push("/"); // Go back to index page for now It was not connected db yet
-    }
-  })
-
-  //declaring/defining helper fxns used in main native login fxn
-  const isValidEmail = (email) => {
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailPattern.test(email.trim());
+  const onPressFacebookSignIn = () => {
+    console.log("Facebook sign in pressed");
   };
-
-  const isAlphanumeric = (password) => {
-    const alphanumericPattern = /^[a-zA-Z0-9]+$/;
-    return alphanumericPattern.test(password.trim());
+  const onPressAppleSignIn = () => {
+    console.log("Apple sign in pressed");
   };
-
-
-  //MAIN NATIVE LOGIN FUNCTION
   const onPressSignIn = async () => {
     console.log("Sign in pressed");
-    console.log("Entered email:", text.trim(), "Entered password:", password.trim());
-  
-    //check if both fields entered
-    if (!text.trim() || !password.trim()) {
-        alert("Please enter both email and password.");
-        return;
-    }  
+    const x = await fetch('https://api.restful-api.dev/objects', {
+      method: 'GET',
+    });
 
-    //check if user has a valid email
-    if(!isValidEmail(text)){
-      alert("Invalid email format.");
-      return;
-    }
-
-    //check if password is alphanumeric
-    if(!isAlphanumeric(password)){
-      alert("Password contains at least one invalid character. Passwords must be 8-30 characters long and alphanumeric.");
-      return;
-    }
-
-    //check is password is between 8 and 30 characters long
-    if(password.length < 8){
-      alert("Password contains fewer than 8 characters. Passwords must be 8-30 characters long and alphanumeric.");
-      return;
-    } 
-    else if (password.length > 30){
-      alert("Password contains more than 30 characters. Passwords must be 8-30 characters long and alphanumeric.")
-      return;
-    }
-
-    try {
-        const response = await fetch('http://localhost:5000/login', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          credentials: 'include', // Ensure cookies/sessions are sent
-          body: JSON.stringify({
-            email: text.trim(),
-            password: password.trim(),
-          }),
-        });
-  
-        console.log("Response status:", response.status);
-  
-        const data = await response.json();
-        
-        if (response.ok) {
-          console.log("Login success:", data);
-          router.push("/view-decks"); // Redirect on success
-        } else {
-          console.log("Login failed:", data.message);
-          alert(data.message);
-        }
-        
-    } catch (error) {
-        console.log("Error during sign in:", error);
-        alert("Server error, please try again later.");
-    }
-
+    console.log('x', x);
   };
-  
-
-const [isChecked, setChecked] = useState(false);
-const [passwordVisible, setPasswordVisible] = useState(true);
-
-//for login
-const [text, onChangeText] = useState('');
-const [password, onChangePassword] = useState('');
-
-
-
-//---------------------------------------------------------------------------------
-
+  const [text, onChangeText] = useState('');
+  const [password, onChangePassword] = useState('');
+  const [isChecked, setChecked] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   return (
-    
     <View style={styles.container}>
-      <ImageBackground
-        source={require('../assets/images/Oval2.png')}
-        style={styles.blueOval}
-      />
-
-      <ImageBackground
-        source={require('../assets/images/Oval1.png')}
-        style={styles.yellowOval}
-      />
-
-      <ImageBackground
-        source={require('../assets/images/Rectangle1.png')}
-        style={styles.pinkRectangle}
-      />
-
-
-      {/* The following is top bar with the Tappt logo and rules */}
       <View style={styles.top}>
         <Text style={styles.text}>Tappt</Text>
         <Link href="/rules" style={styles.text}>
           Learn the rules
         </Link>
       </View>
-      {/* The following is the entire middle section*/}
+      {/*<Image
+        source={require('../assets/images/Oval2.png')}
+      />
+  */}
+  
+
       <View style={styles.middle}>
         {/* The following is the welcome message on left */}
         <View style={styles.left}>
           <Text style={styles.welcome}>Welcome!</Text>
           <Text style={styles.prepare}>Prepare for learning that EVERYONE will enjoy.</Text>
         </View>
-        {/* The following is the right side of the middle section */}
         <View style={styles.outer}>
-          {/* The following is the white sign in box */}
           <View style={styles.sign}>
             <Text style={styles.signHeader}>Sign in</Text>
-            {/* The following is google, apple, and facebook buttons */}
+
             <TouchableOpacity
               style={styles.googleButton}
               onPress={onPressGoogleSignIn}
             >
               <Text style={styles.signInText}>Sign in with Google</Text>
             </TouchableOpacity>
-
+            <TouchableOpacity
+              style={styles.faceBookButton}
+              onPress={onPressFacebookSignIn}
+            >
+              <Text style={styles.signInText}>Sign in with Facebook</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.appleButton}
+              onPress={onPressAppleSignIn}
+            >
+              <Text style={styles.signInText}>Sign in with Apple</Text>
+            </TouchableOpacity>
             <Text style={styles.or}>
                 --------------------- OR ---------------------
             </Text>
-
-            {/* The following is the user input sections for email and password */}
-            <Text style={styles.emailText} >
+            <Text style={styles.emailText}>
               Email
             </Text>
             <TextInput
               style={styles.input}
               onChangeText={onChangeText}
-              value={ text }
+              value={text}
               placeholder="Enter your email"
               placeholderTextColor={"#BEBEBE"}
-              onSubmitEditing={onPressSignIn}
             />
             <Text style={styles.emailText}>
               Password
@@ -187,33 +91,38 @@ const [password, onChangePassword] = useState('');
               placeholder="Enter your password"
               secureTextEntry={passwordVisible}
               placeholderTextColor={"#BEBEBE"}
-              onSubmitEditing={onPressSignIn}
             />
-            <Pressable style={{ position: 'absolute', top: 240, right: 20, paddingTop:4,}} onPress={() => setPasswordVisible(!passwordVisible)}>
-              <Text><Ionicons name="eye" size={25} color="black" /> {/* The eye emoji in the password section */}</Text>
+            <Pressable style={{ position: 'absolute', top: 320, right: 20}} onPress={() => setPasswordVisible(!passwordVisible)}>
+              <Ionicons name="checkmark-circle" size={32} color="green" />
             </Pressable>
-          
-            {/* The following is the sign in button */}
-            <View style={styles.whitespace}/>
+            <View style={styles.past}>
+              <View style={styles.remember}>
+                <Checkbox
+                  value={isChecked}
+                  onValueChange={setChecked}
+                  color={isChecked ? '#4630EB' : undefined}
+                >
+                </Checkbox>
+                <Text style={styles.emailText}>
+                   Remember me
+                </Text>
+              </View>
+              <Text style={styles.signLinkText}>
+                Forgot password?
+              </Text>
+            </View>
             <TouchableOpacity
               style={styles.signInButton}
               onPress={onPressSignIn}
             >
-              <Text style={styles.signInButtonText}>Sign In</Text>
+              <Text style={styles.signInButton}>Sign In</Text>
             </TouchableOpacity>
-            {/* The following a link to the sign up page */}
-            <View style={styles.signUp}>
-              <Text style={styles.signUpText}>
-                Don't have an account? 
-              </Text>
-              <Link href='/signUp' style={styles.signUpButton}>
-                Sign Up
-              </Link>
-            </View>
+            <Text style={styles.signUpText}>
+              Don't have an account?
+            </Text>
           </View>
         </View>
       </View>
-      {/* The following is a link to the student page (where students enter a PIN) */}
       <Link href="/slogin" style={styles.studentLink}>
               Are you a student? Join a game here!
             </Link>
@@ -221,7 +130,6 @@ const [password, onChangePassword] = useState('');
   );
 }
 
-{/* The following is the styles used for this page */}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -245,6 +153,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     width: "100%",
+    paddingBottom: 80,
     paddingRight: 30,
     alignItems: "center",
   },
@@ -276,11 +185,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#4E85EBFF",
     alignItems: "center",
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 10,
     borderRadius: 6,
     padding: 5,
     borderWidth: 5,
     borderColor: "#4E85EBFF",
+  },
+  faceBookButton: {
+    backgroundColor: "#455EA9FF",
+    alignItems: "center",
+    marginBottom: 10,
+    borderRadius: 6,
+    padding: 5,
+    borderWidth: 5,
+    borderColor: "#455EA9FF",
+  },
+  appleButton: {
+    backgroundColor: "#171A1FFF",
+    alignItems: "center",
+    marginBottom: 10,
+    borderRadius: 6,
+    padding: 5,
+    borderWidth: 5,
+    borderColor: "#171A1FFF",
   },
   or: {
     alignSelf: 'center',
@@ -302,17 +229,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 5,
     color: 'white',
-  },
-  signInButtonText: {
-    color: 'white',
-    padding: 5,
+    
   },
   welcome: {
     alignSelf: 'center',
     color: '#EFB034FF',
     fontSize: 100,
     fontWeight: "600",
-    paddingRight: 150,
   },
   prepare: {
     alignSelf: 'center',
@@ -330,13 +253,12 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 25,
     fontWeight: "600",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   emailText: {
     color: 'Black',
     fontSize: 12,
     fontWeight: "700",
-    paddingLeft: 2,
   },
   inputText: {
     color: "red",
@@ -354,45 +276,16 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 25,
     fontSize: 10,
-    paddingRight: 3,
+  },
+  remember: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   studentLink: { //For navigationg to Student Login
     alignSelf: "center",
-    bottom: 5, //formerly 30; this matches link height in slogin page
+    bottom: 30, 
     color: "#fff",
     fontSize: 16,
     textDecorationLine: "underline",
   },
-  signUp: {
-    flexDirection: 'row',
-  },
-  signUpButton: {
-    alignSelf: 'center',
-    marginTop: 25,
-    fontSize: 10,
-    paddingRight: 3,
-    color: '#636AE8FF',
-  },
-  blueOval: {
-    position: "fixed",
-    top: -250,
-    left: '20%',
-    //resizeMode: "contain",
-  },
-  yellowOval: {
-    position: "fixed",
-    bottom: 150,
-    left: -50,
-    //resizeMode: "contain",
-  },
-  pinkRectangle: {
-    position: "fixed",
-    right: 200,
-    bottom: 450,
-    //resizeMode: "contain",
-  },
-  whitespace: {
-    height: 90, //formerly 200; this is all in one screen/cleaner
-  }
 });
-
