@@ -22,9 +22,10 @@ export default function DecksScreen() {
         <TouchableOpacity style={[styles.deckButton, styles.editButton]}>
         <Text style={{ color: "#fff" }}>Edit Deck</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.deckButton, styles.hostButton]}>
-        <Text style={{ color: "#fff" }}>Host Deck</Text>
-        </TouchableOpacity>
+        <Link href="/teacherwaiting" style={[styles.deckButton, styles.hostButton]}>
+          <Text style={styles.buttonText}>Host Deck</Text>
+        </Link>
+
     </View>
     </View>
   );
@@ -103,12 +104,14 @@ const styles = StyleSheet.create({
   },
   
   deckButton: {
-    flex: 1, // makes buttons take equal space
+    flex: 1,
     backgroundColor: "#4B0082",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
-    marginHorizontal: 3, // adds space between buttons
+    justifyContent: "center", // Ensures text is centered vertically
+    textAlign: "center", // Helps center text within the button
+    marginHorizontal: 3,
   },
   
   deckTitle: {
@@ -136,7 +139,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
   },
 });
 
