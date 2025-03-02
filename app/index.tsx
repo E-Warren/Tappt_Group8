@@ -1,5 +1,6 @@
 import { Text, View, StyleSheet } from "react-native";
 import { Link } from 'expo-router';
+import 'react-native-reanimated';
 
 export default function Index() {
   return (
@@ -10,6 +11,12 @@ export default function Index() {
       </Link>
       <Link href={"/slogin"} style={styles.button}>
         Go to student login screen
+      </Link>
+      <Link href={"/createdecks"} style={styles.button}>
+        Go to create decks screen
+      </Link>
+      <Link href={"/view-decks"} style={styles.button}>
+        Go to view decks screen 
       </Link>
     </View>
   );
@@ -31,3 +38,4 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
+
