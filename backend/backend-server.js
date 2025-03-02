@@ -47,7 +47,7 @@ app.get("/login", (req, res) => {
 //------------------------LOGIN WORK-------------------------------
 
 //root route to avoid "Cannot GET /" in backend terminal
-app.get("/", (req, res) => {
+app.get("/", (req, res) => { 
     res.send("Server is running!");
 });
 
@@ -541,6 +541,34 @@ app.delete("/decks/:deckID/:questionID/:answerID", async (req, res) => {
         res.status(500).json(error)
     }
 })
+
+app.post("/room", async (req, res) => {
+    try {
+        console.log("Creating a room!");
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let roomCode = "";
+
+        for (let i = 0; i < 6; i++) {
+            roomCode += chars[Math.floor(Math.random() * chars.length)];
+        }
+        console.log("Room code", roomCode);
+        const name = req.body.name;
+
+        // NEW ---------- TEST THIS
+        const createRoomQuery = `INSERT INTO room_students.tbl_room (name, fld_room_code, type)
+        VALUES 
+        ($1, $2, 'host');`;
+
+        await pool.query(createRoomQuery, [name, roomCode]);
+        console.log("Cool beans it works!");
+
+        res.send(roomCode);
+    }
+
+    catch(err) {
+        res.status(500).json(err)
+    }
+});
 
 
 
