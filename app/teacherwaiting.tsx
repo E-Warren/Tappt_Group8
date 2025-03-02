@@ -3,8 +3,10 @@ import { View, Text, FlatList, Animated, StyleSheet, Dimensions } from "react-na
 import { Link } from "expo-router";
 
 const { height, width } = Dimensions.get("window");
-const NUM_COLUMNS = 6; // Fixed number of columns
+const NUM_COLUMNS = 4; // Fixed number of columns
 const PLAYER_BOX_WIDTH = width / NUM_COLUMNS - 10; // Ensure fixed-size columns
+const PLAYER_CAP = 100; // Maximum number of players allowed
+
 
 export default function WaitingRoom() {
   const [players, setPlayers] = useState([
@@ -14,29 +16,44 @@ export default function WaitingRoom() {
   ]);
   const [lastAddedId, setLastAddedId] = useState(null);
 
-  const addNewPlayer = () => {
-    const newPlayer = {
-      id: Date.now(),
-      name: `Player ${players.length + 1}`,
-    };
-    setPlayers((prevPlayers) => [...prevPlayers, newPlayer]);
-    setLastAddedId(newPlayer.id);
-  };
+  useEffect(() => { //This currently adds a name player ever 2 seconds, but will be changed to add a player when a user joins the room
+    if (players.length >= PLAYER_CAP) return; // Stop adding when cap is reached, this space can be used to continuously check for new users until the cap is reached
 
-  useEffect(() => {
-    const interval = setInterval(addNewPlayer, 2000);
+    const interval = setInterval(() => {
+      setPlayers((prevPlayers) => {
+        if (prevPlayers.length >= PLAYER_CAP) {
+          clearInterval(interval);
+          return prevPlayers;
+        }
+
+        const lastPlayerId = prevPlayers.length > 0 ? prevPlayers[prevPlayers.length - 1].id : 0;
+        const newPlayer = {
+          id: lastPlayerId + 1,
+          name: `Player ${prevPlayers.length + 1}`,
+        };
+
+        setLastAddedId(newPlayer.id); 
+        return [...prevPlayers, newPlayer];
+      });
+    }, 2000);
+
     return () => clearInterval(interval);
-  }, [players]);
+  }, [players.length]);
 
   return (
     <View style={styles.container}>
-      {/* Fixed Room Code Box at the top */}
+      {/* Back Button */}
+      <Link href="/view-decks" style={styles.backButton}>
+        <Text style={styles.backButtonText}>← Back</Text>
+      </Link>
+
+      {/* Room Code Box */}
       <View style={styles.roomCodeBox}>
         <Text style={styles.roomCode}>123456</Text>
         <Text style={styles.joinText}>Join with Game PIN!</Text>
       </View>
 
-      {/* Players List (Scrolls but does NOT cover the Game PIN) */}
+      {/* Players List */}
       <FlatList
         data={players}
         keyExtractor={(item) => item.id.toString()}
@@ -48,7 +65,7 @@ export default function WaitingRoom() {
         style={styles.playersList}
       />
 
-      {/* "Let's Go!" Button in the Bottom Right */}
+      {/* "Let's Go!" Button */}
       <Link href="/" style={styles.startButton}>
         <Text style={styles.startButtonText}>Let's Go!</Text>
       </Link>
@@ -56,7 +73,7 @@ export default function WaitingRoom() {
   );
 }
 
-// Animated Player Component
+// ✅ **Only Animate the Last Added Player**
 const AnimatedPlayer = ({ name, isNew }) => {
   const scaleAnim = useRef(new Animated.Value(isNew ? 0 : 1)).current;
 
@@ -82,6 +99,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#42A5F5",
     alignItems: "center",
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 20,
+    padding: 10,
+    borderRadius: 5,
+  },
+  backButtonText: {
+    fontSize: 20,
+    color: "#FFF",
+
   },
   roomCodeBox: {
     backgroundColor: "#1111CC",
@@ -113,17 +143,17 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   playerBox: {
-    width: PLAYER_BOX_WIDTH, // Fixed width
-    height: 60, // Fixed height
+    width: PLAYER_BOX_WIDTH,
+    height: 60,
     justifyContent: "center",
     alignItems: "center",
-    margin: 3, 
-    backgroundColor: "#42A5F5", 
+    margin: 3,
+    backgroundColor: "#42A5F5",
     borderWidth: 1,
     borderColor: "#42A5F5",
   },
   playerName: {
-    fontSize: 35,
+    fontSize: 30,
     fontWeight: "bold",
     color: "#fff",
     textAlign: "center",
