@@ -71,6 +71,11 @@ export default function LoginScreen() {
       return;
     }
 
+    if(text.length > 321){
+      alert("Email too long. Please ensure that email is at most 321 characters.")
+      return;
+    }
+
     try {
         const response = await fetch('http://localhost:5000/login', {
           method: 'POST',
