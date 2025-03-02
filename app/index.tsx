@@ -1,5 +1,6 @@
 import { Text, View, StyleSheet } from "react-native";
 import { Link } from 'expo-router';
+import 'react-native-reanimated';
 
 export default function Index() {
   return (
