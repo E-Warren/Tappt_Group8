@@ -570,7 +570,78 @@ app.post("/room", async (req, res) => {
     }
 });
 
+app.post("/student-join", async (req, res) => {
+    console.log("Inside my endpoint!!!!!!");
+    const generateName = () => {
+        const colors = [
+            "red",
+            "orange",
+            "yellow",
+            "green",
+            "blue",
+            "purple",
+            "pink",
+            "cyan",
+            "magenta",
+          ];
+          const animals = [
+            "dog",
+            "goose",
+            "lion",
+            "monkey",
+            "cat",
+            "elephant",
+            "butterfly",
+            "crow",
+            "frog",
+            "giraffe",
+            "horse",
+            "cheetah",
+          ];
+          const firstNumber = Math.floor(Math.random() * colors.length);
+          const firstName = colors[firstNumber];
+          const secondNumber = Math.floor(Math.random() * animals.length);
+          const secondName = animals[secondNumber];
+          return firstName + " " + secondName;
+          
+    }
 
+    try {
+
+        const roomCode = req.body.code;
+
+        const nameQuery = `SELECT name
+        FROM room_students.tbl_room
+        WHERE fld_room_code = $1;`;
+
+        const existingNames = await pool.query(nameQuery, [roomCode]);
+        console.log("The existing names: ", existingNames);
+        
+        let name = generateName();
+        while (existingNames.rows.some(row => row.name===name)){
+            name = generateName()
+        }
+    
+        console.log("The name is: ", name);
+
+        const studentJoinRoomQuery = `INSERT INTO room_students.tbl_room (name, fld_room_code, type)
+        VALUES 
+        ($1, $2, 'student');`;
+
+        await pool.query(studentJoinRoomQuery, [name, roomCode]);
+        console.log("Student joined the class!!!")
+
+        res.status(200).send();
+
+
+    }
+    catch(err) {
+        console.log("Error: ", err)
+        res.status(500).json(err)
+    }
+
+
+});
 
 
 //running server
