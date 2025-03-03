@@ -46,13 +46,73 @@ export default function CreateDeckScreen() {
     }
   };
 
-  const handleSaveDeck = () => { //save deck feature 
+  const handleSaveDeck = async () => { //save deck feature 
     if (!deckTitle.trim()) {
-      Alert.alert("Deck title is required.");
+      alert("Deck title is required.");
       return;
     }
+
+    //setting up character limits for deck titles
+    if (deckTitle.length > 128) {
+        alert("Deck title needs to be below 128 characters");
+        return;
+    }
+
+    //setting the character limits for deck questions and answers
+    for (let i = 0; i < questions.length; i++) {
+        if (questions[i].questionText.length < 1) {
+            alert(`Failed to save: Question ${i + 1} is empty.`);
+            return;
+        }
+        if (questions[i].questionText.length > 768) {
+            alert(`Failed to save: Question ${i + 1} exceeds the 1024 character limit.`);
+            return;
+        }
+        for (let j = 0; j < 4; j++) {
+            if (questions[i].answers[j].length < 1) {
+                alert(`Failed to save: Answer ${j + 1} of Question ${i + 1} is empty.`);
+                return;
+            }
+            if (questions[i].answers[j].length > 256) {
+                alert(`Failed to save: Answer ${j + 1} of Question ${i + 1} exceeds the 256 character limit.`);
+                return;
+            }
+        }
+    }
+
+    //if no other errors
     console.log("Deck Saved:", { deckTitle, questions });
-    Alert.alert("Deck saved successfully!");
+    alert("Deck saved successfully!");
+
+    //send deck to backend
+    try {
+        const response = await fetch('http://localhost:5000/createdecks', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Ensure cookies/sessions are sent
+          body: JSON.stringify({
+            deckTitle: deckTitle.trim(),
+            QnA: questions,
+          }),
+        });
+  
+        console.log("Response status:", response.status);
+  
+        const data = await response.json();
+        
+        if (response.ok) {
+          console.log("Successfully created deck:", data);
+        } else {
+          console.log("Cannot create deck:", data.message);
+          alert(data.message);
+        }
+        
+    } catch (error) {
+        console.log("Error during deck creation:", error);
+        alert("Server error, please try again later.");
+    }
   };
 
   return ( //includes back button to view decks page 

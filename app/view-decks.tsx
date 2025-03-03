@@ -1,17 +1,61 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import { Link } from "expo-router";
 
-// example decks 
-const decks = [
-  { id: "1", title: "Math Challenge", questions: 10 },
-  { id: "2", title: "History Trivia", questions: 15 },
-  { id: "3", title: "Science Quiz", questions: 12 },
-  { id: "4", title: "Geography Facts", questions: 8 },
-  { id: "5", title: "General Knowledge", questions: 20 },
-];
 
 export default function DecksScreen() {
+
+  //set empty state
+  const [decks, setDecks] = useState([]);
+
+  //useEffects limits the constant querying of the database
+  useEffect(() => {
+    const getDeck = async () => {
+        //get decks from backend
+        try {
+            const response = await fetch('http://localhost:5000/view-decks', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Ensure cookies/sessions are sent
+
+            });
+    
+            console.log("Response status:", response.status);
+    
+            const data = await response.json();
+            console.log(data);
+            
+            if (response.ok) {
+            console.log("Successfully got decks:", data);
+
+            //set up deck data from backend to be inserted into decks array
+            const insertDecks = data.map(deck => ({
+                id: deck.fld_deck_id_pk,
+                title: deck.fld_deck_name,
+                questions: deck.questioncount
+            }));
+
+            //insert into deck array
+            setDecks(insertDecks);
+
+            } else {
+            console.log("Cannot fetch decks:", data.message);
+            alert(data.message);
+            }
+            
+        } catch (error) {
+            console.log("Error during deck fetch:", error);
+            alert("Server error, please try again later.");
+        }
+    };
+
+    //run function now
+    getDeck();
+ }, []);
+
+
   // function created to render each deck card
   const renderDeck = ({ item }) => (
     <View style={styles.deckCard}>
@@ -25,7 +69,6 @@ export default function DecksScreen() {
         <Link href="/teacherwaiting" style={[styles.deckButton, styles.hostButton]}>
           <Text style={styles.buttonText}>Host Deck</Text>
         </Link>
-
     </View>
     </View>
   );
@@ -141,4 +184,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
