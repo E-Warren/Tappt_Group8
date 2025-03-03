@@ -133,22 +133,73 @@ app.post("/signup", async (req, res) => {
 
 
 //------------------------DECK WORK-------------------------------
+//creating decks
+app.post("/createdecks", async (req, res) => {
+    try {
+        const {deckTitle, QnA} = req.body
+ 
+        query =
+        `INSERT INTO card_decks.tbl_card_decks(fld_deck_name)
+         VALUES ($1)
+         RETURNING fld_deck_id_pk;
+        `
+        //inserting query into database
+        const deckID = await pool.query(query, [deckTitle])
+
+        console.log("Successful deck name insert: ", deckTitle, "deckID: ", deckID.rows[0].fld_deck_id_pk)
+
+        //for every question in deck, and for every answer in question, insert
+        for (q of QnA) {
+            query = 
+            `INSERT INTO card_decks.tbl_card_question(fld_deck_id_fk, fld_card_q)
+             VALUES($1, $2)
+             RETURNING fld_card_q_pk;
+            `
+            questionID  = await pool.query(query, [deckID.rows[0].fld_deck_id_pk, q.questionText])
+
+            console.log("successful insert question: ", q.questionText)
+
+            for (ans of q.answers) {
+                query =
+                `INSERT INTO card_decks.tbl_q_ans(fld_card_q_fk, fld_card_ans, fld_ans_correct)
+                 VALUES($1, $2, $3)
+                 RETURNING *;
+                `
+                //cannot add anything other than 'False' to question correctness for npw
+                insert_all  = await pool.query(query, [questionID.rows[0].fld_card_q_pk, ans, 'FALSE'])
+                console.log("Inserted answer:", ans, "questionID:", questionID.rows[0].fld_card_q_pk)
+            }
+        }
+
+        res.status(201).json({message: "Deck creation success!"})
+    }
+    //if failed to insert or really any error pops up
+    catch(error) {
+        console.log("Error during deck creation:", error)
+        res.status(500).json({message: "Server error, please try again later"})
+    }
+})
 
 
-//getting decks (without the cards)
-app.get("/decks", async (req, res) => {
+//getting decks
+app.get("/view-decks", async (req, res) => {
     try {
         //query for obtaining all decks and their descriptions
         const query = 
-        `SELECT fld_deck_name, fld_deck_desc 
-        FROM card_decks.tbl_card_decks;`
+        `SELECT fld_deck_id_pk, fld_deck_name, COUNT(*) AS questionCount
+         FROM card_decks.tbl_card_decks AS d INNER JOIN card_decks.tbl_card_question AS q
+			ON d.fld_deck_id_pk = q.fld_deck_id_fk
+         GROUP BY fld_deck_id_pk, fld_deck_name;`
 
         //wait for query to finalize
         const decks = await pool.query(query)
 
+        console.log(decks.rows)
+
         //send an 200 (OK) status as for success
         //return query in JSON format
-        res.status(201).json(decks)
+        
+        res.status(201).json(decks.rows)
     }
     //throw 500 error if any error occurred during or after querying
     catch(error) {
@@ -156,138 +207,8 @@ app.get("/decks", async (req, res) => {
     }
 })
 
-//getting card information on an individual deck
-app.get("/decks/:deckID", async (req, res) => {
-    try {
-        const {deckID} = req.params
 
-        //query to find all questions within a deck with their respective answers
-        const query =
-        `SELECT fld_card_q, fld_card_ans, fld_ans_correct
-        FROM card_decks.tbl_q_ans AS a INNER JOIN card_decks.tbl_card_question AS q
-	            ON a.fld_card_q_fk = q.fld_card_q_pk
-	            INNER JOIN card_decks.tbl_card_decks AS c
-		            ON c.fld_deck_id_pk = q.fld_deck_id_fk
-        WHERE fld_deck_id_pk = $1;`
-
-        //insert query into database
-        const deck_info = await pool.query(query, [deckID])
-
-        //throw 404 error (Data not found) if deck user is looking for is invalid
-        if (deck_info.rows.length < 1) {
-            res.status(404).json({Error: "Data Not Found"})
-        }
-        //else, return all cards within a deck
-        else {
-            res.status(201).json(deck_info)
-        }       
-
-    }
-    //if any error occurred during or after querying, return 500
-    catch(error) {
-        res.status(500).json(error)
-    }
-})
-
-//for creating deck names
-app.post("/create_deck", async (req, res) => {
-    try {
-        const {deck_name} = req.body
- 
-        //query
-        const query =
-        `INSERT INTO card_decks.tbl_card_decks(fld_deck_name)
-         VALUES ($1)
-         RETURNING *;
-        `
-        //inserting query into database
-        const deck_name_insert = await pool.query(query, [deck_name])
-
-        //if success, will insert and return with 201 code (successful insert)
-        res.status(201).json(deck_name_insert)
-    }
-    //if failed to insert or really any error pops up
-    catch(error) {
-        res.status(500).json(error)
-    }
-})
-
-//for creating questions to an associated deck
-app.post("/create_deck/:deckID", async (req, res) => {
-    try {
-        //obtaining url parameters and request body
-        const {deckID} = req.params
-        const {card_question} = req.body
-
-        //insertion query
-        const query =
-        `INSERT INTO card_decks.tbl_card_question(fld_deck_id_fk, fld_card_q)
-        VALUES ($1, $2)
-        RETURNING *;
-        `
-        //inserting deckID and question into a card
-        const deck_q_insert = await pool.query(query, [deckID, card_question])
-
-        //return 201 (success insert) if successful
-        res.status(201).json(deck_q_insert)
-
-    }
-    //catch errors if they occur
-    catch(error) {
-        res.status(500).json(error)
-    }
-})
-
-//for creating answers to question
-app.post("/create_deck/:deckID/:questionID", async (req, res) => {
-    try {
-        const {deckID, questionID} = req.params
-        const {answer, ifcorrect} = req.body
-
-        //checking to see if the deckID is valid (we don't want orphans in the database)
-        const valid_deckID_query =
-        `SELECT *
-        FROM card_decks.tbl_q_ans AS a INNER JOIN card_decks.tbl_card_question AS q
-	        ON a.fld_card_q_fk = q.fld_card_q_pk
-	        INNER JOIN card_decks.tbl_card_decks AS c
-		        ON c.fld_deck_id_pk = q.fld_deck_id_fk
-        WHERE fld_deck_id_pk = $1;`
-
-        //insert our query in here
-        const q_a_orphan = await pool.query(valid_deckID_query, [deckID])
-
-        //throw 404 error (Data not found) if deckID is invalid
-        if (q_a_orphan.rows.length < 1) {
-                    res.status(404).json({Error: "Data Not Found"})
-        }
-        //if the URL has a valid deckID, we shall continue
-        else {
-            //inserting answer info and questionID into database (attempting to anyway)
-            const insert_query =
-            `INSERT INTO card_decks.tbl_q_ans(fld_card_q_fk, fld_card_ans, fld_ans_correct)
-            VALUES ($1, $2, $3)
-            RETURNING *;
-            `
-            //implent the query
-            const q_a_insert = await pool.query(insert_query, [questionID, answer, ifcorrect])
-
-
-            //throw 404 error (Data not found) question and ans is invalid
-            if (q_a_insert.rows.length < 1) {
-                res.status(404).json({Error: "Data Not Found"})
-            }
-            else {
-                //return 201 (success insert) if successful
-                res.status(201).json(q_a_insert)
-            }
-        }
-    }
-    //catch errors if they occur
-    catch(error) {
-        res.status(500).json(error)
-    }
-})
-
+// -------------------- FOR FUTURE USE (we will need these) --------------------------- 
 //for updating the deck name
 app.put("/update_deck/:deckID", async (req, res) => {
     try {
