@@ -138,40 +138,55 @@ app.post("/createdecks", async (req, res) => {
     try {
         const {deckTitle, QnA} = req.body
  
+        //check if the deck name already exists in the database
         query =
-        `INSERT INTO card_decks.tbl_card_decks(fld_deck_name)
-         VALUES ($1)
-         RETURNING fld_deck_id_pk;
+        `SELECT *
+         FROM card_decks.tbl_card_decks
+         WHERE fld_deck_name = $1;
         `
-        //inserting query into database
-        const deckID = await pool.query(query, [deckTitle])
+        const checkDeckExists = await pool.query(query, [deckTitle])
 
-        console.log("Successful deck name insert: ", deckTitle, "deckID: ", deckID.rows[0].fld_deck_id_pk)
-
-        //for every question in deck, and for every answer in question, insert
-        for (q of QnA) {
-            query = 
-            `INSERT INTO card_decks.tbl_card_question(fld_deck_id_fk, fld_card_q)
-             VALUES($1, $2)
-             RETURNING fld_card_q_pk;
-            `
-            questionID  = await pool.query(query, [deckID.rows[0].fld_deck_id_pk, q.questionText])
-
-            console.log("successful insert question: ", q.questionText)
-
-            for (ans of q.answers) {
-                query =
-                `INSERT INTO card_decks.tbl_q_ans(fld_card_q_fk, fld_card_ans, fld_ans_correct)
-                 VALUES($1, $2, $3)
-                 RETURNING *;
-                `
-                //cannot add anything other than 'False' to question correctness for npw
-                insert_all  = await pool.query(query, [questionID.rows[0].fld_card_q_pk, ans, 'FALSE'])
-                console.log("Inserted answer:", ans, "questionID:", questionID.rows[0].fld_card_q_pk)
-            }
+        //if deck exists, return with message saying so
+        if (checkDeckExists.rowCount > 0) {
+            res.status(400).json({message: "Deck name already exists. Please enter new deck name."})
         }
+        //if deck doesn't exist, start saving deck into database
+        else {
+            query =
+            `INSERT INTO card_decks.tbl_card_decks(fld_deck_name)
+            VALUES ($1)
+            RETURNING fld_deck_id_pk;
+            `
+            //inserting query into database
+            const deckID = await pool.query(query, [deckTitle])
 
-        res.status(201).json({message: "Deck creation success!"})
+            console.log("Successful deck name insert: ", deckTitle, "deckID: ", deckID.rows[0].fld_deck_id_pk)
+
+            //for every question in deck, and for every answer in question, insert
+            for (q of QnA) {
+                query = 
+                `INSERT INTO card_decks.tbl_card_question(fld_deck_id_fk, fld_card_q)
+                VALUES($1, $2)
+                RETURNING fld_card_q_pk;
+                `
+                questionID  = await pool.query(query, [deckID.rows[0].fld_deck_id_pk, q.questionText])
+
+                console.log("successful insert question: ", q.questionText)
+
+                for (ans of q.answers) {
+                    query =
+                    `INSERT INTO card_decks.tbl_q_ans(fld_card_q_fk, fld_card_ans, fld_ans_correct)
+                    VALUES($1, $2, $3)
+                    RETURNING *;
+                    `
+                    //cannot add anything other than 'False' to question correctness for npw
+                    insert_all  = await pool.query(query, [questionID.rows[0].fld_card_q_pk, ans, 'FALSE'])
+                    console.log("Inserted answer:", ans, "questionID:", questionID.rows[0].fld_card_q_pk)
+                }
+            }
+
+            res.status(201).json({message: "Deck creation success!"})
+        }
     }
     //if failed to insert or really any error pops up
     catch(error) {
@@ -196,9 +211,8 @@ app.get("/view-decks", async (req, res) => {
 
         console.log(decks.rows)
 
-        //send an 200 (OK) status as for success
+        //send an 201 (OK) status as for success
         //return query in JSON format
-        
         res.status(201).json(decks.rows)
     }
     //throw 500 error if any error occurred during or after querying

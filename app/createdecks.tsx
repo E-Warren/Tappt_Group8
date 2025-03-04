@@ -54,7 +54,7 @@ export default function CreateDeckScreen() {
 
     //setting up character limits for deck titles
     if (deckTitle.length > 128) {
-        alert("Deck title needs to be below 128 characters");
+        alert("Deck title needs to be below 128 characters.");
         return;
     }
 
@@ -80,9 +80,6 @@ export default function CreateDeckScreen() {
         }
     }
 
-    //if no other errors
-    console.log("Deck Saved:", { deckTitle, questions });
-    alert("Deck saved successfully!");
 
     //send deck to backend
     try {
@@ -104,6 +101,7 @@ export default function CreateDeckScreen() {
         
         if (response.ok) {
           console.log("Successfully created deck:", data);
+          alert("Deck saved successfully!");
         } else {
           console.log("Cannot create deck:", data.message);
           alert(data.message);
