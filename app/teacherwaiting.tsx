@@ -14,7 +14,7 @@ export default function WaitingRoom() {
     { id: 2, name: "Bob" },
     { id: 3, name: "Charlie" },
   ]);
-  const [lastAddedId, setLastAddedId] = useState(null);
+  const [lastAddedId, setLastAddedId] = useState<number|null>(null);
 
   useEffect(() => { //This currently adds a name player ever 2 seconds, but will be changed to add a player when a user joins the room
     if (players.length >= PLAYER_CAP) return; // Stop adding when cap is reached, this space can be used to continuously check for new users until the cap is reached
@@ -74,7 +74,7 @@ export default function WaitingRoom() {
 }
 
 // ✅ **Only Animate the Last Added Player**
-const AnimatedPlayer = ({ name, isNew }) => {
+const AnimatedPlayer = ({ name, isNew }:{name:string; isNew:boolean}) => {
   const scaleAnim = useRef(new Animated.Value(isNew ? 0 : 1)).current;
 
   useEffect(() => {
