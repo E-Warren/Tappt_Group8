@@ -1,13 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, ScrollView, TouchableOpacity, StyleSheet, Image, Alert } from "react-native";
+import { View, Text, TextInput, ScrollView, StyleSheet, Alert } from "react-native";
 import { Button } from "react-native-paper";
-import * as ImagePicker from "expo-image-picker";
 import { Link } from "expo-router";
 
 interface Question { //question interface 
   questionText: string;
   answers: string[];
-  imageUri?: string;
 }
 
 export default function CreateDeckScreen() {
@@ -32,27 +30,70 @@ export default function CreateDeckScreen() {
     setQuestions(updated);
   };
 
-  const pickImage = async (index: number) => { //upload images to the question cards 
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      const updated = [...questions];
-      updated[index].imageUri = result.assets[0].uri;
-      setQuestions(updated);
-    }
-  };
-
-  const handleSaveDeck = () => { //save deck feature 
+  const handleSaveDeck = async () => { //save deck feature 
     if (!deckTitle.trim()) {
-      Alert.alert("Deck title is required.");
+      alert("Deck title is required.");
       return;
     }
-    console.log("Deck Saved:", { deckTitle, questions });
-    Alert.alert("Deck saved successfully!");
+
+    //setting up character limits for deck titles
+    if (deckTitle.length > 128) {
+        alert("Deck title needs to be below 128 characters.");
+        return;
+    }
+
+    //setting the character limits for deck questions and answers
+    for (let i = 0; i < questions.length; i++) {
+        if (questions[i].questionText.length < 1) {
+            alert(`Failed to save: Question ${i + 1} is empty.`);
+            return;
+        }
+        if (questions[i].questionText.length > 768) {
+            alert(`Failed to save: Question ${i + 1} exceeds the 1024 character limit.`);
+            return;
+        }
+        for (let j = 0; j < 4; j++) {
+            if (questions[i].answers[j].length < 1) {
+                alert(`Failed to save: Answer ${j + 1} of Question ${i + 1} is empty.`);
+                return;
+            }
+            if (questions[i].answers[j].length > 256) {
+                alert(`Failed to save: Answer ${j + 1} of Question ${i + 1} exceeds the 256 character limit.`);
+                return;
+            }
+        }
+    }
+
+    //send deck to backend
+    try {
+        const response = await fetch('http://localhost:5000/createdecks', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Ensure cookies/sessions are sent
+          body: JSON.stringify({
+            deckTitle: deckTitle.trim(),
+            QnA: questions,
+          }),
+        });
+  
+        console.log("Response status:", response.status);
+  
+        const data = await response.json();
+        
+        if (response.ok) {
+          console.log("Successfully created deck:", data);
+          alert("Deck saved successfully!");
+        } else {
+          console.log("Cannot create deck:", data.message);
+          alert(data.message);
+        }
+        
+    } catch (error) {
+        console.log("Error during deck creation:", error);
+        alert("Server error, please try again later.");
+    }
   };
 
   return ( //includes back button to view decks page 
@@ -78,13 +119,6 @@ export default function CreateDeckScreen() {
             value={q.questionText}
             onChangeText={(text) => updateQuestionText(qIndex, text)}
           />
-          <TouchableOpacity style={styles.imageUpload} onPress={() => pickImage(qIndex)}>
-            {q.imageUri ? (
-              <Image source={{ uri: q.imageUri }} style={styles.imagePreview} />
-            ) : (
-              <Text style={styles.uploadText}>Upload Image</Text>
-            )}
-          </TouchableOpacity>
           {q.answers.map((a, aIndex) => (
             <TextInput
               key={aIndex}
@@ -106,7 +140,7 @@ export default function CreateDeckScreen() {
   );
 }
 
-const styles = StyleSheet.create({ //style and formatting for create dekcs screen 
+const styles = StyleSheet.create({ //style and formatting for create decks screen 
   container: {
     padding: 20,
     backgroundColor: "#7F55E0FF",
@@ -153,22 +187,6 @@ const styles = StyleSheet.create({ //style and formatting for create dekcs scree
     borderBottomWidth: 1,
     borderColor: "#ccc",
   },
-  imageUpload: {
-    height: 120,
-    backgroundColor: "#e9e9e9",
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  imagePreview: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 8,
-  },
-  uploadText: {
-    color: "#666",
-  },
   answerInput: {
     borderBottomWidth: 1,
     borderColor: "#ddd",
@@ -183,3 +201,4 @@ const styles = StyleSheet.create({ //style and formatting for create dekcs scree
     backgroundColor: "#00B894",
   },
 });
+
