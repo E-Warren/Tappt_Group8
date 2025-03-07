@@ -28,21 +28,21 @@ export default function DecksScreen() {
             console.log(data);
             
             if (response.ok) {
-            console.log("Successfully got decks:", data);
+              console.log("Successfully got decks:", data);
 
-            //set up deck data from backend to be inserted into decks array
-            const insertDecks = data.map(deck => ({
-                id: deck.fld_deck_id_pk,
-                title: deck.fld_deck_name,
-                questions: deck.questioncount
-            }));
+              //set up deck data from backend to be inserted into decks array
+              const insertDecks = data.map(deck => ({
+                  id: deck.fld_deck_id_pk,
+                  title: deck.fld_deck_name,
+                  questions: deck.questioncount
+              }));
 
-            //insert into deck array
-            setDecks(insertDecks);
+              //insert into deck array
+              setDecks(insertDecks);
 
             } else {
-            console.log("Cannot fetch decks:", data.message);
-            alert(data.message);
+              console.log("Cannot fetch decks:", data.message);
+              alert(data.message);
             }
             
         } catch (error) {
@@ -63,9 +63,9 @@ export default function DecksScreen() {
       <Text style={styles.deckDetails}>{item.questions} Questions</Text>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.deckButton, styles.editButton]}>
+      <Link href={`/createdecks/${item.id}`} style={[styles.deckButton, styles.editButton]}>
         <Text style={{ color: "#fff" }}>Edit Deck</Text>
-        </TouchableOpacity>
+      </Link>
         <Link href="/teacherwaiting" style={[styles.deckButton, styles.hostButton]}>
           <Text style={styles.buttonText}>Host Deck</Text>
         </Link>
