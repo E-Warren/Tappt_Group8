@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, ScrollView, StyleSheet, Alert } from "react-native";
 import { Button } from "react-native-paper";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 
 interface Question { //question interface 
   questionText: string;
@@ -9,12 +9,14 @@ interface Question { //question interface
 }
 
 export default function CreateDeckScreen() {
+  const router = useRouter();
+
   const [deckTitle, setDeckTitle] = useState("");
   const [questions, setQuestions] = useState<Question[]>([
     { questionText: "", answers: ["", "", "", ""] },
   ]);
 
-  const addQuestion = () => { //add question feature 
+  const addQuestion = () => { //add question feature
     //to generate a lovely list of errors
     let badAns: string[] = [];
 
@@ -39,7 +41,7 @@ export default function CreateDeckScreen() {
 
     //check to see if there are any errors
     if (badAns.length != 0) {
-      //add error message to beginning or errors
+      //add error message to beginning of errors
       badAns.unshift("Cannot add new question:")
       alert(badAns.join("\n"));
       return;
@@ -122,6 +124,7 @@ export default function CreateDeckScreen() {
         if (response.ok) {
           console.log("Successfully created deck:", data);
           alert("Deck saved successfully!");
+          router.push("/view-decks");
         } else {
           console.log("Cannot create deck:", data.message);
           alert(data.message);
