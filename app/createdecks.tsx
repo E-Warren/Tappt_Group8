@@ -6,7 +6,6 @@ import { Link } from "expo-router";
 interface Question { //question interface 
   questionText: string;
   answers: string[];
-  imageUri?: string;
 }
 
 export default function CreateDeckScreen() {
