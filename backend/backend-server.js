@@ -196,7 +196,7 @@ app.post("/createdecks", async (req, res) => {
 })
 
 
-//getting decks
+//getting decks for /view-decks
 app.get("/view-decks", async (req, res) => {
     try {
         //query for obtaining all decks and their descriptions
@@ -218,6 +218,119 @@ app.get("/view-decks", async (req, res) => {
     //throw 500 error if any error occurred during or after querying
     catch(error) {
         res.status(500).json(error)
+    }
+})
+
+
+//getting a deck using an id for /createdecks/:id
+app.get("/createdecks/:id", async (req, res) => {
+    try {
+        //obtaining the deck ID
+        const {id} = req.params
+
+        //query for obtaining all decks and their descriptions
+        const query = 
+        `SELECT fld_deck_name, fld_card_q_pk, fld_card_q, fld_q_ans_pk, fld_card_ans
+         FROM card_decks.tbl_q_ans AS a INNER JOIN card_decks.tbl_card_question AS q
+	        ON a.fld_card_q_fk = q.fld_card_q_pk
+	        INNER JOIN card_decks.tbl_card_decks AS c
+		        ON c.fld_deck_id_pk = q.fld_deck_id_fk
+         WHERE fld_deck_id_pk = $1;`
+
+        //wait for query to finalize
+        const decks = await pool.query(query, [id])
+
+        console.log(decks.rows)
+
+        //if deck key doesn't exist -> only happens if you messed with the URL
+        //return 404 error
+        if (decks.rowCount == 0) {
+            res.status(404).json({Error: "Deck does not exist: Invalid deck key."})
+            return
+        }
+        else {
+            //send an 201 (OK) status as for success
+            //return query in JSON format
+            res.status(201).json(decks.rows)
+        }
+    }
+    //throw 500 error if any error occurred during or after querying
+    catch(error) {
+        res.status(500).json(error)
+    }
+})
+
+
+//saving pre-established decks
+app.put("/createdecks/:id", async (req, res) => {
+    try {
+        const {id} = req.params
+        const {deckTitle, QnA} = req.body
+ 
+        //check if the deck name already exists in the database
+        query =
+        `SELECT *
+         FROM card_decks.tbl_card_decks
+         WHERE fld_deck_name = $1 AND fld_deck_id_pk != $2;
+        `
+        const checkDeckExists = await pool.query(query, [deckTitle, id])
+
+        //if deck exists, return with message saying so
+        if (checkDeckExists.rowCount > 0) {
+            res.status(400).json({message: "Another deck has the same name. Please enter new deck name."})
+        }
+
+        //if deck doesn't exist, start saving deck into database
+        else {
+            query =
+            `UPDATE card_decks.tbl_card_decks
+             SET fld_deck_name = $1
+             WHERE fld_deck_id_pk = $2
+             RETURNING *;
+            `
+            //inserting query into database
+            const deckID = await pool.query(query, [deckTitle, id])
+
+            console.log("Successful deck name update: ", deckTitle, "deckID: ", id)
+
+            //deleting all questions and answers so new ones can be inputted
+            query = 
+            `DELETE FROM card_decks.tbl_card_question
+             WHERE fld_deck_id_fk = $1;
+             `
+            await pool.query(query, [id])
+            console.log("successful deletion.");
+
+            //for every question in deck, and for every answer in question, insert
+            for (q of QnA) {
+                query = 
+                `INSERT INTO card_decks.tbl_card_question(fld_deck_id_fk, fld_card_q)
+                VALUES($1, $2)
+                RETURNING fld_card_q_pk;
+                `
+                questionID  = await pool.query(query, [id, q.questionText])
+
+                console.log("successful insert question: ", q.questionText)
+
+                for (ans of q.answers) {
+                    query =
+                    `INSERT INTO card_decks.tbl_q_ans(fld_card_q_fk, fld_card_ans, fld_ans_correct)
+                    VALUES($1, $2, $3)
+                    RETURNING *;
+                    `
+                    //cannot add anything other than 'False' to question correctness for npw
+                    insert_all  = await pool.query(query, [questionID.rows[0].fld_card_q_pk, ans, 'FALSE'])
+                    console.log("Inserted answer:", ans, "questionID:", questionID.rows[0].fld_card_q_pk)
+                }
+            }
+
+            res.status(201).json({message: "Deck update was a success!"})
+        }
+    }
+    //if failed to insert or really any error pops up
+    catch(error) {
+        console.log("Error during deck creation:", error)
+        res.status(500).json({message: "Server error, please try again later"})
     }
 })
 
