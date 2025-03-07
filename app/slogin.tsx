@@ -15,6 +15,18 @@ export default function GamePinScreen() { // Function used to get pin from User
       console.log("Entered PIN:", pin);
       Keyboard.dismiss(); // ignored keyboard input after sending pin to console
       // Navigate or send the PIN to API
+
+      const webSocket = new WebSocket('ws://localhost:8082/join');
+      webSocket.onopen = () => {
+        const finalName = JSON.stringify({
+          type: 'join',
+          data: {code: pin}
+        })
+        webSocket.send(finalName);
+        webSocket.onmessage = (e:any) => {
+          console.log(e);
+        }
+      } 
     }
   };
 

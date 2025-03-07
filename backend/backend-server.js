@@ -477,7 +477,7 @@ app.post("/room", async (req, res) => {
   }
 });
 
-app.post("/student-join", async (req, res) => {
+const joinRoom = async (data) => {
   console.log("Inside my endpoint!!!!!!");
   const generateName = () => {
     const colors = [
@@ -513,7 +513,7 @@ app.post("/student-join", async (req, res) => {
   };
 
   try {
-    const roomCode = req.body.code;
+    const roomCode = data.code;
 
     const nameQuery = `SELECT name
         FROM room_students.tbl_room
@@ -536,17 +536,21 @@ app.post("/student-join", async (req, res) => {
     await pool.query(studentJoinRoomQuery, [name, roomCode]);
     console.log("Student joined the class!!!");
 
-    res.status(200).send();
+    return name;
   } catch (err) {
     console.log("Error: ", err);
-    res.status(500).json(err);
+    return 'failed';
   }
-});
+};
 
 app.ws('/join', function(ws, req) {
-    ws.on('message', function(msg) {
+    ws.on('message', async function(msg) {
       console.log(msg);
-      ws.send("Testing out websockets is so terrible!");
+      const userMessage = JSON.parse(msg);
+      if (userMessage.type === 'join'){
+        const returnedName = await joinRoom(userMessage.data);
+        ws.send(returnedName);
+      }
     });
 
     ws.on('close', () => {
