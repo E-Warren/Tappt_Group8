@@ -8,6 +8,7 @@ Server dependencies: Express.js, cors
 - Installation: 
   + type "npm i express" into the terminal for express
   + type "npm i cors" for cors
+  + npm install body-parser (Only for google login)
 
 Running server with database connection:
 - type "npm init -y"
