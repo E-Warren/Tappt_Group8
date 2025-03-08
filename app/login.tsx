@@ -5,26 +5,82 @@ import Checkbox from 'expo-checkbox';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {useRouter} from 'expo-router'
 import * as Google from 'expo-auth-session/providers/google';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as WebBrowser from "expo-web-browser"
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: "871617226030-iuse6u2osodim6ru0b7mg6eufrdmp125.apps.googleusercontent.com", // client ID
+    clientId:"871617226030-iuse6u2osodim6ru0b7mg6eufrdmp125.apps.googleusercontent.com",
   });
 
-  
-  const onPressGoogleSignIn = () => {
-    console.log("Google sign in pressed");
-    promptAsync();
+  const [userInfo, setUserInfo] = useState(null);
+
+  const onPressGoogleSignIn = async () => {
+    const user = await AsyncStorage.getItem("user");
+    if (!user) {
+      if (response?.type === "success") {
+
+        await getUserInfo (response.authentication?.accessToken!);
+      }
+    } else {
+      setUserInfo(JSON.parse(user));
+    }
   };
 
-  useEffect(()=> {
-    if (response?.type === "success"){
-      console.log ("Google Login Success:", response);
-      router.push("/"); // Go back to index page for now It was not connected db yet
+  const getUserInfo = async (token : string ) => {
+    if (!token) return;
+    try {
+      const response = await fetch("https://www.googleapis.com/oauth2/v3/userinfo",
+      {
+        headers: {Authorization: `Bearer ${token}`},
+        }
+      );
+      const userInfoReponse = await response.json();
+      
+
+      await AsyncStorage.setItem("user",JSON.stringify(userInfoReponse));
+      setUserInfo(userInfoReponse);
+
+      await sendEmailToServer(userInfoReponse.email);
+      router.push("/view-decks"); 
+    } catch (e) {
+      console.log(e);
     }
-  })
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("user");
+    setUserInfo(null);
+  };
+
+  const sendEmailToServer = async (email: string) => {
+    try {
+      const response = await fetch("http://localhost:5000/google-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+        }),
+      });
+      const data = await response.json();
+      console.log("Server response:", data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  
+
+  useEffect (() => {
+    onPressGoogleSignIn();
+  } ,[response]);
+
+
 
   //declaring/defining helper fxns used in main native login fxn
   const isValidEmail = (email) => {
@@ -159,13 +215,14 @@ const [password, onChangePassword] = useState('');
           <View style={styles.sign}>
             <Text style={styles.signHeader}>Sign in</Text>
             {/* The following is google, apple, and facebook buttons */}
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={onPressGoogleSignIn}
-            >
+            <TouchableOpacity style={styles.googleButton} onPress={()=> promptAsync()}>
               <Text style={styles.signInText}>Sign in with Google</Text>
             </TouchableOpacity>
-
+            {userInfo && (
+        <Text style={{ marginTop: 20 }}>
+          Login success!
+          <Text>{JSON.stringify(userInfo, null, 2)}</Text>
+        </Text>)}
             <Text style={styles.or}>
                 --------------------- OR ---------------------
             </Text>
@@ -222,6 +279,12 @@ const [password, onChangePassword] = useState('');
       <Link href="/slogin" style={styles.studentLink}>
               Are you a student? Join a game here!
             </Link>
+      {/* Logout button at the bottom right */}
+      <TouchableOpacity
+      style={styles.logoutButton}
+      onPress={handleLogout}>
+  <Text style={styles.logoutButtonText}>Logout</Text>
+</TouchableOpacity>
     </View>
   );
 }
@@ -398,6 +461,18 @@ const styles = StyleSheet.create({
   },
   whitespace: {
     height: 90, //formerly 200; this is all in one screen/cleaner
-  }
+  },
+  logoutButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#FF4B4B',
+    padding: 10,
+    borderRadius: 6,
+  },
+  logoutButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
 });
 
