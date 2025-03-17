@@ -22,6 +22,9 @@ app.use(express.urlencoded({extended: false}))
 //to permit incoming data from frontend
 const cors = require("cors")
 
+//bring email from temp for google login
+const bodyParser = require("body-parser");
+
 app.use(cors({
     origin: 'http://localhost:8081',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -126,6 +129,45 @@ app.post("/signup", async (req, res) => {
 
     } catch (error) {
         console.error("Error during sign-up:", error);
+        res.status(500).json({ message: "Server error, please try again later" });
+    }
+});
+
+//-------------------GOOGLE LOGIN -----------------------------------
+app.use(bodyParser.json());
+
+app.post("/google-login", async (req, res) => {
+    console.log("google-login route hit!");
+    const { email } = req.body;
+    console.log("google-login with:", email);
+
+    try {
+
+        const isEmailAvailable = `
+        SELECT fld_login_email 
+        FROM google_login.tbl_google_users
+        WHERE fld_login_email = $1;`;
+        
+        const result1 = await pool.query(isEmailAvailable, [email]);
+        
+        if (result1.rowCount > 0) {
+
+            console.log("Email already exists, logging in...");
+            return res.status(200).json({ message: "Login success", email });
+        } else {
+
+            const addUser = 
+            `INSERT INTO google_login.tbl_google_users (fld_login_email) 
+            VALUES ($1);`;
+
+            await pool.query(addUser, [email]);
+
+            console.log("New user created:", email);
+            return res.status(201).json({ message: "Google sign-up success", email });
+        }
+
+    } catch (error) {
+        console.error("Error during Google login/sign-up:", error);
         res.status(500).json({ message: "Server error, please try again later" });
     }
 });
