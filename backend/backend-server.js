@@ -451,19 +451,19 @@ app.delete("/decks/:deckID/:questionID/:answerID", async (req, res) => {
   }
 });
 
-app.post("/room", async (req, res) => {
+const hostRoom = async () => { //function to generate a host room code
   try {
     console.log("Creating a room!");
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; //character options for the room
     let roomCode = "";
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i++) { //will randomly get 6 characters
       roomCode += chars[Math.floor(Math.random() * chars.length)];
     }
     console.log("Room code", roomCode);
-    const name = req.body.name;
+    const name = "teacher";
 
-    // NEW ---------- TEST THIS
+    //will add the teacher to the database
     const createRoomQuery = `INSERT INTO room_students.tbl_room (name, fld_room_code, type)
         VALUES 
         ($1, $2, 'host');`;
@@ -471,15 +471,17 @@ app.post("/room", async (req, res) => {
     await pool.query(createRoomQuery, [name, roomCode]);
     console.log("Cool beans it works!");
 
-    res.send(roomCode);
+    return roomCode; //returns the generated room code
   } catch (err) {
-    res.status(500).json(err);
+    console.log("It failed :(");
+    return "failed";
   }
-});
+};
 
-const joinRoom = async (data) => {
+const joinRoom = async (data) => { //function to create the student name
   console.log("Inside my endpoint!!!!!!");
   const generateName = () => {
+    //colors and animals used to generate the name
     const colors = [
       "red",
       "orange",
@@ -505,6 +507,7 @@ const joinRoom = async (data) => {
       "horse",
       "cheetah",
     ];
+    //gets the color and the animal and combines them to form the name
     const firstNumber = Math.floor(Math.random() * colors.length);
     const firstName = colors[firstNumber];
     const secondNumber = Math.floor(Math.random() * animals.length);
@@ -513,22 +516,24 @@ const joinRoom = async (data) => {
   };
 
   try {
-    const roomCode = data.code;
+    const roomCode = data.code; //stores the room code
 
+    //finds the current names in the room (used to make sure there are not students with the same name)
     const nameQuery = `SELECT name
         FROM room_students.tbl_room
         WHERE fld_room_code = $1;`;
 
-    const existingNames = await pool.query(nameQuery, [roomCode]);
+    const existingNames = await pool.query(nameQuery, [roomCode]); //get a list of the existing names in the room
     console.log("The existing names: ", existingNames);
 
     let name = generateName();
-    while (existingNames.rows.some((row) => row.name === name)) {
+    while (existingNames.rows.some((row) => row.name === name)) { //if the name matches one already in the room it will generate a new one
       name = generateName();
     }
 
     console.log("The name is: ", name);
 
+    //add the student to the database
     const studentJoinRoomQuery = `INSERT INTO room_students.tbl_room (name, fld_room_code, type)
         VALUES 
         ($1, $2, 'student');`;
@@ -536,30 +541,92 @@ const joinRoom = async (data) => {
     await pool.query(studentJoinRoomQuery, [name, roomCode]);
     console.log("Student joined the class!!!");
 
-    return name;
+    return name; //returns the student's name
   } catch (err) {
     console.log("Error: ", err);
     return 'failed';
   }
 };
+ 
+const games = []; //stores all of the games
+const websockets = []; //stores the websocket connections
 
 app.ws('/join', function(ws, req) {
-    ws.on('message', async function(msg) {
+  websockets.push(ws); //adds connection to array
+  
+    ws.on('message', async function(msg) { //get the message
       console.log(msg);
       const userMessage = JSON.parse(msg);
-      if (userMessage.type === 'join'){
-        const returnedName = await joinRoom(userMessage.data);
-        ws.send(returnedName);
+
+      if (userMessage.type === 'join'){ //called when a student joins the room
+        const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
+        ws.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
+        const findGame = games.find((gameID) => gameID.roomCode === userMessage.data.code); //check if the game exists (if there is a host)
+        if (findGame !== undefined){ //if game exists
+          findGame.students.push({ //add student to the game
+            playerName: returnedName,
+          });
+          const listOfStudents = []; //stores the list of students in the game
+          findGame.students.forEach((student) => listOfStudents.push(student.playerName)); //will add the new student to the current list of students
+
+          
+          websockets.forEach((websocket) => { //will update the students in the game (sends to each websocket)
+            websocket.send(JSON.stringify({
+              type: "studentsInGame",
+              data: listOfStudents
+            }));
+          })
+          
+        } else {
+          console.log("Error: the game could not be found (no host yet)");
+        }
       }
+
+      if (userMessage.type === "host"){ //called when the teacher hits host deck
+        const returnedRoom = await hostRoom(); //will randomly generate a room code
+        console.log("Teacher connected");
+        games.push({ //adds the room code and creates an empty array of students
+          roomCode: returnedRoom,
+          students: []
+        });
+        
+        console.log("Returning the room code: ", returnedRoom);
+
+        ws.send(JSON.stringify({ //sends the room code to zustand
+          type: "generatedRoomCode",
+          data: returnedRoom,
+        }))
+
+      }
+
     });
 
     ws.on('close', () => {
-        // Remove client from the channel
-        channels[channel] = channels[channel].filter((client) => client !== ws);
+        
       });
   });
 
-  
+  app.post("/validRoomCode", async (req, res) => { //used to check if the room code is valid (the students side on front-end)
+    const roomCode = req.body.code; //gets the entered room code
+    try{
+        console.log("Checking if room code is valid");
+        //will check if the room code is stored in the database
+        const checkRoomCode = `SELECT fld_room_code 
+        FROM room_students.tbl_room
+        WHERE fld_room_code = $1;`;
+
+        const checkRoomExists = await pool.query(checkRoomCode, [roomCode]);
+        console.log(checkRoomExists);
+        if (checkRoomExists.rowCount > 0){ //if there is at least 1 row, that means the room exists
+            return res.status(200).json("Room exists!");
+        } else {
+            return res.status(404).json("Room not found");
+        }
+
+    } catch (err){
+        res.status(500).json(err)
+    }
+  });
 
 //running server
 app.listen(port, (error) => {

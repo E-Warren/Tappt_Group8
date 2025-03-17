@@ -1,32 +1,64 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Keyboard } from "react-native";
-import { Link } from "expo-router"; 
+import { Link, router } from "expo-router"; 
+import { useStudentStore } from './useWebSocketStore'
+import { WebSocketService } from "./webSocketService";
 
 export default function GamePinScreen() { // Function used to get pin from User
   const [pin, setPin] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState(false); 
+  const {name} = useStudentStore(state => state); //get the saved name from zustand
+  useEffect (() => {
+    if (name !== ""){ //ensures the student has a name and sends them to the waiting page
+      router.push("/studentWaiting");
+    }
+  }, [name]);
 
-  const handleEnter = () => {
+
+  console.log("The name is: ", name);
+
+  const handleEnter = async () => {
     if (pin.trim().length !== 6) {  // Require a 6-digit PIN
       setError(true);
       setPin(""); // Clear input on error
     } else {
+
       setError(false);
       console.log("Entered PIN:", pin);
       Keyboard.dismiss(); // ignored keyboard input after sending pin to console
       // Navigate or send the PIN to API
 
-      const webSocket = new WebSocket('ws://localhost:8082/join');
-      webSocket.onopen = () => {
-        const finalName = JSON.stringify({
-          type: 'join',
-          data: {code: pin}
-        })
-        webSocket.send(finalName);
-        webSocket.onmessage = (e:any) => {
-          console.log(e);
+      try{
+        //call the backent endpoint to determine if the entered code is a valid code (meaning there is already a host)
+        const response = await fetch('http://localhost:8082/validRoomCode', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: pin,
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok){
+          //create the student's websocket connection
+          await WebSocketService.createWebSocket();
+          console.log("Created :)");
+          //Call the backend message event "join" to add the student to the room
+          WebSocketService.sendMessage(JSON.stringify({
+            type: 'join',
+            data: {code: pin}
+          }))
+        } else {
+          console.log("Could not join the room", data.message);
+          alert("Was not able to join the room");
         }
-      } 
+      } catch (err) {
+        console.log("Error when student entered game pin", err);
+        alert("Could not join that room");
+      }
     }
   };
 
