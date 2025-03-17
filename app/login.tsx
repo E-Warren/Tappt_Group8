@@ -218,11 +218,6 @@ const [password, onChangePassword] = useState('');
             <TouchableOpacity style={styles.googleButton} onPress={()=> promptAsync()}>
               <Text style={styles.signInText}>Sign in with Google</Text>
             </TouchableOpacity>
-            {userInfo && (
-        <Text style={{ marginTop: 20 }}>
-          Login success!
-          <Text>{JSON.stringify(userInfo, null, 2)}</Text>
-        </Text>)}
             <Text style={styles.or}>
                 --------------------- OR ---------------------
             </Text>
