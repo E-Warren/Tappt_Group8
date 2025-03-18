@@ -7,7 +7,7 @@ let webSocket: null | WebSocket = null;
 export const WebSocketService = {
     createWebSocket: async () => {
         await new Promise<void>((resolve, reject) => {
-            webSocket = new WebSocket('ws://localhost:8082/join'); //creates a new websocket
+            webSocket = new WebSocket('ws://localhost:5000/join'); //creates a new websocket
             webSocket.onopen = () => { //websocket was created fine
                 console.log("Successfull!")
                 resolve();

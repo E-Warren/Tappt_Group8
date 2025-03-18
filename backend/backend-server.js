@@ -11,7 +11,7 @@ const bcrypt = require("bcrypt");
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
 
 //random port number -> can change if we want something different
-const port = 8082;
+const port = 5000;
 
 //connect express server to our database connection
 const { pool } = require("./backend_connection");
@@ -22,6 +22,9 @@ app.use(express.urlencoded({ extended: false }));
 
 //to permit incoming data from frontend
 const cors = require("cors");
+
+//bring email from temp for google login
+const bodyParser = require("body-parser");
 
 app.use(
   cors({
@@ -117,13 +120,55 @@ app.post("/signup", async (req, res) => {
 
     await pool.query(addUser, [email, hashedValue]);
 
-    console.log("New user created:", email);
-    res.status(201).json({ message: "Sign-up success" });
-  } catch (error) {
-    console.error("Error during sign-up:", error);
-    res.status(500).json({ message: "Server error, please try again later" });
-  }
+        console.log("New user created:", email);
+        res.status(201).json({ message: "Sign-up success" });
+
+    } catch (error) {
+        console.error("Error during sign-up:", error);
+        res.status(500).json({ message: "Server error, please try again later" });
+    }
 });
+
+//-------------------GOOGLE LOGIN -----------------------------------
+app.use(bodyParser.json());
+
+app.post("/google-login", async (req, res) => {
+    console.log("google-login route hit!");
+    const { email } = req.body;
+    console.log("google-login with:", email);
+
+    try {
+
+        const isEmailAvailable = `
+        SELECT fld_login_email 
+        FROM google_login.tbl_google_users
+        WHERE fld_login_email = $1;`;
+        
+        const result1 = await pool.query(isEmailAvailable, [email]);
+        
+        if (result1.rowCount > 0) {
+
+            console.log("Email already exists, logging in...");
+            return res.status(200).json({ message: "Login success", email });
+        } else {
+
+            const addUser = 
+            `INSERT INTO google_login.tbl_google_users (fld_login_email) 
+            VALUES ($1);`;
+
+            await pool.query(addUser, [email]);
+
+            console.log("New user created:", email);
+            return res.status(201).json({ message: "Google sign-up success", email });
+        }
+
+    } catch (error) {
+        console.error("Error during Google login/sign-up:", error);
+        res.status(500).json({ message: "Server error, please try again later" });
+    }
+});
+
+
 
 //------------------------DECK WORK-------------------------------
 //creating decks
@@ -189,7 +234,7 @@ app.post("/createdecks", async (req, res) => {
 })
 
 
-//getting decks
+//getting decks for /view-decks
 app.get("/view-decks", async (req, res) => {
     try {
         //query for obtaining all decks and their descriptions
@@ -214,6 +259,118 @@ app.get("/view-decks", async (req, res) => {
     }
 })
 
+
+//getting a deck using an id for /createdecks/:id
+app.get("/createdecks/:id", async (req, res) => {
+    try {
+        //obtaining the deck ID
+        const {id} = req.params
+
+        //query for obtaining all decks and their descriptions
+        const query = 
+        `SELECT fld_deck_name, fld_card_q_pk, fld_card_q, fld_q_ans_pk, fld_card_ans
+         FROM card_decks.tbl_q_ans AS a INNER JOIN card_decks.tbl_card_question AS q
+	        ON a.fld_card_q_fk = q.fld_card_q_pk
+	        INNER JOIN card_decks.tbl_card_decks AS c
+		        ON c.fld_deck_id_pk = q.fld_deck_id_fk
+         WHERE fld_deck_id_pk = $1;`
+
+        //wait for query to finalize
+        const decks = await pool.query(query, [id])
+
+        console.log(decks.rows)
+
+        //if deck key doesn't exist -> only happens if you messed with the URL
+        //return 404 error
+        if (decks.rowCount == 0) {
+            res.status(404).json({Error: "Deck does not exist: Invalid deck key."})
+            return
+        }
+        else {
+            //send an 201 (OK) status as for success
+            //return query in JSON format
+            res.status(201).json(decks.rows)
+        }
+    }
+    //throw 500 error if any error occurred during or after querying
+    catch(error) {
+        res.status(500).json(error)
+    }
+})
+
+
+//saving pre-established decks
+app.put("/createdecks/:id", async (req, res) => {
+    try {
+        const {id} = req.params
+        const {deckTitle, QnA} = req.body
+ 
+        //check if the deck name already exists in the database
+        query =
+        `SELECT *
+         FROM card_decks.tbl_card_decks
+         WHERE fld_deck_name = $1 AND fld_deck_id_pk != $2;
+        `
+        const checkDeckExists = await pool.query(query, [deckTitle, id])
+
+        //if deck exists, return with message saying so
+        if (checkDeckExists.rowCount > 0) {
+            res.status(400).json({message: "Another deck has the same name. Please enter new deck name."})
+        }
+
+        //if deck doesn't exist, start saving deck into database
+        else {
+            query =
+            `UPDATE card_decks.tbl_card_decks
+             SET fld_deck_name = $1
+             WHERE fld_deck_id_pk = $2
+             RETURNING *;
+            `
+            //inserting query into database
+            const deckID = await pool.query(query, [deckTitle, id])
+
+            console.log("Successful deck name update: ", deckTitle, "deckID: ", id)
+
+            //deleting all questions and answers so new ones can be inputted
+            query = 
+            `DELETE FROM card_decks.tbl_card_question
+             WHERE fld_deck_id_fk = $1;
+             `
+            await pool.query(query, [id])
+            console.log("successful deletion.");
+
+            //for every question in deck, and for every answer in question, insert
+            for (q of QnA) {
+                query = 
+                `INSERT INTO card_decks.tbl_card_question(fld_deck_id_fk, fld_card_q)
+                VALUES($1, $2)
+                RETURNING fld_card_q_pk;
+                `
+                questionID  = await pool.query(query, [id, q.questionText])
+
+                console.log("successful insert question: ", q.questionText)
+
+                for (ans of q.answers) {
+                    query =
+                    `INSERT INTO card_decks.tbl_q_ans(fld_card_q_fk, fld_card_ans, fld_ans_correct)
+                    VALUES($1, $2, $3)
+                    RETURNING *;
+                    `
+                    //cannot add anything other than 'False' to question correctness for npw
+                    insert_all  = await pool.query(query, [questionID.rows[0].fld_card_q_pk, ans, 'FALSE'])
+                    console.log("Inserted answer:", ans, "questionID:", questionID.rows[0].fld_card_q_pk)
+                }
+            }
+
+            res.status(201).json({message: "Deck update was a success!"})
+        }
+    }
+    //if failed to insert or really any error pops up
+    catch(error) {
+        console.log("Error during deck creation:", error)
+        res.status(500).json({message: "Server error, please try again later"})
+    }
+})
 
 
 // -------------------- FOR FUTURE USE (we will need these) --------------------------- 

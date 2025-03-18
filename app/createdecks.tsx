@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, ScrollView, StyleSheet, Alert } from "react-native";
 import { Button } from "react-native-paper";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 
 interface Question { //question interface 
   questionText: string;
@@ -9,12 +9,45 @@ interface Question { //question interface
 }
 
 export default function CreateDeckScreen() {
+  const router = useRouter();
+
   const [deckTitle, setDeckTitle] = useState("");
   const [questions, setQuestions] = useState<Question[]>([
     { questionText: "", answers: ["", "", "", ""] },
   ]);
 
-  const addQuestion = () => { //add question feature 
+  const addQuestion = () => { //add question feature
+    //to generate a lovely list of errors
+    let badAns: string[] = [];
+
+    //go through EACH and every question and answer to see if they're empty and/or they've reached
+    //the max character limits
+    for (let i = 0; i < questions.length; i++) {
+      if (questions[i].questionText.length < 1) {
+          badAns.push(`Question ${i+1} is empty.`);
+      }
+      if (questions[i].questionText.length > 768) {
+          badAns.push(`Question ${i+1} is exceeds 768 character limit.`);
+      }
+      for (let j = 0; j < 4; j++) {
+          if (questions[i].answers[j].length < 1) {
+              badAns.push(`Question ${i+1}: Answer ${j + 1} is empty.`);
+          }
+          if (questions[i].answers[j].length > 256) {
+              badAns.push(`Question ${i+1}: Answer ${j + 1} exceeds the 256 character limit.`);
+          }
+      }
+    }
+
+    //check to see if there are any errors
+    if (badAns.length != 0) {
+      //add error message to beginning of errors
+      badAns.unshift("Cannot add new question:")
+      alert(badAns.join("\n"));
+      return;
+    }
+
+    //else, add new question
     setQuestions([...questions, { questionText: "", answers: ["", "", "", ""] }]);
   };
 
@@ -31,40 +64,46 @@ export default function CreateDeckScreen() {
   };
 
   const handleSaveDeck = async () => { //save deck feature 
+    //to generate a lovely list of errors
+    let badAns: string[] = [];
+
     if (!deckTitle.trim()) {
-      alert("Deck title is required.");
-      return;
+      badAns.push("Deck title is required.");
     }
 
     //setting up character limits for deck titles
     if (deckTitle.length > 128) {
-        alert("Deck title needs to be below 128 characters.");
-        return;
+      badAns.push("Deck title needs to be below 128 characters.");
     }
 
-    //setting the character limits for deck questions and answers
+    //go through EACH and every question and answer to see if they're empty and/or they've reached
+    //the max character limits
     for (let i = 0; i < questions.length; i++) {
-        if (questions[i].questionText.length < 1) {
-            alert(`Failed to save: Question ${i + 1} is empty.`);
-            return;
-        }
-        if (questions[i].questionText.length > 768) {
-            alert(`Failed to save: Question ${i + 1} exceeds the 1024 character limit.`);
-            return;
-        }
-        for (let j = 0; j < 4; j++) {
-            if (questions[i].answers[j].length < 1) {
-                alert(`Failed to save: Answer ${j + 1} of Question ${i + 1} is empty.`);
-                return;
-            }
-            if (questions[i].answers[j].length > 256) {
-                alert(`Failed to save: Answer ${j + 1} of Question ${i + 1} exceeds the 256 character limit.`);
-                return;
-            }
-        }
+      if (questions[i].questionText.length < 1) {
+          badAns.push(`Question ${i+1} is empty.`);
+      }
+      if (questions[i].questionText.length > 768) {
+          badAns.push(`Question ${i+1} is exceeds 768 character limit.`);
+      }
+      for (let j = 0; j < 4; j++) {
+          if (questions[i].answers[j].length < 1) {
+              badAns.push(`Question ${i+1}: Answer ${j + 1} is empty.`);
+          }
+          if (questions[i].answers[j].length > 256) {
+              badAns.push(`Question ${i+1}: Answer ${j + 1} exceeds the 256 character limit.`);
+          }
+      }
     }
 
-    //send deck to backend
+    //check to see if there are any errors
+    if (badAns.length != 0) {
+      badAns.unshift("Error(s):")
+      alert(badAns.join("\n"));
+      return;
+    }
+
+
+    //send deck to backend if no errors
     try {
         const response = await fetch('http://localhost:5000/createdecks', {
           method: 'POST',
@@ -85,6 +124,7 @@ export default function CreateDeckScreen() {
         if (response.ok) {
           console.log("Successfully created deck:", data);
           alert("Deck saved successfully!");
+          router.push("/view-decks");
         } else {
           console.log("Cannot create deck:", data.message);
           alert(data.message);
@@ -201,4 +241,3 @@ const styles = StyleSheet.create({ //style and formatting for create decks scree
     backgroundColor: "#00B894",
   },
 });
-
