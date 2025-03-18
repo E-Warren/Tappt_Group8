@@ -1,44 +1,52 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, FlatList, Animated, StyleSheet, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Animated,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { Link } from "expo-router";
+import { useStudentStore } from "./useWebSocketStore";
 
 const { height, width } = Dimensions.get("window");
 const NUM_COLUMNS = 4; // Fixed number of columns
 const PLAYER_BOX_WIDTH = width / NUM_COLUMNS - 10; // Ensure fixed-size columns
 const PLAYER_CAP = 100; // Maximum number of players allowed
 
-
 export default function WaitingRoom() {
-  const [players, setPlayers] = useState([
-    { id: 1, name: "Alice" },
-    { id: 2, name: "Bob" },
-    { id: 3, name: "Charlie" },
-  ]);
-  const [lastAddedId, setLastAddedId] = useState(null);
+  const [lastAddedId, setLastAddedId] = useState<number | null>(null);
+  const setUserType = useStudentStore((state) => state.setUserType);
+  const RoomCode = useStudentStore((state) => state.roomCode);
+  const players = useStudentStore((state) => state.students);
 
-  useEffect(() => { //This currently adds a name player ever 2 seconds, but will be changed to add a player when a user joins the room
-    if (players.length >= PLAYER_CAP) return; // Stop adding when cap is reached, this space can be used to continuously check for new users until the cap is reached
+  console.log("The players are: ", players);
 
-    const interval = setInterval(() => {
-      setPlayers((prevPlayers) => {
-        if (prevPlayers.length >= PLAYER_CAP) {
-          clearInterval(interval);
-          return prevPlayers;
-        }
+  useEffect(() => {
+    setUserType("teacher");
+  }, []);
 
-        const lastPlayerId = prevPlayers.length > 0 ? prevPlayers[prevPlayers.length - 1].id : 0;
-        const newPlayer = {
-          id: lastPlayerId + 1,
-          name: `Player ${prevPlayers.length + 1}`,
-        };
-
-        setLastAddedId(newPlayer.id); 
-        return [...prevPlayers, newPlayer];
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [players.length]);
+  // useEffect(() => {
+  //   This currently adds a name player ever 2 seconds, but will be changed to add a player when a user joins the room
+  //   if (players.length >= PLAYER_CAP) return; // Stop adding when cap is reached, this space can be used to continuously check for new users until the cap is reached
+  //   const interval = setInterval(() => {
+  //     setPlayers((prevPlayers) => {
+  //       if (prevPlayers.length >= PLAYER_CAP) {
+  //         clearInterval(interval);
+  //         return prevPlayers;
+  //       }
+  //       const lastPlayerId = prevPlayers.length > 0 ? prevPlayers[prevPlayers.length - 1].id : 0;
+  //       const newPlayer = {
+  //         id: lastPlayerId + 1,
+  //         name: `Player ${prevPlayers.length + 1}`,
+  //       };
+  //       setLastAddedId(newPlayer.id);
+  //       return [...prevPlayers, newPlayer];
+  //     });
+  //   }, 2000);
+  //   return () => clearInterval(interval);
+  // }, [players]); //[players.length]);
 
   return (
     <View style={styles.container}>
@@ -49,20 +57,29 @@ export default function WaitingRoom() {
 
       {/* Room Code Box */}
       <View style={styles.roomCodeBox}>
-        <Text style={styles.roomCode}>123456</Text>
+        {/* <Text style={styles.roomCode}>123456</Text> */}
+        <Text style={styles.roomCode}>{RoomCode}</Text>
         <Text style={styles.joinText}>Join with Game PIN!</Text>
       </View>
 
       {/* Players List */}
       <FlatList
         data={players}
-        keyExtractor={(item) => item.id.toString()}
+        // keyExtractor={(item) => item.id.toString()}
         numColumns={NUM_COLUMNS}
         renderItem={({ item }) => (
-          <AnimatedPlayer key={item.id} name={item.name} isNew={item.id === lastAddedId} />
+          // <AnimatedPlayer
+          //   key={item}
+          //   name={item}
+          //   isNew={item === lastAddedId}
+          // />
+          <Text style={styles.playerNameText}>
+            {item}
+          </Text>
         )}
         contentContainerStyle={styles.playersContainer}
         style={styles.playersList}
+        columnWrapperStyle={styles.columnStyle}
       />
 
       {/* "Let's Go!" Button */}
@@ -74,20 +91,30 @@ export default function WaitingRoom() {
 }
 
 // ✅ **Only Animate the Last Added Player**
-const AnimatedPlayer = ({ name, isNew }) => {
+const AnimatedPlayer = ({ name, isNew }: { name: string; isNew: boolean }) => {
   const scaleAnim = useRef(new Animated.Value(isNew ? 0 : 1)).current;
 
   useEffect(() => {
     if (isNew) {
       Animated.sequence([
-        Animated.timing(scaleAnim, { toValue: 1.3, duration: 300, useNativeDriver: true }),
-        Animated.timing(scaleAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.timing(scaleAnim, {
+          toValue: 1.3,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
       ]).start();
     }
   }, [isNew]);
 
   return (
-    <Animated.View style={[styles.playerBox, { transform: [{ scale: scaleAnim }] }]}>
+    <Animated.View
+      style={[styles.playerBox, { transform: [{ scale: scaleAnim }] }]}
+    >
       <Text style={styles.playerName}>{name}</Text>
     </Animated.View>
   );
@@ -111,7 +138,6 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 20,
     color: "#FFF",
-
   },
   roomCodeBox: {
     backgroundColor: "#1111CC",
@@ -141,6 +167,7 @@ const styles = StyleSheet.create({
   },
   playersContainer: {
     paddingBottom: 100,
+    alignItems: "center",
   },
   playerBox: {
     width: PLAYER_BOX_WIDTH,
@@ -171,4 +198,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
   },
+
+  playerNameText: {
+    color: "#fff",
+    fontSize: 50,
+    fontWeight: 400,
+  },
+
+  columnStyle: {
+    justifyContent: "space-between",
+    gap: 100,
+  }
 });

@@ -83,12 +83,12 @@ export default function LoginScreen() {
 
 
   //declaring/defining helper fxns used in main native login fxn
-  const isValidEmail = (email) => {
+  const isValidEmail = (email: string) => {
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailPattern.test(email.trim());
   };
 
-  const isAlphanumeric = (password) => {
+  const isAlphanumeric = (password: string) => {
     const alphanumericPattern = /^[a-zA-Z0-9]+$/;
     return alphanumericPattern.test(password.trim());
   };

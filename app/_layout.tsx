@@ -25,6 +25,10 @@ export default function RootLayout() {
       <Stack.Screen name="signUp" options={{
         headerShown: false,
       }} />
+
+      <Stack.Screen name="studentWaiting" options={{
+        headerShown: false,
+      }} />
       
       <Stack.Screen name="createdecks" options={{
         headerShown: false, 
@@ -36,6 +40,7 @@ export default function RootLayout() {
         headerShown: false,
       }} />}
       </Stack>
+      
       
   );
 }

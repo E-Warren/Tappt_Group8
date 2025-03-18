@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
-import { Link } from "expo-router";
+import { Link, router, } from "expo-router";
+import { WebSocketService } from "./webSocketService";
 
 
 export default function DecksScreen() {
-
   //set empty state
   const [decks, setDecks] = useState([]);
 
@@ -55,7 +55,6 @@ export default function DecksScreen() {
     getDeck();
  }, []);
 
-
   // function created to render each deck card
   const renderDeck = ({ item }) => (
     <View style={styles.deckCard}>
@@ -65,8 +64,17 @@ export default function DecksScreen() {
       <View style={styles.buttonContainer}>
       <Link href={`/createdecks/${item.id}`} style={[styles.deckButton, styles.editButton]}>
         <Text style={{ color: "#fff" }}>Edit Deck</Text>
-      </Link>
-        <Link href="/teacherwaiting" style={[styles.deckButton, styles.hostButton]}>
+        </Link>
+        <Link href="/teacherwaiting" onPress={async (e)=> {
+          e.preventDefault();
+          await WebSocketService.createWebSocket(); //creates the teacher's websocket
+          console.log("Created :)");
+          WebSocketService.sendMessage(JSON.stringify({ //calls backend message event to create room code
+            type: "host",
+          }))
+          // set item
+          router.push("/teacherwaiting");
+        }} style={[styles.deckButton, styles.hostButton]}>
           <Text style={styles.buttonText}>Host Deck</Text>
         </Link>
     </View>
