@@ -13,10 +13,10 @@
 <img width="950" alt="Prototype sample screenshots depicting 4 screens from the student's perspective and 4 screens from the teacher's perspective. The student's perspective shows a join-game screen, a click-count screen, a question-and-answer screen, and an end-game screen. The teacher's perspective shows a welcome-and-login screen, a deck-creation screen, a student-results screen, and a leaderboard screen." src="https://github.com/user-attachments/assets/f59c8866-15a7-4fa0-b1f1-4752a08b2d5c" />
 
 ## Dependencies & How To Run ##
-Run the front end & back end in two separate terminal/console windows. Note that the backend is in a separate folder from the rest of the program; cd to that directory and run the server from there. Be sure that, for each session, you've installed the current necessary dependencies, listed below.
+Run the front end & back end in two separate terminal/console windows. Note that the backend is in a separate folder from the rest of the program; cd to that directory and run the server from there. Be sure that, for each session, you've installed the current necessary dependencies using "npm install". Also ensure that you've moved the .env file to the backend directory.
+Run frontend via the command "npx expo start".
+Run backend via the command "npm start".
 
-**Front-end dependencies:** Node.js, Expo, expo-auth-session.
-Run via the command "npx expo start".
+**Front-end dependencies:** Node.js, Expo, expo-auth-session, zustand.
 
-**Back-end dependencies:** Node.js, nodemon, bcrypt, Express, cors, PostgreSQL. Also ensure that you've moved the .env file to this directory.
-Run via the command "npm start".
+**Back-end dependencies:** Node.js, nodemon, bcrypt, Express, cors, dotenv, PostgreSQL, jsonwebtoken. Directory also requires .env file to load some sensitive data.

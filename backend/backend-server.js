@@ -6,6 +6,10 @@ var expressWs = require("express-ws")(app);
 //get sensitive data
 require("dotenv").config();
 
+//set up jwt requirement and load env key
+const jwt = require("jsonwebtoken");
+const key = String(process.env.JWT_KEY);
+
 //set up bcrypt hashing
 const bcrypt = require("bcrypt");
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
@@ -49,6 +53,36 @@ app.get("/login", (req, res) => {
 
 //------------------------LOGIN WORK-------------------------------
 
+//check token before allowing access to personal contents
+const authenticateToken = (req, res, next) => {
+  console.log("authenticating token...");
+  
+  //access denied if no token / broken token (ha ha... it rhymes)
+  const authHeader = req.headers['authorization'];
+  if (!authHeader) {
+      return res.status(403).json({ error: "Access denied, please log in and try again." });
+  }
+
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+      return res.status(403).json({ error: "Access denied, please try again." });
+  }
+
+  //verify good token
+  jwt.verify(token, key, (err, decoded) => {
+      if (err) {
+          console.error("Token verification failed (probably a logout issue):", err.message);          
+          return res.status(403).json({ error: "Invalid token" });
+      }
+
+      //keep userID for future use
+      req.userID = String(decoded.userID);
+      console.log("Authenticated!");
+      next();
+  });
+};
+
+
 //root route to avoid "Cannot GET /" in backend terminal
 app.get("/", (req, res) => {
   res.send("Server is running!");
@@ -80,7 +114,23 @@ app.post("/login", async (req, res) => {
     const samePwd = await bcrypt.compare(password, fromDB);
 
     if (samePwd) {
-      res.status(200).json({ message: "Login success!" });
+        //success! --> get user ID to navigate to deck page
+        const getID = `
+        SELECT fld_login_id_pk
+        FROM login_first.tbl_login
+        WHERE fld_login_email = $1`
+
+        const result2 = await pool.query(getID, [email]);
+        const currentUserID = result2.rows[0].fld_login_id_pk;
+      
+        //success! --> generate jwt
+        console.log("Generating jwt...");
+        const token = jwt.sign({userID: currentUserID}, key, {expiresIn: '24h'});
+        console.log("jwt made");
+        res.json({token}); 
+
+        //below is previous success response --> now just use token
+        //res.status(200).json({ message: "Login success!" });
     } else {
       res.status(401).json({ message: "Incorrect password." });
     }
@@ -97,31 +147,47 @@ app.post("/signup", async (req, res) => {
   console.log("Sign-up attempt with:", email);
 
   try {
-    //check if entered email already exists
-    const isEmailAvailable = `
+      //check if entered email already exists
+      const isEmailAvailable = `
         SELECT fld_login_email 
         FROM login_first.tbl_login
         WHERE fld_login_email = $1;`;
 
-    const result1 = await pool.query(isEmailAvailable, [email]);
+      const result1 = await pool.query(isEmailAvailable, [email]);
 
-    if (result1.rowCount > 0) {
-      return res.status(400).json({ message: "Email already in use." });
-    }
+      if (result1.rowCount > 0) {
+        return res.status(400).json({ message: "Email already in use." });
+      }
 
-    //hash user's chosen password
-    const salt = await bcrypt.genSalt(SALT_ROUNDS);
-    const hashedValue = await bcrypt.hash(password, salt);
+      //hash user's chosen password
+      const salt = await bcrypt.genSalt(SALT_ROUNDS);
+      const hashedValue = await bcrypt.hash(password, salt);
 
     //insert new user into the database
-    const addUser = `
+      const addUser = `
         INSERT INTO login_first.tbl_login (fld_login_email, fld_login_pwd) 
         VALUES ($1, $2);`;
 
-    await pool.query(addUser, [email, hashedValue]);
+      await pool.query(addUser, [email, hashedValue]);
 
-        console.log("New user created:", email);
-        res.status(201).json({ message: "Sign-up success" });
+      console.log("New user created:", email);
+
+      //should be inserted! now get user ID to navigate to deck page
+      const getID = `
+      SELECT fld_login_id_pk
+      FROM login_first.tbl_login
+      WHERE fld_login_email = $1`
+
+      const result2 = await pool.query(getID, [email]);
+      const currentUserID = result2.rows[0].fld_login_id_pk;
+  
+      //generate jwt
+      console.log("Generating jwt...");
+      const token = jwt.sign({userID: currentUserID}, key, {expiresIn: '24h'});
+      console.log("jwt made");
+      res.json({token}); 
+
+     // res.status(201).json({ message: "Sign-up success" });
 
     } catch (error) {
         console.error("Error during sign-up:", error);
@@ -149,7 +215,26 @@ app.post("/google-login", async (req, res) => {
         if (result1.rowCount > 0) {
 
             console.log("Email already exists, logging in...");
-            return res.status(200).json({ message: "Login success", email });
+
+            //now get user ID to navigate to deck page
+            const getID = `
+            SELECT fld_login_id_pk
+            FROM google_login.tbl_google_users
+            WHERE fld_login_email = $1`
+    
+            const result2 = await pool.query(getID, [email]);
+            const currentUserID = result2.rows[0].fld_login_id_pk;
+
+            console.log(`current User ID: ${currentUserID} `);
+            console.log(`type of user ID is ${typeof currentUserID}`)
+
+            //success! --> generate jwt
+            console.log("Generating jwt...");
+            const token = jwt.sign({userID: currentUserID}, key, {expiresIn: '24h'});
+            console.log(`jwt: ${token}`);
+            res.json({token}); 
+
+            //return res.status(200).json({ message: "Login success", email });
         } else {
 
             const addUser = 
@@ -159,7 +244,25 @@ app.post("/google-login", async (req, res) => {
             await pool.query(addUser, [email]);
 
             console.log("New user created:", email);
-            return res.status(201).json({ message: "Google sign-up success", email });
+
+            //should be inserted! now get user ID to navigate to deck page
+            const getID = `
+            SELECT fld_login_id_pk
+            FROM google_login.tbl_google_users
+            WHERE fld_login_email = $1`
+
+            const result2 = await pool.query(getID, [email]);
+            const currentUserID = result2.rows[0].fld_login_id_pk;
+        
+            console.log(`current User ID: ${currentUserID} `);
+
+            //generate jwt
+            console.log("Generating jwt...");
+            const token = jwt.sign({userID: currentUserID}, key, {expiresIn: '24h'});
+            console.log("jwt made");
+            res.json({token}); 
+
+            //return res.status(201).json({ message: "Google sign-up success", email });
         }
 
     } catch (error) {
@@ -171,18 +274,19 @@ app.post("/google-login", async (req, res) => {
 
 
 //------------------------DECK WORK-------------------------------
+
 //creating decks
-app.post("/createdecks", async (req, res) => {
+app.post("/createdecks", authenticateToken, async (req, res) => {
     try {
         const {deckTitle, QnA} = req.body
  
-        //check if the deck name already exists in the database
+        //check if the deck name already exists in the database FOR THIS USER
         query =
         `SELECT *
          FROM card_decks.tbl_card_decks
-         WHERE fld_deck_name = $1;
+         WHERE fld_deck_name = $1 AND fld_login_id_fk = $2;
         `
-        const checkDeckExists = await pool.query(query, [deckTitle])
+        const checkDeckExists = await pool.query(query, [deckTitle, req.userID])
 
         //if deck exists, return with message saying so
         if (checkDeckExists.rowCount > 0) {
@@ -191,12 +295,12 @@ app.post("/createdecks", async (req, res) => {
         //if deck doesn't exist, start saving deck into database
         else {
             query =
-            `INSERT INTO card_decks.tbl_card_decks(fld_deck_name)
-            VALUES ($1)
+            `INSERT INTO card_decks.tbl_card_decks(fld_deck_name, fld_login_id_fk)
+            VALUES ($1, $2)
             RETURNING fld_deck_id_pk;
             `
             //inserting query into database
-            const deckID = await pool.query(query, [deckTitle])
+            const deckID = await pool.query(query, [deckTitle, req.userID])
 
             console.log("Successful deck name insert: ", deckTitle, "deckID: ", deckID.rows[0].fld_deck_id_pk)
 
@@ -233,21 +337,24 @@ app.post("/createdecks", async (req, res) => {
     }
 })
 
-
+//-----------------------------------------------------------
 //getting decks for /view-decks
-app.get("/view-decks", async (req, res) => {
-    try {
-        //query for obtaining all decks and their descriptions
+app.get("/view-decks", authenticateToken, async (req, res) => {
+  try {
+      //query for obtaining all decks and their descriptions
+        console.log("loading decks for this user...");
+
         const query = 
         `SELECT fld_deck_id_pk, fld_deck_name, COUNT(*) AS questionCount
          FROM card_decks.tbl_card_decks AS d INNER JOIN card_decks.tbl_card_question AS q
-			ON d.fld_deck_id_pk = q.fld_deck_id_fk
+			    ON d.fld_deck_id_pk = q.fld_deck_id_fk
+          WHERE fld_login_id_fk = $1
          GROUP BY fld_deck_id_pk, fld_deck_name;`
 
         //wait for query to finalize
-        const decks = await pool.query(query)
+        const decks = await pool.query(query, [req.userID.trim()])
 
-        console.log(decks.rows)
+        console.log(decks)
 
         //send an 201 (OK) status as for success
         //return query in JSON format
@@ -255,13 +362,14 @@ app.get("/view-decks", async (req, res) => {
     }
     //throw 500 error if any error occurred during or after querying
     catch(error) {
+      console.log("noting an error on get view-decks");
         res.status(500).json(error)
     }
 })
 
 
 //getting a deck using an id for /createdecks/:id
-app.get("/createdecks/:id", async (req, res) => {
+app.get("/createdecks/:id", authenticateToken, async (req, res) => {
     try {
         //obtaining the deck ID
         const {id} = req.params
@@ -300,18 +408,18 @@ app.get("/createdecks/:id", async (req, res) => {
 
 
 //saving pre-established decks
-app.put("/createdecks/:id", async (req, res) => {
+app.put("/createdecks/:id", authenticateToken, async (req, res) => {
     try {
         const {id} = req.params
         const {deckTitle, QnA} = req.body
  
-        //check if the deck name already exists in the database
+        //check if the deck name already exists in the database FOR THIS USER
         query =
         `SELECT *
          FROM card_decks.tbl_card_decks
-         WHERE fld_deck_name = $1 AND fld_deck_id_pk != $2;
+         WHERE fld_deck_name = $1 AND fld_deck_id_pk != $2 AND fld_login_id_fk = $3;
         `
-        const checkDeckExists = await pool.query(query, [deckTitle, id])
+        const checkDeckExists = await pool.query(query, [deckTitle, id, req.userID])
 
         //if deck exists, return with message saying so
         if (checkDeckExists.rowCount > 0) {
@@ -375,7 +483,7 @@ app.put("/createdecks/:id", async (req, res) => {
 
 // -------------------- FOR FUTURE USE (we will need these) --------------------------- 
 //for updating the deck name
-app.put("/update_deck/:deckID", async (req, res) => {
+app.put("/update_deck/:deckID", authenticateToken, async (req, res) => {
   try {
     const { deckID } = req.params;
     const { deck_name } = req.body;
@@ -402,7 +510,7 @@ app.put("/update_deck/:deckID", async (req, res) => {
 });
 
 //for updating the question name
-app.put("/update_deck/:deckID/:questionID", async (req, res) => {
+app.put("/update_deck/:deckID/:questionID", authenticateToken, async (req, res) => {
   try {
     const { deckID, questionID } = req.params;
     const { question_name } = req.body;
@@ -435,7 +543,7 @@ app.put("/update_deck/:deckID/:questionID", async (req, res) => {
 });
 
 //for updating the answers to a question info
-app.put("/update_deck/:deckID/:questionID/:answerID", async (req, res) => {
+app.put("/update_deck/:deckID/:questionID/:answerID", authenticateToken, async (req, res) => {
   try {
     const { deckID, questionID, answerID } = req.params;
     const { answer, ifcorrect } = req.body;
@@ -512,7 +620,7 @@ app.put("/update_deck/:deckID/:questionID/:answerID", async (req, res) => {
 });
 
 //for deleting an entire deck
-app.delete("/decks/:deckID", async (req, res) => {
+app.delete("/decks/:deckID", authenticateToken, async (req, res) => {
   try {
     const { deckID } = req.params;
 
@@ -539,7 +647,7 @@ app.delete("/decks/:deckID", async (req, res) => {
 });
 
 //for deleting a question within a deck
-app.delete("/decks/:deckID/:questionID", async (req, res) => {
+app.delete("/decks/:deckID/:questionID", authenticateToken, async (req, res) => {
   try {
     const { deckID, questionID } = req.params;
 
@@ -566,7 +674,7 @@ app.delete("/decks/:deckID/:questionID", async (req, res) => {
 });
 
 //for deleting an answer within a deck
-app.delete("/decks/:deckID/:questionID/:answerID", async (req, res) => {
+app.delete("/decks/:deckID/:questionID/:answerID", authenticateToken, async (req, res) => {
   try {
     const { deckID, questionID, answerID } = req.params;
 
@@ -649,12 +757,27 @@ const joinRoom = async (data) => { //function to create the student name
       "pink",
       "cyan",
       "magenta",
+      "happy",    //adding non-color adjectives too for now :o)
+      "silly",
+      "funny",
+      "fancy",
+      "lucky",
+      "eager",
+      "brave",
+      "calm",
+      "jolly",
+      "proud",
+      "witty", 
+      "dizzy",
+      "friendly",
+      "cool",
+      "sly",
+      "fast",
     ];
     const animals = [
       "dog",
       "goose",
       "lion",
-      "monkey",
       "cat",
       "elephant",
       "butterfly",
@@ -663,6 +786,20 @@ const joinRoom = async (data) => { //function to create the student name
       "giraffe",
       "horse",
       "cheetah",
+      "penguin",
+      "parrot",
+      "bear",
+      "eagle",
+      "frog",
+      "turtle",
+      "seal",
+      "wolf",
+      "zebra", 
+      "koala",
+      "fox", 
+      "panda",
+      "tiger",
+      "rhino",
     ];
     //gets the color and the animal and combines them to form the name
     const firstNumber = Math.floor(Math.random() * colors.length);

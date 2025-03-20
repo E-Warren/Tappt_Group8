@@ -11,12 +11,15 @@ export default function DecksScreen() {
   //useEffects limits the constant querying of the database
   useEffect(() => {
     const getDeck = async () => {
+      const token = localStorage.getItem('token');
+
         //get decks from backend
         try {
             const response = await fetch('http://localhost:5000/view-decks', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             credentials: 'include', // Ensure cookies/sessions are sent
 
@@ -25,28 +28,28 @@ export default function DecksScreen() {
             console.log("Response status:", response.status);
     
             const data = await response.json();
-            console.log(data);
-            
-            if (response.ok) {
-              console.log("Successfully got decks:", data);
 
-              //set up deck data from backend to be inserted into decks array
-              const insertDecks = data.map(deck => ({
-                  id: deck.fld_deck_id_pk,
-                  title: deck.fld_deck_name,
-                  questions: deck.questioncount
-              }));
-
-              //insert into deck array
-              setDecks(insertDecks);
-
-            } else {
-              console.log("Cannot fetch decks:", data.message);
-              alert(data.message);
+            if(!response.ok){
+              //throw new Error(response.error || "Cannot fetch decks, please log in and try again.");
+              alert("Access denied: please log in and try again.");
+              return;
             }
-            
+
+            console.log(data);
+            console.log("Successfully got decks:", data);
+
+            //set up deck data from backend to be inserted into decks array
+            const insertDecks = data.map(deck => ({
+                id: deck.fld_deck_id_pk,
+                title: deck.fld_deck_name,
+                questions: deck.questioncount
+            }));
+
+            //insert into deck array
+            setDecks(insertDecks);
+          
         } catch (error) {
-            console.log("Error during deck fetch:", error);
+            console.log("Error during deck fetch:", error.message);
             alert("Server error, please try again later.");
         }
     };

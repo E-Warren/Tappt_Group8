@@ -29,12 +29,15 @@ export default function CreateDeckScreen() {
   //getting deck info from backend
   useEffect(() => {
     const getDeck = async () => {
+      const token = localStorage.getItem('token');
         //get deck with [id] from backend
         try {
             const response = await fetch(`http://localhost:5000/createdecks/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+
             },
             credentials: 'include', // Ensure cookies/sessions are sent
 
@@ -190,10 +193,13 @@ export default function CreateDeckScreen() {
 
     //send updated deck to backend if no errors
     try {
+      const token = localStorage.getItem('token');
+
         const response = await fetch(`http://localhost:5000/createdecks/${id}`, {
           method: 'PUT',
           headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
           },
           credentials: 'include', // Ensure cookies/sessions are sent
           body: JSON.stringify({
