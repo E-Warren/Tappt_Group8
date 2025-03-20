@@ -74,15 +74,18 @@ export default function LoginScreen() {
         console.log("Response status:", response.status);
   
         const data = await response.json();
-        
-        if (response.ok) {
-          console.log("Sign-up success:", data);
+    
+        if (data.token) {
+          localStorage.setItem('token', data.token); //store jwt info
+
+          //OLD CONTENT:
+          //console.log("Sign-up success:", data);
           router.push("/view-decks"); // Redirect on success
         } else {
           console.log("Sign-up failed:", data.message);
           alert(data.message);
         }
-        
+    
     } catch (error) {
         console.log("Error during sign-up:", error);
         alert("Server error, please try again later.");
