@@ -105,10 +105,13 @@ export default function CreateDeckScreen() {
 
     //send deck to backend if no errors
     try {
+      const token = localStorage.getItem('token');
+
         const response = await fetch('http://localhost:5000/createdecks', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
           },
           credentials: 'include', // Ensure cookies/sessions are sent
           body: JSON.stringify({
@@ -121,15 +124,20 @@ export default function CreateDeckScreen() {
   
         const data = await response.json();
         
-        if (response.ok) {
+        if(!response.ok){
+          alert("Access denied: please log in and try again.");
+          return;
+        }
+
+ //       if (response.ok) {
           console.log("Successfully created deck:", data);
           alert("Deck saved successfully!");
           router.push("/view-decks");
-        } else {
+/*        } else {
           console.log("Cannot create deck:", data.message);
           alert(data.message);
         }
-        
+ */       
     } catch (error) {
         console.log("Error during deck creation:", error);
         alert("Server error, please try again later.");

@@ -6,7 +6,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import {useRouter} from 'expo-router'
 import * as Google from 'expo-auth-session/providers/google';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as WebBrowser from "expo-web-browser"
+import * as WebBrowser from "expo-web-browser";
+//import { useNavigate } from 'react-router-dom'; //new
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -40,7 +41,7 @@ export default function LoginScreen() {
         }
       );
       const userInfoReponse = await response.json();
-      
+    
 
       await AsyncStorage.setItem("user",JSON.stringify(userInfoReponse));
       setUserInfo(userInfoReponse);
@@ -55,6 +56,8 @@ export default function LoginScreen() {
   const handleLogout = async () => {
     await AsyncStorage.removeItem("user");
     setUserInfo(null);
+    localStorage.removeItem('token'); //delete jwt token
+    console.log("Logged out!")
   };
 
   const sendEmailToServer = async (email: string) => {
@@ -69,6 +72,7 @@ export default function LoginScreen() {
         }),
       });
       const data = await response.json();
+      localStorage.setItem('token', data.token); //store jwt info
       console.log("Server response:", data);
     } catch (e) {
       console.log(e);
@@ -149,8 +153,11 @@ export default function LoginScreen() {
   
         const data = await response.json();
         
-        if (response.ok) {
-          console.log("Login success:", data);
+        if (data.token) {
+          localStorage.setItem('token', data.token); //store jwt info
+
+          //OLD CONTENT:
+          //console.log("Login success:", data);
           router.push("/view-decks"); // Redirect on success
         } else {
           console.log("Login failed:", data.message);
@@ -164,7 +171,6 @@ export default function LoginScreen() {
 
   };
   
-
 const [isChecked, setChecked] = useState(false);
 const [passwordVisible, setPasswordVisible] = useState(true);
 
