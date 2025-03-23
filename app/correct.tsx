@@ -8,13 +8,18 @@ interface BonusScreenProps {
   totalQuestions?: number;
   onBonusSelect: (bonus: string) => void;
 }
-//The parameters are set to show example data, will be changed later
+
 const BonusScreen: React.FC<BonusScreenProps> = ({ timer = 13, questionNumber = 1, totalQuestions = 3, onBonusSelect }) => {
   const [selectedBonus, setSelectedBonus] = useState<string | null>(null);
 
   const handleBonusSelect = (bonus: string) => {
     setSelectedBonus(bonus);
-    onBonusSelect(bonus);
+    // Was throwing an error when onBonusSelect was not a function, added check against until it is implemented
+    if (typeof onBonusSelect === "function") {
+      onBonusSelect(bonus);
+    } else {
+      console.error("onBonusSelect is not a function");
+    }
   };
 
   return (
@@ -22,7 +27,6 @@ const BonusScreen: React.FC<BonusScreenProps> = ({ timer = 13, questionNumber = 
       <Text style={styles.header}>Tappt</Text>
       <Text style={styles.username}>pink goose</Text>
 
-      
       <View style={styles.checkmarkContainer}>
         <MaterialIcons name="check-circle" size={180} color="lightgreen" />
       </View>
@@ -76,12 +80,12 @@ const styles = StyleSheet.create({
     color: "white",
   },
   checkmarkContainer: {
-    backgroundColor: "white", 
-    borderRadius: 100, 
-    width: 150, 
-    height: 150, 
-    alignItems: "center", 
-    justifyContent: "center", 
+    backgroundColor: "white",
+    borderRadius: 100,
+    width: 150,
+    height: 150,
+    alignItems: "center",
+    justifyContent: "center",
   },
   correctText: {
     fontSize: 45,
@@ -139,5 +143,3 @@ const styles = StyleSheet.create({
 });
 
 export default BonusScreen;
-
-
