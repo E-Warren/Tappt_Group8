@@ -36,6 +36,12 @@ export default function RootLayout() {
       <Stack.Screen name="teacherwaiting" options={{
         headerShown: false, 
       }} />
+      <Stack.Screen name="incorrect" options={{
+        headerShown: false, 
+      }} />
+      <Stack.Screen name="correct" options={{
+        headerShown: false, 
+      }} />
 {     <Stack.Screen name="view-decks" options={{  //commenting out so that the "back" arrow is built-in during dev
         headerShown: false,
       }} />}

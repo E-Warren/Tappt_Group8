@@ -18,6 +18,12 @@ export default function Index() {
       <Link href={"/view-decks"} style={styles.button}>
         Go to view decks screen 
       </Link>
+      <Link href={"/correct"} style={styles.button}>
+        Go to Correct screen 
+      </Link>
+      <Link href={"/incorrect"} style={styles.button}>
+        Go to Incorrect screen 
+      </Link>
     </View>
   );
 }
