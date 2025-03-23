@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-interface BonusScreenProps {
+interface CorrectScreenProps {
   timer?: number;
   questionNumber?: number;
   totalQuestions?: number;
   onBonusSelect: (bonus: string) => void;
 }
 
-const BonusScreen: React.FC<BonusScreenProps> = ({ timer = 13, questionNumber = 1, totalQuestions = 3, onBonusSelect }) => {
+const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, questionNumber = 1, totalQuestions = 3, onBonusSelect }) => {
   const [selectedBonus, setSelectedBonus] = useState<string | null>(null);
 
   const handleBonusSelect = (bonus: string) => {
@@ -142,4 +142,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BonusScreen;
+export default CorrectScreen;
