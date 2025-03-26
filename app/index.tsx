@@ -24,6 +24,9 @@ export default function Index() {
       <Link href={"/incorrect"} style={styles.button}>
         Go to Incorrect screen 
       </Link>
+      <Link href={"/answerchoices"} style={styles.button}>
+        Go to answer choices screen
+      </Link>
     </View>
   );
 }
