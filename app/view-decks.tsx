@@ -13,36 +13,49 @@ interface Deck {
 
 const deleteDeckFromBackend = async (deckId: string, token: string): Promise<boolean> => {
   try {
-    const response = await fetch(`http://localhost:5000/delete-deck/${deckId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    });
+        const response = await fetch('http://localhost:5000/view-decks', {
+          method: 'DELETE',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include', // Ensure cookies/sessions are sent
 
+          //just need deckID -> table for card decks deletes children (questions & answers)
+          //when deletion of table for card_decks is called
+          body: JSON.stringify({
+            deckID: deckId.trim()
+          }),
+        });
+
+    //if response is not 204 (successful deletion)
     if (!response.ok) {
       throw new Error("Failed to delete deck.");
     }
 
     return true;
-  } catch (error) {
-    console.error("Error deleting deck:", (error as Error).message);
+  } 
+  catch (error) {
+    alert(error);
     return false;
   }
 };
 
 export default function DecksScreen() {
-  const [decks, setDecks] = useState<Deck[]>([]); // ✅ typed array of Decks
+  //set empty state
+  const [decks, setDecks] = useState<Deck[]>([]);
 
+  //useEffects limits the constant querying of the database
   useEffect(() => {
     const getDeck = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         alert("Missing token. Please log in.");
+        router.push("/login");
         return;
       }
 
+      //get decks from backend
       try {
         const response = await fetch('http://localhost:5000/view-decks', {
           method: 'GET',
@@ -60,12 +73,14 @@ export default function DecksScreen() {
           return;
         }
 
+        //set up deck data from backend to be inserted into decks array
         const insertDecks: Deck[] = data.map((deck: any) => ({
           id: deck.fld_deck_id_pk,
           title: deck.fld_deck_name,
           questions: deck.questioncount
         }));
 
+        //set our decks into our Deck array
         setDecks(insertDecks);
 
       } catch (error) {
@@ -74,6 +89,7 @@ export default function DecksScreen() {
       }
     };
 
+    //run function now
     getDeck();
   }, []);
 
@@ -91,7 +107,8 @@ export default function DecksScreen() {
     if (success) {
       setDecks(prevDecks => prevDecks.filter(deck => deck.id !== deckId));
       alert("Deck removed successfully.");
-    } else {
+    } 
+    else {
       alert("Failed to remove deck. Please try again.");
     }
   };

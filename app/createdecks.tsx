@@ -1,84 +1,66 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from "react-native";
 import { Button } from "react-native-paper";
-import { Link, useLocalSearchParams } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
 
-interface Question {
+interface Question { //question interface 
   questionText: string;
   answers: string[];
   correctAnswers: boolean[];
 }
 
 export default function CreateDeckScreen() {
-  const { id: deckId } = useLocalSearchParams();
+  const router = useRouter();
+
   const [deckTitle, setDeckTitle] = useState("");
   const [questions, setQuestions] = useState<Question[]>([
     { questionText: "", answers: ["", "", "", ""], correctAnswers: [false, false, false, false] },
   ]);
 
-  useEffect(() => {
-    const fetchDeck = async () => {
-      if (!deckId) return;
+  const addQuestion = () => { //add question feature
+    //to generate a lovely list of errors
+    let badAns: string[] = [];
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Missing token");
-        return;
+    //go through EACH and every question and answer to see if they're empty and/or they've reached
+    //the max character limits
+    for (let i = 0; i < questions.length; i++) {
+      if (questions[i].questionText.length < 1) {
+          badAns.push(`Question ${i+1} is empty.`);
       }
-
-      try {
-        const response = await fetch(`http://localhost:5000/get-deck/${deckId}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          alert("Failed to load deck");
-          return;
-        }
-
-        setDeckTitle(data.title);
-
-        const formattedQuestions = data.questions.map((q: any) => {
-          const answers = q.answers?.map((a: any) => a.text ?? "") ?? [];
-          const correctAnswers = q.answers?.map((a: any) =>
-            typeof a.isCorrect === "boolean" ? a.isCorrect : false
-          ) ?? new Array(answers.length).fill(false);
-
-          while (answers.length < 4) answers.push("");
-          while (correctAnswers.length < 4) correctAnswers.push(false);
-
-          return {
-            questionText: q.text ?? "",
-            answers,
-            correctAnswers,
-          };
-        });
-
-        setQuestions(formattedQuestions);
-      } catch (err) {
-        console.error("Error loading deck:", err);
-        alert("Server error while loading deck.");
+      if (questions[i].questionText.length > 768) {
+          badAns.push(`Question ${i+1} is exceeds 768 character limit.`);
       }
-    };
+      for (let j = 0; j < 4; j++) {
+          if (questions[i].answers[j].length < 1) {
+              badAns.push(`Question ${i+1}: Answer ${j + 1} is empty.`);
+          }
+          if (questions[i].answers[j].length > 256) {
+              badAns.push(`Question ${i+1}: Answer ${j + 1} exceeds the 256 character limit.`);
+          }
+      }
+      const correctCount = questions[i].correctAnswers.filter(Boolean).length;
+      if (correctCount < 1) {
+        badAns.push(`Question ${i + 1} must have at least one correct answer.`);
+      }
+    }
 
-    fetchDeck();
-  }, [deckId]);
+    //check to see if there are any errors
+    if (badAns.length != 0) {
+      //add error message to beginning of errors
+      badAns.unshift("Cannot add new question:")
+      alert(badAns.join("\n"));
+      return;
+    }
 
-  const addQuestion = () => {
+    //else, add new question
     setQuestions([
-      ...questions,
-      {
-        questionText: "",
-        answers: ["", "", "", ""],
-        correctAnswers: [false, false, false, false],
-      },
+      ...questions, 
+      { 
+      questionText: "", 
+      answers: ["", "", "", ""],
+      correctAnswers: [false, false, false, false]
+      }
     ]);
   };
 
@@ -92,13 +74,13 @@ export default function CreateDeckScreen() {
     setQuestions(updated);
   };
 
-  const updateQuestionText = (index: number, text: string) => {
+  const updateQuestionText = (index: number, text: string) => { //update question text boxes 
     const updated = [...questions];
     updated[index].questionText = text;
     setQuestions(updated);
   };
 
-  const updateAnswer = (qIndex: number, aIndex: number, text: string) => {
+  const updateAnswer = (qIndex: number, aIndex: number, text: string) => { //update answer text boxes
     const updated = [...questions];
     updated[qIndex].answers[aIndex] = text;
     setQuestions(updated);
@@ -110,79 +92,100 @@ export default function CreateDeckScreen() {
     setQuestions(updated);
   };
 
-  const handleSaveDeck = async () => {
+  const handleSaveDeck = async () => { //save deck feature 
+    //to generate a lovely list of errors
+    let badAns: string[] = [];
+
     if (!deckTitle.trim()) {
-      alert("Deck title is required.");
-      return;
+      badAns.push("Deck title is required.");
     }
 
+    //setting up character limits for deck titles
     if (deckTitle.length > 128) {
-      alert("Deck title needs to be below 128 characters.");
-      return;
+      badAns.push("Deck title needs to be below 128 characters.");
     }
 
+    //go through EACH and every question and answer to see if they're empty and/or they've reached
+    //the max character limits
     for (let i = 0; i < questions.length; i++) {
-      const q = questions[i];
-      if (q.questionText.length < 1) {
-        alert(`Question ${i + 1} is empty.`);
-        return;
+      if (questions[i].questionText.length < 1) {
+          badAns.push(`Question ${i+1} is empty.`);
       }
-      if (q.questionText.length > 768) {
-        alert(`Question ${i + 1} exceeds 768 characters.`);
-        return;
+      if (questions[i].questionText.length > 768) {
+          badAns.push(`Question ${i+1} is exceeds 768 character limit.`);
       }
       for (let j = 0; j < 4; j++) {
-        if (q.answers[j].trim() === "") {
-          alert(`Answer ${j + 1} of Question ${i + 1} is empty.`);
-          return;
-        }
-        if (q.answers[j].length > 256) {
-          alert(`Answer ${j + 1} of Question ${i + 1} exceeds 256 characters.`);
-          return;
+          if (questions[i].answers[j].length < 1) {
+              badAns.push(`Question ${i+1}: Answer ${j + 1} is empty.`);
+          }
+          if (questions[i].answers[j].length > 256) {
+              badAns.push(`Question ${i+1}: Answer ${j + 1} exceeds the 256 character limit.`);
         }
       }
-      const correctCount = q.correctAnswers.filter(Boolean).length;
+      const correctCount = questions[i].correctAnswers.filter(Boolean).length;
       if (correctCount < 1) {
-        alert(`Question ${i + 1} must have at least one correct answer.`);
-        return;
+        badAns.push(`Question ${i + 1} must have at least one correct answer.`);
       }
     }
 
+    //check to see if there are any errors
+    if (badAns.length != 0) {
+      badAns.unshift("Error(s):")
+      alert(badAns.join("\n"));
+      return;
+    }
+
+
+    //send deck to backend if no errors
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
 
-      const response = await fetch("http://localhost:5000/createdecks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          deckTitle: deckTitle.trim(),
-          QnA: questions,
-        }),
-      });
+        const response = await fetch('http://localhost:5000/createdecks', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include', // Ensure cookies/sessions are sent
+          body: JSON.stringify({
+            deckTitle: deckTitle.trim(),
+            QnA: questions,
+          }),
+        });
+  
+        console.log("Response status:", response.status);
+  
+        const data = await response.json();
+        
+        if(!response.ok){
+          alert("Access denied: please log in and try again.");
+          return;
+        }
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert("Deck saved successfully!");
-      } else {
-        alert(data.message);
-      }
+ //       if (response.ok) {
+          console.log("Successfully created deck:", data);
+          alert("Deck saved successfully!");
+          router.push("/view-decks");
+/*        } else {
+          console.log("Cannot create deck:", data.message);
+          alert(data.message);
+        }
+ */       
     } catch (error) {
-      console.log("Error during deck creation:", error);
-      alert("Server error, please try again later.");
+        console.log("Error during deck creation:", error);
+        alert("Server error, please try again later.");
     }
   };
 
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.headerContainer}>
-        <Link href="/view-decks" style={styles.backButton}>← Back</Link>
-      </View>
-      <Text style={styles.header}>{deckId ? "Edit Deck" : "Create a New Deck"}</Text>
+  return ( //includes back button to view decks page 
+    
+    <ScrollView contentContainerStyle={styles.container}> 
+        <View style={styles.headerContainer}>
+            <Link href="/view-decks" style={styles.backButton}>
+              ← Back
+            </Link>
+          </View>
+      <Text style={styles.header}>Create a New Deck</Text>
       <TextInput
         style={styles.input}
         placeholder="Deck Title"
@@ -209,7 +212,7 @@ export default function CreateDeckScreen() {
             onChangeText={(text) => updateQuestionText(qIndex, text)}
           />
           {q.answers.map((a, aIndex) => (
-            <View
+              <View
               key={aIndex}
               style={[
                 styles.answerRow,
@@ -241,7 +244,7 @@ export default function CreateDeckScreen() {
         + Add Question
       </Button>
       <Button mode="contained" onPress={handleSaveDeck} style={styles.saveButton}>
-        Save Deck
+         Save Deck
       </Button>
     </ScrollView>
   );
