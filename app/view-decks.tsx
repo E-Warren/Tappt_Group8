@@ -1,92 +1,136 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
-import { Link, router, } from "expo-router";
+import { Link, router } from "expo-router";
 import { WebSocketService } from "./webSocketService";
 
 
-export default function DecksScreen() {
-  //set empty state
-  const [decks, setDecks] = useState([]);
+interface Deck {
+  id: string;
+  title: string;
+  questions: number;
+}
 
-  //useEffects limits the constant querying of the database
+
+const deleteDeckFromBackend = async (deckId: string, token: string): Promise<boolean> => {
+  try {
+    const response = await fetch(`http://localhost:5000/delete-deck/${deckId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to delete deck.");
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting deck:", (error as Error).message);
+    return false;
+  }
+};
+
+export default function DecksScreen() {
+  const [decks, setDecks] = useState<Deck[]>([]); // ✅ typed array of Decks
+
   useEffect(() => {
     const getDeck = async () => {
       const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Missing token. Please log in.");
+        return;
+      }
 
-        //get decks from backend
-        try {
-            const response = await fetch('http://localhost:5000/view-decks', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            credentials: 'include', // Ensure cookies/sessions are sent
+      try {
+        const response = await fetch('http://localhost:5000/view-decks', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include',
+        });
 
-            });
-    
-            console.log("Response status:", response.status);
-    
-            const data = await response.json();
+        const data = await response.json();
 
-            if(!response.ok){
-              //throw new Error(response.error || "Cannot fetch decks, please log in and try again.");
-              alert("Access denied: please log in and try again.");
-              return;
-            }
-
-            console.log(data);
-            console.log("Successfully got decks:", data);
-
-            //set up deck data from backend to be inserted into decks array
-            const insertDecks = data.map(deck => ({
-                id: deck.fld_deck_id_pk,
-                title: deck.fld_deck_name,
-                questions: deck.questioncount
-            }));
-
-            //insert into deck array
-            setDecks(insertDecks);
-          
-        } catch (error) {
-            console.log("Error during deck fetch:", error.message);
-            alert("Server error, please try again later.");
+        if (!response.ok) {
+          alert("Access denied: please log in and try again.");
+          return;
         }
+
+        const insertDecks: Deck[] = data.map((deck: any) => ({
+          id: deck.fld_deck_id_pk,
+          title: deck.fld_deck_name,
+          questions: deck.questioncount
+        }));
+
+        setDecks(insertDecks);
+
+      } catch (error) {
+        console.log("Error during deck fetch:", (error as Error).message);
+        alert("Server error, please try again later.");
+      }
     };
 
-    //run function now
     getDeck();
- }, []);
+  }, []);
 
-  // function created to render each deck card
-  const renderDeck = ({ item }) => (
+  const handleRemoveDeck = async (deckId: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Missing token. Please log in.");
+      return;
+    }
+
+    const confirmed = confirm("Are you sure you want to delete this deck?");
+    if (!confirmed) return;
+
+    const success = await deleteDeckFromBackend(deckId, token);
+    if (success) {
+      setDecks(prevDecks => prevDecks.filter(deck => deck.id !== deckId));
+      alert("Deck removed successfully.");
+    } else {
+      alert("Failed to remove deck. Please try again.");
+    }
+  };
+
+  const renderDeck = ({ item }: { item: Deck }) => (
     <View style={styles.deckCard}>
       <Text style={styles.deckTitle}>{item.title}</Text>
       <Text style={styles.deckDetails}>{item.questions} Questions</Text>
 
       <View style={styles.buttonContainer}>
-      <Link href={`/createdecks/${item.id}`} style={[styles.deckButton, styles.editButton]}>
-        <Text style={{ color: "#fff" }}>Edit Deck</Text>
+        <Link href={`/createdecks/${item.id}`} style={[styles.deckButton, styles.editButton]}>
+          <Text style={{ color: "#fff" }}>Edit Deck</Text>
         </Link>
-        <Link href="/teacherwaiting" onPress={async (e)=> {
-          e.preventDefault();
-          await WebSocketService.createWebSocket(); //creates the teacher's websocket
-          console.log("Created :)");
-          WebSocketService.sendMessage(JSON.stringify({ //calls backend message event to create room code
-            type: "host",
-          }))
-          // set item
-          router.push("/teacherwaiting");
-        }} style={[styles.deckButton, styles.hostButton]}>
+
+        <Link
+          href="/teacherwaiting"
+          onPress={async (e) => {
+            e.preventDefault();
+            await WebSocketService.createWebSocket();
+            WebSocketService.sendMessage(JSON.stringify({ type: "host" }));
+            router.push("/teacherwaiting");
+          }}
+          style={[styles.deckButton, styles.hostButton]}
+        >
           <Text style={styles.buttonText}>Host Deck</Text>
         </Link>
-    </View>
+
+        <TouchableOpacity
+          onPress={() => handleRemoveDeck(item.id)}
+          style={[styles.deckButton, styles.removeButton]}
+        >
+          <Text style={styles.buttonText}>Remove</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
-  return ( // can change this to sign in or home screen later
+  return (
     <View style={styles.container}>
-      {/* navigation buttons at the top */}
       <View style={styles.headerContainer}>
         <Link href="/" style={styles.backButton}>
           ← Back
@@ -97,7 +141,6 @@ export default function DecksScreen() {
         </Link>
       </View>
 
-      {/* list of decks */}
       <FlatList
         data={decks}
         renderItem={renderDeck}
@@ -108,6 +151,7 @@ export default function DecksScreen() {
   );
 }
 
+// STYLES (unchanged from your code)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -135,7 +179,7 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   list: {
-    paddingHorizontal: 40, // increased padding for better spacing
+    paddingHorizontal: 40,
   },
   deckCard: {
     backgroundColor: "#fff",
@@ -147,27 +191,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
-    width: "70%", // adjust width of the card
+    width: "70%",
     alignSelf: "center",
   },
-  
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between", // space between buttons
+    justifyContent: "space-between",
     marginTop: 10,
+    flexWrap: "wrap",
   },
-  
   deckButton: {
     flex: 1,
-    backgroundColor: "#4B0082",
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: "center",
-    justifyContent: "center", // Ensures text is centered vertically
-    textAlign: "center", // Helps center text within the button
+    justifyContent: "center",
     marginHorizontal: 3,
   },
-  
   deckTitle: {
     fontSize: 22,
     fontWeight: "bold",
@@ -190,8 +230,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 6,
   },
+  removeButton: {
+    backgroundColor: "#D11A2A",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 6,
+  },
   buttonText: {
     color: "#fff",
     fontSize: 16,
   },
 });
+
