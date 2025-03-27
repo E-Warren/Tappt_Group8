@@ -735,20 +735,21 @@ app.ws('/join', function(ws, req) {
         });
 
         //TODO: Check if this actually works!!
-        //i want to find if all of the students have answered:
+        //To find if all students have answered:
         let numStudentsWhoAnswered = gameState.answers.filter(function (element) {
           //return the students who have answered the current question
           return element.questionID === gameState.currentQuestion;
         })
 
         if (gameState.studentsInRoom.length === numStudentsWhoAnswered.length){
+          clearInterval(intervals); //stop the interval cause all students answered
           websockets.forEach((websocket) => {
             websocket.send(JSON.stringify({
               type: "allStudentsAnsweredQuestion",
             }))
           });
         } else {
-          websockets.forEach((websocket) => { //is it possible to not send a message since front-end will not do anything with this?
+          websockets.forEach((websocket) => {
             websocket.send(JSON.stringify({
               type: "waitingForAllAnswers",
             }))
