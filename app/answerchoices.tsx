@@ -28,7 +28,18 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = ({
   ],
   questionNumber = 5,
   totalQuestions = 13,
-  onAnswerPress = () => {},
+  onAnswerPress = (studentAnswer: string) => {
+    console.log("The student chose: ", studentAnswer);
+    WebSocketService.sendMessage(JSON.stringify({
+      type: "studentAnswer",
+      data: {
+        name,
+        answer: studentAnswer,
+        questionNumber,
+        clickCount: 100, //TODO: update this once the clicks are stored
+      }
+    }))
+  },
   onNextPress = () => {
     console.log("Next pressed");
   }, // default fallback
@@ -36,34 +47,77 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = ({
   const arrowIcons = ["↑", "←", "→", "↓"];
   const timer = useStudentStore(state => state.currentTime);
   const name = useStudentStore(state => state.name);
-  // TODO: Commenting out the key even for now - update with the rest of the keys
-  // useEffect(() => {
-  //   const keydownHandler = (event: KeyboardEvent) => {
-  //     console.log(event);
-  //     if (event.key === "ArrowUp"){
-  //       console.log("Student pressed the up arrow key");
-  //       //"studentAnswer"
-  //       // const studentName = userMessage.data.name;
-  //       // const studentAnswer = userMessage.data.answer;
-  //       // const questionID = userMessage.data.questionNum;
-  //       // const studentClicks = userMessage.data.clickCount;
-  //       const choice = choices.find(c => c.label === "top");
-  //       if (choice){
-  //         WebSocketService.sendMessage(JSON.stringify({
-  //           type: "studentAnswer",
-  //           data: {
-  //             name,
-  //             answer: choice.value,
-  //             questionNumber, //TODO: update this once questions are loaded in from backend
-  //             clickCount: 100,
-  //           }
-  //         }))
-  //       }
-  //     }
-  //   }
-  //   window.addEventListener("keydown", keydownHandler);
-  //   return () => window.removeEventListener("keydown", keydownHandler);
-  // }, [])
+  useEffect(() => {
+    const keydownHandler = (event: KeyboardEvent) => {
+      console.log(event);
+      if (event.key === "ArrowUp"){
+        console.log("Student pressed the up arrow key");
+        const choice = choices.find(c => c.label === "top");
+        if (choice){
+          console.log("The student chose the up arrow with value: ", choice.value);
+          WebSocketService.sendMessage(JSON.stringify({
+            type: "studentAnswer",
+            data: {
+              name,
+              answer: choice.value,
+              questionNumber,
+              clickCount: 100, //TODO: update this once the clicks are stored
+            }
+          }))
+        }
+      }
+      if (event.key === "ArrowDown") {
+        console.log("Student pressed the down arrow key");
+        const choice = choices.find(c => c.label === "bottom");
+        if (choice) {
+          console.log("The student chose the down arrow with value: ", choice.value);
+          WebSocketService.sendMessage(JSON.stringify({
+            type: "studentAnswer",
+            data: {
+              name,
+              answer: choice.value,
+              questionNumber,
+              clickCount: 100, //TODO: update this once the clicks are stored
+            }
+          }))
+        }
+      }
+      if (event.key === "ArrowLeft") {
+        console.log("Student pressed the left arrow key");
+        const choice = choices.find(c => c.label === "left");
+        if (choice) {
+          console.log("The student chose the left arrow with value: ", choice.value);
+          WebSocketService.sendMessage(JSON.stringify({
+            type: "studentAnswer",
+            data: {
+              name,
+              answer: choice.value,
+              questionNumber,
+              clickCount: 100, //TODO: update this once the clicks are stored
+            }
+          }))
+        }
+      }
+      if (event.key === "ArrowRight") {
+        console.log("Student pressed the right arrow key");
+        const choice = choices.find(c => c.label === "right");
+        if (choice) {
+          console.log("The student chose the right arrow with value: ", choice.value);
+          WebSocketService.sendMessage(JSON.stringify({
+            type: "studentAnswer",
+            data: {
+              name,
+              answer: choice.value,
+              questionNumber,
+              clickCount: 100, //TODO: update this once the clicks are stored
+            }
+          }))
+        }
+      }
+    }
+    window.addEventListener("keydown", keydownHandler);
+    return () => window.removeEventListener("keydown", keydownHandler);
+  }, [])
 
   return (
     <View style={styles.container}>
