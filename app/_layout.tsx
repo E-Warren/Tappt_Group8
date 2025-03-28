@@ -48,6 +48,10 @@ export default function RootLayout() {
       <Stack.Screen name="studentClicks" options={{
         headerShown: false,
       }} />
+      <Stack.Screen name="answerchoices" options={{
+        headerShown: false,
+      }} />
+
       </Stack>
       
       

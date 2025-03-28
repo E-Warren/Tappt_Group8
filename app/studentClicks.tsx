@@ -1,9 +1,8 @@
 import { Text, View, StyleSheet } from 'react-native';
 import { useStudentStore } from './useWebSocketStore';
 
-const studentName = useStudentStore(state => state.name);
-
 export default function studentClicksScreen() {
+  const studentName = useStudentStore(state => state.name);
   return (
     <View style={styles.container}>
       <View style={styles.top}>

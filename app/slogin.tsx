@@ -5,23 +5,16 @@ import { useStudentStore } from './useWebSocketStore'
 import { WebSocketService } from "./webSocketService";
 
 export default function GamePinScreen() { // Function used to get pin from User
-  console.log("Game pin screen");
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false); 
-  const name = useStudentStore((state) => state.name); //get the saved name from zustand
-
-  console.log("The name before use effect is: ", name);
+  const {name} = useStudentStore(state => state); //get the saved name from zustand
   
   useEffect(() => {
-    console.log("In use effect, name is: ", name);
     if (name !== ""){ //ensures the student has a name and sends them to the waiting page
-      console.log("Sending the student to the waiting room")
       router.push("/studentWaiting");
     }
   }, [name]);
 
-
-  console.log("The name is: ", name);
 
   const handleEnter = async () => {
     if (pin.trim().length !== 6) {  // Require a 6-digit PIN

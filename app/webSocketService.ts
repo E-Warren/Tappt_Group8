@@ -19,12 +19,8 @@ export const WebSocketService = {
             webSocket.onmessage = (ev) => {
                 const message = JSON.parse(ev.data);
                 if (message.type === "newStudentName"){ //used when the backend sends the student name
-                    console.log("Inside the new student websocket name");
                     useStudentStore.setState({ name: message.data }); //updates the student's name
-                    console.log("Before setting the roomcode");
-                    console.log("The name is: ", useStudentStore.getState().name);
                     useStudentStore.setState({ roomCode: message.code }); //update's the students room code
-                    console.log("End of adding the student to zustand, name is now", message.data);
                 }
                 if (message.type === "studentsInGame"){ //backend sends a list of students in the game
                     useStudentStore.setState({ students: message.data }); //updates the list of students in the game
@@ -43,7 +39,7 @@ export const WebSocketService = {
     sendMessage: (message: string) => {
         if (!webSocket){
             console.log("No websocket!");
-            throw new Error("This is cow poop");
+            throw new Error("Aw shucks no websocket found");
         }
         webSocket.send(message);
     },

@@ -12,7 +12,6 @@ import * as WebBrowser from "expo-web-browser";
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
-  console.log("login screen");
   const router = useRouter();
 
   const [request, response, promptAsync] = Google.useAuthRequest({

@@ -690,7 +690,6 @@ app.ws('/join', function(ws, req) {
           const listOfStudents = []; //stores the list of students in the game
           findGame.students.forEach((student) => listOfStudents.push(student.playerName)); //will add the new student to the current list of students
 
-          console.log("Going to send the name back to the websocket");
           websockets.forEach((websocket) => { //will update the students in the game (sends to each websocket)
             websocket.send(JSON.stringify({
               type: "studentsInGame",
@@ -722,8 +721,6 @@ app.ws('/join', function(ws, req) {
       }
 
       if (userMessage.type === "studentAnswer"){
-
-        console.log(userMessage);
 
         const studentName = userMessage.data.name;
         const studentAnswer = userMessage.data.answer;
