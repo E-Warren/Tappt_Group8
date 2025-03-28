@@ -12,6 +12,7 @@ import * as WebBrowser from "expo-web-browser";
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
+  console.log("login screen");
   const router = useRouter();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -130,7 +131,7 @@ export default function LoginScreen() {
       alert("Password contains more than 30 characters. Passwords must be 8-30 characters long and alphanumeric.")
       return;
     }
-
+    
     if(text.length > 321){
       alert("Email too long. Please ensure that email is at most 321 characters.")
       return;

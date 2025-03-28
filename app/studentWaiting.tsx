@@ -3,12 +3,13 @@ import { useStudentStore } from "./useWebSocketStore";
 import { useEffect } from "react";
 
 export default function Index() {
+    console.log("Student waiting");
 
     const studentName = useStudentStore(state => state.name); //gets the student's name from zustand
     const setUserType = useStudentStore(state => state.setUserType); //will be used to set user type to student
-    useEffect (() => {
-        setUserType("student");
-    }, [])
+    // useEffect (() => {
+    //     setUserType("student");
+    // }, [])
 
     return (
       <View style={styles.container}>

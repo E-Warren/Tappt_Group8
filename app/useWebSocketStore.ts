@@ -8,6 +8,7 @@ interface StudentState {
     userType?: "student" | "teacher"; //stores the user's type
     roomCode: string;
     students: string[];
+    currentTime: number;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     setRoomCode: (roomCode: string) => void;
@@ -19,6 +20,7 @@ export const useStudentStore = create<StudentState>((set) => ({ //creates a stor
     userType: undefined,
     roomCode: "",
     students: [],
+    currentTime: 30,
     setName: (name) => {
         console.log("Name: ", name);
         set({ name })},

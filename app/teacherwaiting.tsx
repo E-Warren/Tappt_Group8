@@ -16,6 +16,8 @@ const PLAYER_BOX_WIDTH = width / NUM_COLUMNS - 10; // Ensure fixed-size columns
 const PLAYER_CAP = 100; // Maximum number of players allowed
 
 export default function WaitingRoom() {
+  console.log("Teacher waiting screen");
+
   const [lastAddedId, setLastAddedId] = useState<number | null>(null);
   const setUserType = useStudentStore((state) => state.setUserType);
   const RoomCode = useStudentStore((state) => state.roomCode);
