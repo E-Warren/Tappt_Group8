@@ -8,14 +8,13 @@ export default function GamePinScreen() { // Function used to get pin from User
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false); 
   const {name} = useStudentStore(state => state); //get the saved name from zustand
-  useEffect (() => {
+  
+  useEffect(() => {
     if (name !== ""){ //ensures the student has a name and sends them to the waiting page
       router.push("/studentWaiting");
     }
   }, [name]);
 
-
-  console.log("The name is: ", name);
 
   const handleEnter = async () => {
     if (pin.trim().length !== 6) {  // Require a 6-digit PIN

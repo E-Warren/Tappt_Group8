@@ -51,7 +51,9 @@ export default function DecksScreen() {
       const token = localStorage.getItem('token');
       if (!token) {
         alert("Missing token. Please log in.");
-        router.push("/login");
+        setTimeout(() => {
+          router.push("/login");
+        }, 0);
         return;
       }
 

@@ -28,6 +28,9 @@ export const WebSocketService = {
                 if (message.type === "generatedRoomCode"){ //used when the backend sends the room code to the teacher
                     useStudentStore.setState({ roomCode: message.data }); //sets the room code in zustand
                 }
+                if (message.type === "newCountdown"){
+                    useStudentStore.setState({ currentTime: message.timeLeft });
+                }
 
                 console.log(message);
             }
@@ -36,7 +39,7 @@ export const WebSocketService = {
     sendMessage: (message: string) => {
         if (!webSocket){
             console.log("No websocket!");
-            throw new Error("This is cow poop");
+            throw new Error("Aw shucks no websocket found");
         }
         webSocket.send(message);
     },

@@ -647,12 +647,36 @@ const joinRoom = async (data) => { //function to create the student name
 const games = []; //stores all of the games
 const websockets = []; //stores the websocket connections
 
+// const gameState = {
+//   studentsInRoom: ["yellow goose", "pink giraffe"],
+//   deckID: 12345,
+//   currentQuestion: 2,
+//   answers: [{
+//     studentName: "yellow goose",
+//     studentAnswer: "A",
+//     questionID: 1,
+//     clickCount: 100,
+//   }, {
+//     studentName: "pink giraffe",
+//     studentAnswer: "B",
+//     questionID: 2,
+//     clickCount: 150,
+//   }]
+// }
+const gameState = {
+  studentsInRoom: [],
+  deckID: undefined,
+  currentQuestion: undefined,
+  answers: [],
+}
+
 app.ws('/join', function(ws, req) {
   websockets.push(ws); //adds connection to array
   
     ws.on('message', async function(msg) { //get the message
       console.log(msg);
       const userMessage = JSON.parse(msg);
+      let intervals;
 
       if (userMessage.type === 'join'){ //called when a student joins the room
         const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
@@ -662,10 +686,10 @@ app.ws('/join', function(ws, req) {
           findGame.students.push({ //add student to the game
             playerName: returnedName,
           });
+          gameState.studentsInRoom.push(returnedName);
           const listOfStudents = []; //stores the list of students in the game
           findGame.students.forEach((student) => listOfStudents.push(student.playerName)); //will add the new student to the current list of students
 
-          
           websockets.forEach((websocket) => { //will update the students in the game (sends to each websocket)
             websocket.send(JSON.stringify({
               type: "studentsInGame",
@@ -685,6 +709,7 @@ app.ws('/join', function(ws, req) {
           roomCode: returnedRoom,
           students: []
         });
+        gameState.deckID = userMessage.deck; // TODO: ADD THIS ON FRONT END!!!
         
         console.log("Returning the room code: ", returnedRoom);
 
@@ -693,6 +718,60 @@ app.ws('/join', function(ws, req) {
           data: returnedRoom,
         }))
 
+      }
+
+      if (userMessage.type === "studentAnswer"){
+
+        const studentName = userMessage.data.name;
+        const studentAnswer = userMessage.data.answer;
+        const questionID = userMessage.data.questionNum;
+        const studentClicks = userMessage.data.clickCount;
+
+        gameState.answers.push({
+          studentName,
+          studentAnswer,
+          questionID,
+          studentClicks,
+        });
+
+        //TODO: Check if this actually works!!
+        //To find if all students have answered:
+        let numStudentsWhoAnswered = gameState.answers.filter(function (element) {
+          //return the students who have answered the current question
+          return element.questionID === gameState.currentQuestion;
+        })
+
+        if (gameState.studentsInRoom.length === numStudentsWhoAnswered.length){
+          clearInterval(intervals); //stop the interval cause all students answered
+          websockets.forEach((websocket) => {
+            websocket.send(JSON.stringify({
+              type: "allStudentsAnsweredQuestion",
+            }))
+          });
+        }
+      }
+
+      if (userMessage.type === "countdownStarted"){ //sent when the timer starts on frontend
+        let timeLeft = 30;
+        intervals = setInterval(decrementSecond, 1000);
+        function decrementSecond () {
+          timeLeft -= 1; //decrement the time
+          if (timeLeft === 0){ //means time is up!
+            clearInterval(intervals); //stop the interval
+            websockets.forEach((websocket) => {
+              websocket.send(JSON.stringify({
+                type: "timeUp", //send a message to everyone that time is up
+              }))
+            })
+          } else { //else means there is still time left on the countdown
+            websockets.forEach((websocket) => {
+              websocket.send(JSON.stringify({
+                type: "newCountdown",
+                timeLeft, //return the time left
+              }))
+            })
+          }
+        }
       }
 
     });

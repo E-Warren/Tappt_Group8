@@ -45,6 +45,13 @@ export default function RootLayout() {
 {     <Stack.Screen name="view-decks" options={{  //commenting out so that the "back" arrow is built-in during dev
         headerShown: false,
       }} />}
+      <Stack.Screen name="studentClicks" options={{
+        headerShown: false,
+      }} />
+      <Stack.Screen name="answerchoices" options={{
+        headerShown: false,
+      }} />
+
       </Stack>
       
       

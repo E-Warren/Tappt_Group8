@@ -27,6 +27,9 @@ export default function Index() {
       <Link href={"/answerchoices"} style={styles.button}>
         Go to answer choices screen
       </Link>
+      <Link href={"/studentClicks"} style={styles.button}>
+        Go to student click count screen 
+      </Link>
     </View>
   );
 }

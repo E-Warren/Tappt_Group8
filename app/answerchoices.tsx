@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   ViewStyle,
 } from "react-native";
+import { useStudentStore } from "./useWebSocketStore";
+import { WebSocketService } from "./webSocketService";
 
 interface AnswerChoiceScreenProps {
   question?: string;
   choices?: { label: string; value: string }[];
-  timer?: number;
   questionNumber?: number;
   totalQuestions?: number;
   onAnswerPress?: (value: string) => void;
@@ -25,7 +26,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = ({
     { label: "right", value: "1492" },
     { label: "bottom", value: "1912" },
   ],
-  timer = 30,
   questionNumber = 5,
   totalQuestions = 13,
   onAnswerPress = () => {},
@@ -34,6 +34,36 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = ({
   }, // default fallback
 }) => {
   const arrowIcons = ["↑", "←", "→", "↓"];
+  const timer = useStudentStore(state => state.currentTime);
+  const name = useStudentStore(state => state.name);
+  // TODO: Commenting out the key even for now - update with the rest of the keys
+  // useEffect(() => {
+  //   const keydownHandler = (event: KeyboardEvent) => {
+  //     console.log(event);
+  //     if (event.key === "ArrowUp"){
+  //       console.log("Student pressed the up arrow key");
+  //       //"studentAnswer"
+  //       // const studentName = userMessage.data.name;
+  //       // const studentAnswer = userMessage.data.answer;
+  //       // const questionID = userMessage.data.questionNum;
+  //       // const studentClicks = userMessage.data.clickCount;
+  //       const choice = choices.find(c => c.label === "top");
+  //       if (choice){
+  //         WebSocketService.sendMessage(JSON.stringify({
+  //           type: "studentAnswer",
+  //           data: {
+  //             name,
+  //             answer: choice.value,
+  //             questionNumber, //TODO: update this once questions are loaded in from backend
+  //             clickCount: 100,
+  //           }
+  //         }))
+  //       }
+  //     }
+  //   }
+  //   window.addEventListener("keydown", keydownHandler);
+  //   return () => window.removeEventListener("keydown", keydownHandler);
+  // }, [])
 
   return (
     <View style={styles.container}>
