@@ -51,6 +51,12 @@ export default function RootLayout() {
       <Stack.Screen name="answerchoices" options={{
         headerShown: false,
       }} />
+      <Stack.Screen name="endgame" options={{
+        headerShown: false,
+      }} />
+      <Stack.Screen name="roundend" options={{
+        headerShown: false,
+      }} />
 
       </Stack>
       
