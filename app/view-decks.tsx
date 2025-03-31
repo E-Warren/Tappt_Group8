@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import { Link, router } from "expo-router";
 import { WebSocketService } from "./webSocketService";
+import { useStudentStore } from "./useWebSocketStore";
 
 
 interface Deck {
@@ -42,6 +43,7 @@ const deleteDeckFromBackend = async (deckId: string, token: string): Promise<boo
 };
 
 export default function DecksScreen() {
+  const resetStudents = useStudentStore(state => state.resetStudents);
   //set empty state
   const [decks, setDecks] = useState<Deck[]>([]);
 
@@ -131,6 +133,7 @@ export default function DecksScreen() {
             e.preventDefault();
             await WebSocketService.createWebSocket();
             WebSocketService.sendMessage(JSON.stringify({ type: "host" }));
+            resetStudents();
             router.push("/teacherwaiting");
           }}
           style={[styles.deckButton, styles.hostButton]}

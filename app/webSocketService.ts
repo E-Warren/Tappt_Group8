@@ -22,17 +22,23 @@ export const WebSocketService = {
                     useStudentStore.setState({ name: message.data }); //updates the student's name
                     useStudentStore.setState({ roomCode: message.code }); //update's the students room code
                 }
-                if (message.type === "studentsInGame"){ //backend sends a list of students in the game
+                else if (message.type === "studentsInGame"){ //backend sends a list of students in the game
                     useStudentStore.setState({ students: message.data }); //updates the list of students in the game
                 }
-                if (message.type === "generatedRoomCode"){ //used when the backend sends the room code to the teacher
+                else if (message.type === "generatedRoomCode"){ //used when the backend sends the room code to the teacher
                     useStudentStore.setState({ roomCode: message.data }); //sets the room code in zustand
                 }
-                if (message.type === "newCountdown"){
+                else if (message.type === "newCountdown"){
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
-
+                else if (message.type === "studentLeft"){
+                    useStudentStore.getState().removeStudent(message.studentName);
+                }
                 console.log(message);
+            }
+
+            webSocket.onclose = () => {
+
             }
         })
     },

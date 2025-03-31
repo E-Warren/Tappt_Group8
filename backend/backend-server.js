@@ -672,7 +672,8 @@ const gameState = {
 
 app.ws('/join', function(ws, req) {
   websockets.push(ws); //adds connection to array
-  
+  let studentName; 
+  let type;
     ws.on('message', async function(msg) { //get the message
       console.log(msg);
       const userMessage = JSON.parse(msg);
@@ -680,6 +681,8 @@ app.ws('/join', function(ws, req) {
 
       if (userMessage.type === 'join'){ //called when a student joins the room
         const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
+        studentName = returnedName; //store student's name
+        type = "student";
         ws.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
         const findGame = games.find((gameID) => gameID.roomCode === userMessage.data.code); //check if the game exists (if there is a host)
         if (findGame !== undefined){ //if game exists
@@ -703,6 +706,7 @@ app.ws('/join', function(ws, req) {
       }
 
       if (userMessage.type === "host"){ //called when the teacher hits host deck
+        type = "teacher";
         const returnedRoom = await hostRoom(); //will randomly generate a room code
         console.log("Teacher connected");
         games.push({ //adds the room code and creates an empty array of students
@@ -722,6 +726,8 @@ app.ws('/join', function(ws, req) {
 
       if (userMessage.type === "studentAnswer"){
 
+        console.log(userMessage);
+
         const studentName = userMessage.data.name;
         const studentAnswer = userMessage.data.answer;
         const questionID = userMessage.data.questionNum;
@@ -733,6 +739,8 @@ app.ws('/join', function(ws, req) {
           questionID,
           studentClicks,
         });
+
+        console.log(gameState.answers);
 
         //TODO: Check if this actually works!!
         //To find if all students have answered:
@@ -777,8 +785,19 @@ app.ws('/join', function(ws, req) {
     });
 
     ws.on('close', () => {
-        
-      });
+      console.log("Going to close the websocket!!!!!");
+      if (type === "student"){
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "studentLeft",
+            studentName, //return the time left
+          }))
+        })
+      } else {
+        //handle when teacher leaves
+      }
+
+    });
   });
 
   app.post("/validRoomCode", async (req, res) => { //used to check if the room code is valid (the students side on front-end)
