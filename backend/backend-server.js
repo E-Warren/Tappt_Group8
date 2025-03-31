@@ -674,6 +674,7 @@ app.ws('/join', function(ws, req) {
   websockets.push(ws); //adds connection to array
   let studentName; 
   let type;
+  let leavingRoomCode;
     ws.on('message', async function(msg) { //get the message
       console.log(msg);
       const userMessage = JSON.parse(msg);
@@ -683,6 +684,7 @@ app.ws('/join', function(ws, req) {
         const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
         studentName = returnedName; //store student's name
         type = "student";
+        leavingRoomCode = userMessage.data.code;
         ws.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
         const findGame = games.find((gameID) => gameID.roomCode === userMessage.data.code); //check if the game exists (if there is a host)
         if (findGame !== undefined){ //if game exists
@@ -708,6 +710,7 @@ app.ws('/join', function(ws, req) {
       if (userMessage.type === "host"){ //called when the teacher hits host deck
         type = "teacher";
         const returnedRoom = await hostRoom(); //will randomly generate a room code
+        leavingRoomCode = returnedRoom;
         console.log("Teacher connected");
         games.push({ //adds the room code and creates an empty array of students
           roomCode: returnedRoom,
@@ -784,7 +787,7 @@ app.ws('/join', function(ws, req) {
 
     });
 
-    ws.on('close', () => {
+    ws.on('close', async () => {
       console.log("Going to close the websocket!!!!!");
       if (type === "student"){
         websockets.forEach((websocket) => {
@@ -793,8 +796,33 @@ app.ws('/join', function(ws, req) {
             studentName, //return the time left
           }))
         })
+
+        try {
+          const studentLeftQuery = `DELETE FROM room_students.tbl_room
+          WHERE fld_room_code = $1 and type = 'student';`;
+          const removeStudent = await pool.query(studentLeftQuery, [leavingRoomCode]);
+          console.log("Student successfully deleted from database");
+        } catch (error) {
+          console.log("There was an error when removing the student from database", error);
+        }
+
+
       } else {
         //handle when teacher leaves
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "hostLeft",
+          }))
+        })
+
+        try{
+          const hostLeftQuery = `DELETE FROM room_students.tbl_room
+          WHERE fld_room_code = $1`;
+          const removeRoom = await pool.query(hostLeftQuery, [leavingRoomCode]);
+          console.log("successfully deleted the room from the game");
+        } catch (error) {
+          console.log("Error when deleting the room", error);
+        }
       }
 
     });

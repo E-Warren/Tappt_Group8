@@ -34,6 +34,10 @@ export const WebSocketService = {
                 else if (message.type === "studentLeft"){
                     useStudentStore.getState().removeStudent(message.studentName);
                 }
+                else if (message.type === "hostLeft"){
+                    //remove all students from the game
+                    useStudentStore.getState().resetStudents();
+                }
                 console.log(message);
             }
 
