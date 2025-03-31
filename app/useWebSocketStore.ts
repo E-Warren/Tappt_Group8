@@ -9,11 +9,15 @@ interface StudentState {
     roomCode: string;
     students: string[];
     currentTime: number;
+    clickCount: number;
+    isClickable: boolean;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     setRoomCode: (roomCode: string) => void;
     resetStudents: Function;
     addStudent: (newStudent: string) => void;
+    incClickCount: (by: number) => void;
+    setIsClickable: (clickable: boolean) => void;
     removeStudent: (studentName: string) => void;
   }
   
@@ -23,6 +27,8 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     roomCode: "",
     students: [],
     currentTime: 30,
+    clickCount: 0,
+    isClickable: false,
     setName: (name) => {
         console.log("Name: ", name);
         set({ name })},
@@ -37,6 +43,12 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     },
     addStudent: (newStudent) => {
         set((state) => ({ students: [...state.students, newStudent]}));
+    },
+    incClickCount: (by) => {
+        (set((state) => ({ clickCount: state.clickCount + by })));
+    },
+    setIsClickable: (clickable) => {
+        (set((state) => ({ isClickable: clickable })));
     },
     removeStudent: (studentName) => {
         let currentStudents = get().students;

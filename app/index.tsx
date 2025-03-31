@@ -30,6 +30,22 @@ export default function Index() {
       <Link href={"/studentClicks"} style={styles.button}>
         Go to student click count screen 
       </Link>
+      <Link href={"/endgame"} style={styles.button}>
+        Go to end game screen 
+      </Link>
+      <Link href={"/roundend"} style={styles.button}>
+        Go to end of round screen 
+      </Link>
+      <Link href={"/reading"} style={styles.button}>
+        Go to reading screen 
+      </Link>
+      <Link href={"/waiting"} style={styles.button}>
+        Go to waiting screen 
+      </Link>
+      <Link href={"/questiontimer"} style={styles.button}>
+        Go to teacher-side question with timer screen  
+      </Link>
+      
     </View>
   );
 }
