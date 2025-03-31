@@ -1,14 +1,29 @@
 import { Text, View, StyleSheet } from "react-native";
 import { useStudentStore } from "./useWebSocketStore";
 import { useEffect } from "react";
+import { useRouter } from "expo-router";
 
 export default function Index() {
-
     const studentName = useStudentStore(state => state.name); //gets the student's name from zustand
     const setUserType = useStudentStore(state => state.setUserType); //will be used to set user type to student
-    // useEffect (() => {
-    //     setUserType("student");
-    // }, [])
+
+    //to determine whether to be kicked out of the waiting room into the big, bad, tappt game >:)
+    const gameStarted = useStudentStore(state => state.startedGame); 
+
+    const router = useRouter()
+
+    //CHANGE LATER: add appriopriate routing to click page first instead of question diamond
+    //if game started, go to question diamond
+    useEffect(() => {
+        console.log("entered routing; gamestarted =", gameStarted);
+        if (gameStarted == true) {
+            router.push("/answerchoices");
+        }
+    }, [gameStarted]);
+
+    //useEffect (() => {
+    //    setUserType("student");
+    //}, [])
 
     return (
       <View style={styles.container}>

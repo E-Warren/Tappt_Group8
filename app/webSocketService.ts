@@ -31,6 +31,16 @@ export const WebSocketService = {
                 if (message.type === "newCountdown"){
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
+                if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
+                    useStudentStore.setState({ startedGame : message.data });
+                }
+                if (message.type === "sentDeckID") {
+                    useStudentStore.setState({ deckID : message.data });
+                }
+                if (message.type === "allStudentsAnsweredQuestion") {
+                    useStudentStore.setState({ allStudentsAnswered : true });
+                }
+                
 
                 console.log(message);
             }
