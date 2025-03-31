@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import { Link, router } from "expo-router";
 import { WebSocketService } from "./webSocketService";
+import { useStudentStore } from "./useWebSocketStore";
 
 
 interface Deck {
@@ -52,7 +53,7 @@ export default function DecksScreen() {
       if (!token) {
         alert("Missing token. Please log in.");
         setTimeout(() => {
-          router.push("/login");
+            router.push("/login");
         }, 0);
         return;
       }
@@ -116,6 +117,8 @@ export default function DecksScreen() {
   };
 
   const renderDeck = ({ item }: { item: Deck }) => (
+    
+
     <View style={styles.deckCard}>
       <Text style={styles.deckTitle}>{item.title}</Text>
       <Text style={styles.deckDetails}>{item.questions} Questions</Text>
@@ -128,9 +131,15 @@ export default function DecksScreen() {
         <Link
           href="/teacherwaiting"
           onPress={async (e) => {
+            //make deckID into base 10 int and store it into zustand
+            useStudentStore.getState().setDeckID(parseInt(item.id, 10));
+
             e.preventDefault();
             await WebSocketService.createWebSocket();
-            WebSocketService.sendMessage(JSON.stringify({ type: "host" }));
+            //send type and deckID into backend
+
+            WebSocketService.sendMessage(JSON.stringify({ type: "host", deck: item.id }));
+
             router.push("/teacherwaiting");
           }}
           style={[styles.deckButton, styles.hostButton]}
