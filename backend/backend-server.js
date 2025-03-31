@@ -485,8 +485,8 @@ app.put("/createdecks/:id", authenticateToken, async (req, res) => {
 //for deleting an entire deck
 app.delete("/view-decks", authenticateToken, async (req, res) => {
   try {
-    //just need deckID -> tbl_card_decks's children are delete on cascade
-    const { deckID } = req.body;
+    //just need deck ID -> children on delete on cascade
+    const {deckID} = req.body;
 
     //query deleting an entire deck
     const query = 
@@ -514,6 +514,41 @@ app.delete("/view-decks", authenticateToken, async (req, res) => {
     res.status(500).json(error)
   }
 });
+
+// -------------------- FRONTEND STUDENT ANSWER CHOICES WORK --------------------------- 
+app.get("/answerchoices/:deckID", async (req, res) => {
+  try {
+      //obtain deckID from student frontend
+      const {deckID} = req.params
+
+      //query for obtaining all questions and answers
+        console.log("loading hosted deck for this student...");
+
+        const query = 
+        `SELECT fld_card_q, fld_card_q_pk, fld_card_ans, fld_ans_correct, fld_q_ans_pk
+         FROM card_decks.tbl_q_ans AS a INNER JOIN card_decks.tbl_card_question AS q
+	          ON a.fld_card_q_fk = q.fld_card_q_pk
+	          INNER JOIN card_decks.tbl_card_decks AS c
+		          ON c.fld_deck_id_pk = q.fld_deck_id_fk
+         WHERE fld_deck_id_pk = $1;`
+
+        //wait for query to finalize
+        const deck = await pool.query(query, [deckID])
+
+        console.log(deck)
+
+        //send an 201 (OK) status as for success
+        //return query in JSON format
+        res.status(201).json(deck.rows)
+    }
+    //throw 500 error if any error occurred during or after querying
+    catch(error) {
+      console.log("we gots an error during get /answerchoices:");
+      res.status(500).json(error)
+    }
+})
+
+
 
 
 // -------------------- SOCKET WORK --------------------------- 
@@ -668,6 +703,7 @@ const gameState = {
   deckID: undefined,
   currentQuestion: undefined,
   answers: [],
+  hasStarted: false,
 }
 
 app.ws('/join', function(ws, req) {
@@ -709,7 +745,9 @@ app.ws('/join', function(ws, req) {
           roomCode: returnedRoom,
           students: []
         });
-        gameState.deckID = userMessage.deck; // TODO: ADD THIS ON FRONT END!!!
+
+        gameState.deckID = userMessage.deck; // edit: now saves deckID from frontend! yay!
+        console.log("hosted deckID:", gameState.deckID)
         
         console.log("Returning the room code: ", returnedRoom);
 
@@ -720,28 +758,68 @@ app.ws('/join', function(ws, req) {
 
       }
 
+      //if teacher has begun the game
+      if (userMessage.type === "gameStarted") {
+        console.log("Teacher has started the game!")
+
+        gameState.hasStarted = true
+
+        //send that the game has started to all sockets
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "gameHasBegun",
+            data: true,
+          }))
+        });
+        
+      }
+
+      //sends deckID to every socket so that students can load questions/answers on their end
+      if (userMessage.type === "sendDeckID") {
+        //send that the game has started to all sockets
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "sentDeckID",
+            data: gameState.deckID,
+          }))
+        });
+      }
+
       if (userMessage.type === "studentAnswer"){
 
-        const studentName = userMessage.data.name;
-        const studentAnswer = userMessage.data.answer;
-        const questionID = userMessage.data.questionNum;
-        const studentClicks = userMessage.data.clickCount;
+        const studentName = userMessage.name;
+        const studentAnswer = userMessage.answer;
+        const questionID = Number(userMessage.questionNum); //convert to int because frontend made it string (probably b/c of json stringify)
+        const studentClicks = userMessage.clickCount;
+        const currentQuestion = userMessage.currentQuestion;
+        const correctness = userMessage.correctness;
+
+        gameState.currentQuestion = currentQuestion;
+        console.log("current question: ", gameState.currentQuestion);
 
         gameState.answers.push({
           studentName,
           studentAnswer,
           questionID,
           studentClicks,
+          correctness,
+          currentQuestion,  //adding this here so backend can send allStudentsAnsweredQuestion when all students answered -> should we change this? its redundant
         });
 
-        //TODO: Check if this actually works!!
+        console.log("student sent in the following game data: ", gameState.answers[gameState.answers.length - 1]);
+
+        //UPDATE: it actually works! but is a little finicky (it keeps previous games' students sometimes)
         //To find if all students have answered:
         let numStudentsWhoAnswered = gameState.answers.filter(function (element) {
           //return the students who have answered the current question
-          return element.questionID === gameState.currentQuestion;
+          return element.currentQuestion === gameState.currentQuestion;
         })
 
-        if (gameState.studentsInRoom.length === numStudentsWhoAnswered.length){
+        console.log("students who have answered: ", numStudentsWhoAnswered.length)
+        console.log("number of students in the room: ", gameState.studentsInRoom.length)
+        console.log("students in the room: ", gameState.studentsInRoom)
+
+        if (gameState.studentsInRoom.length == numStudentsWhoAnswered.length){
           clearInterval(intervals); //stop the interval cause all students answered
           websockets.forEach((websocket) => {
             websocket.send(JSON.stringify({
