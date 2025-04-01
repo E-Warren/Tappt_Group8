@@ -42,6 +42,9 @@ export default function Index() {
       <Link href={"/questiontimer"} style={styles.button}>
         Go to teacher-side question with timer screen  
       </Link>
+      <Link href={"/finalscorers"} style={styles.button}>
+        Go to final leaderboard 
+      </Link>
     </View>
   );
 }
