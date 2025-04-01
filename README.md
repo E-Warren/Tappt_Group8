@@ -17,6 +17,6 @@ Run the front end & back end in two separate terminal/console windows. Note that
 Run frontend via the command "npx expo start".
 Run backend via the command "npm start".
 
-**Front-end dependencies:** Node.js, Expo, expo-auth-session, zustand.
+**Front-end dependencies:** Node.js, Expo, expo-auth-session, zustand, expo-speech, expo-av.
 
 **Back-end dependencies:** Node.js, nodemon, bcrypt, Express, cors, dotenv, PostgreSQL, jsonwebtoken. Directory also requires .env file to load some sensitive data.
