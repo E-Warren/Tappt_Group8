@@ -92,7 +92,7 @@ export default function WaitingRoom() {
       />
 
       {/* "Let's Go!" Button */}
-      <Link href="/" style={styles.startButton}>
+      <Link href="/reading" style={styles.startButton}>
         <TouchableOpacity
           onPress={() => onPressStartGame()}
           >
