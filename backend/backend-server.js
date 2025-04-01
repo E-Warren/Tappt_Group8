@@ -728,6 +728,7 @@ app.ws('/join', function(ws, req) {
             playerName: returnedName,
           });
           gameState.studentsInRoom.push(returnedName);
+          console.log("Students in game when joined:", gameState.studentsInRoom);
           const listOfStudents = []; //stores the list of students in the game
           findGame.students.forEach((student) => listOfStudents.push(student.playerName)); //will add the new student to the current list of students
 
@@ -833,6 +834,7 @@ app.ws('/join', function(ws, req) {
               type: "allStudentsAnsweredQuestion",
             }))
           });
+          //numStudentsWhoAnswered = 0; need to reset the number of students who answered sometime
         }
       }
 
@@ -863,6 +865,7 @@ app.ws('/join', function(ws, req) {
 
     ws.on('close', async () => {
       console.log("Going to close the websocket!!!!!");
+
       if (type === "student"){
         websockets.forEach((websocket) => {
           websocket.send(JSON.stringify({
@@ -870,6 +873,9 @@ app.ws('/join', function(ws, req) {
             studentName, //return the time left
           }))
         })
+
+        gameState.studentsInRoom = gameState.studentsInRoom.filter(name => name !== studentName);
+        console.log("Students when one person leaves", gameState.studentsInRoom);
 
         try {
           const studentLeftQuery = `DELETE FROM room_students.tbl_room
