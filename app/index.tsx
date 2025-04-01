@@ -19,22 +19,19 @@ export default function Index() {
         Go to view decks screen 
       </Link>
       <Link href={"/correct"} style={styles.button}>
-        Go to Correct screen 
-      </Link>
-      <Link href={"/incorrect"} style={styles.button}>
-        Go to Incorrect screen 
-      </Link>
-      <Link href={"/answerchoices"} style={styles.button}>
-        Go to answer choices screen
+         Go to Correct screen 
+       </Link>
+       <Link href={"/incorrect"} style={styles.button}>
+         Go to Incorrect screen 
       </Link>
       <Link href={"/studentClicks"} style={styles.button}>
         Go to student click count screen 
       </Link>
       <Link href={"/endgame"} style={styles.button}>
-        Go to end game screen 
+         Go to end game screen 
       </Link>
       <Link href={"/roundend"} style={styles.button}>
-        Go to end of round screen 
+         Go to end of round screen 
       </Link>
       <Link href={"/reading"} style={styles.button}>
         Go to reading screen 
@@ -45,7 +42,6 @@ export default function Index() {
       <Link href={"/questiontimer"} style={styles.button}>
         Go to teacher-side question with timer screen  
       </Link>
-      
     </View>
   );
 }

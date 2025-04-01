@@ -11,6 +11,9 @@ interface StudentState {
     currentTime: number;
     clickCount: number;
     isClickable: boolean;
+    deckID: number;
+    startedGame: boolean;
+    allStudentsAnswered: boolean;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     setRoomCode: (roomCode: string) => void;
@@ -18,8 +21,11 @@ interface StudentState {
     addStudent: (newStudent: string) => void;
     incClickCount: (by: number) => void;
     setIsClickable: (clickable: boolean) => void;
+    setDeckID: (deckID: number) => void;
+    setStartedGame: (startedGame: boolean) => void;
+    setAllStudentsAnswered: (allStudentsAnswered: boolean) => void;
     removeStudent: (studentName: string) => void;
-  }
+}
   
 export const useStudentStore = create<StudentState>((set, get) => ({ //creates a store that can be imported to other files
     name: "",
@@ -29,6 +35,9 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     currentTime: 30,
     clickCount: 0,
     isClickable: false,
+    deckID: -1,
+    startedGame: false,
+    allStudentsAnswered: false,
     setName: (name) => {
         console.log("Name: ", name);
         set({ name })},
@@ -49,6 +58,18 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     },
     setIsClickable: (clickable) => {
         (set((state) => ({ isClickable: clickable })));
+    },
+    setDeckID: (deckID) => {
+        console.log("deckID: ", deckID);
+        set({deckID});
+    },
+    setStartedGame: (startedGame) => {
+        console.log("startedGame?: ", startedGame);
+        set({startedGame});
+    },
+    setAllStudentsAnswered: (allStudentsAnswered) => {
+        console.log("all students have answered!");
+        set({allStudentsAnswered});
     },
     removeStudent: (studentName) => {
         let currentStudents = get().students;

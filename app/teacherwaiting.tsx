@@ -6,9 +6,11 @@ import {
   Animated,
   StyleSheet,
   Dimensions,
+  TouchableOpacity
 } from "react-native";
 import { Link } from "expo-router";
 import { useStudentStore } from "./useWebSocketStore";
+import { WebSocketService } from "./webSocketService";
 
 const { height, width } = Dimensions.get("window");
 const NUM_COLUMNS = 4; // Fixed number of columns
@@ -27,6 +29,12 @@ export default function WaitingRoom() {
   useEffect(() => {
     setUserType("teacher");
   }, []);
+
+  const onPressStartGame = async () => {
+    //set a state that the start has started to backend
+    //TODO: CHANGE TO appropriate click screen
+    WebSocketService.sendMessage(JSON.stringify({ type: "gameStarted" }));
+  };
 
   // useEffect(() => {
   //   This currently adds a name player ever 2 seconds, but will be changed to add a player when a user joins the room
@@ -85,7 +93,11 @@ export default function WaitingRoom() {
 
       {/* "Let's Go!" Button */}
       <Link href="/" style={styles.startButton}>
-        <Text style={styles.startButtonText}>Let's Go!</Text>
+        <TouchableOpacity
+          onPress={() => onPressStartGame()}
+          >
+          <Text style={styles.startButtonText}>Let's Go!</Text>
+        </TouchableOpacity>
       </Link>
     </View>
   );

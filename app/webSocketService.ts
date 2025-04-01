@@ -31,6 +31,15 @@ export const WebSocketService = {
                 else if (message.type === "newCountdown"){
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
+                else if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
+                    useStudentStore.setState({ startedGame : message.data });
+                }
+                else if (message.type === "sentDeckID") {
+                    useStudentStore.setState({ deckID : message.data });
+                }
+                else if (message.type === "allStudentsAnsweredQuestion") {
+                    useStudentStore.setState({ allStudentsAnswered : true });
+                }
                 else if (message.type === "studentLeft"){
                     useStudentStore.getState().removeStudent(message.studentName);
                 }
@@ -38,11 +47,8 @@ export const WebSocketService = {
                     //remove all students from the game
                     useStudentStore.getState().resetStudents();
                 }
+                
                 console.log(message);
-            }
-
-            webSocket.onclose = () => {
-
             }
         })
     },

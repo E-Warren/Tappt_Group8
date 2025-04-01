@@ -52,11 +52,11 @@ export default function RootLayout() {
         headerShown: false,
       }} />
       <Stack.Screen name="endgame" options={{
-        headerShown: false,
-      }} />
-      <Stack.Screen name="roundend" options={{
-        headerShown: false,
-      }} />
+         headerShown: false,
+       }} />
+       <Stack.Screen name="roundend" options={{
+         headerShown: false,
+       }} />
 
       </Stack>
       
