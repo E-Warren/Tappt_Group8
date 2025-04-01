@@ -181,15 +181,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 8
   },
-  // Original row colors:
+
   firstPlaceRow: {
-    backgroundColor: '#4C9AFF' // Blue
+    backgroundColor: '#4C9AFF' 
   },
   secondPlaceRow: {
-    backgroundColor: '#FF5B61' // Yellow
+    backgroundColor: '#FF5B61' 
   },
   thirdPlaceRow: {
-    backgroundColor: '#CF9FFF' // Purple
+    backgroundColor: '#CF9FFF' 
   },
   scoreText: {
     color: '#FFFFFF',
@@ -211,12 +211,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginHorizontal: 10
   },
-  // Replace these placeholder hex codes with the exact ones from your images
+  
   missedButton: {
-    backgroundColor: '#7267DB' // Purple (from first picture)
+    backgroundColor: '#7267DB' 
   },
   allScoresButton: {
-    backgroundColor: '#17C3B2' // Teal (from second picture)
+    backgroundColor: '#17C3B2' 
   },
   buttonText: {
     fontSize: 20,
