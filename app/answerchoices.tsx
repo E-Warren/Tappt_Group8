@@ -253,7 +253,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
     }
     window.addEventListener("keydown", keydownHandler);
     return () => window.removeEventListener("keydown", keydownHandler);
-  }, [])
+  }, [questions])
 
 
 
