@@ -57,6 +57,9 @@ export default function RootLayout() {
        <Stack.Screen name="roundend" options={{
          headerShown: false,
        }} />
+       <Stack.Screen name="finalscorers" options={{
+         headerShown: false,
+       }} />
 
       </Stack>
       
