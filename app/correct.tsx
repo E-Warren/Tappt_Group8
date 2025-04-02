@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
 
 interface CorrectScreenProps {
   timer?: number;
@@ -21,6 +22,45 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, questionNumbe
       console.error("onBonusSelect is not a function");
     }
   };
+
+  const soundRef = useRef<Audio.Sound | null>(null);
+  
+    async function playSound() {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require("../assets/sound/correct.mp3"),
+          { shouldPlay: true, isLooping: true }
+        );
+        soundRef.current = sound;
+        console.log("Playing Sound");
+        await sound.setRateAsync(0.9,true);
+        await sound.playAsync();
+  
+        setTimeout(() => {
+          stopSound();
+        }, 1100); 
+      } catch (error) {
+        console.error("Error Playing sound:", error);
+      }
+    }
+    async function stopSound() {
+      if (soundRef.current) {
+        console.log("Stopping Sound");
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
+      }
+    }
+    useEffect(() => {
+      const soundTimer = setTimeout(() => {
+        playSound();
+      }, 500);
+  
+      return () => {
+        clearTimeout(soundTimer);
+        stopSound();
+      };
+    }, []);
 
   return (
     <View style={styles.container}>
