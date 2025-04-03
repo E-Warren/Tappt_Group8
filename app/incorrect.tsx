@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Audio } from "expo-av";
 
 interface IncorrectScreenProps {
   timer?: number;
@@ -9,6 +10,44 @@ interface IncorrectScreenProps {
 }
 //Same as the correct screen, the parameters are set to show example data, will be changed later
 const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13, questionNumber = 1, totalQuestions = 3 }) => {
+  const soundRef = useRef<Audio.Sound | null>(null);
+
+  async function playSound() {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require("../assets/sound/incorrect.mp3"),
+        { shouldPlay: true, isLooping: true }
+      );
+      soundRef.current = sound;
+      console.log("Playing Sound");
+      await sound.playAsync();
+
+      setTimeout(() => {
+        stopSound();
+      }, 1920); 
+    } catch (error) {
+      console.error("Error Playing sound:", error);
+    }
+  }
+  async function stopSound() {
+    if (soundRef.current) {
+      console.log("Stopping Sound");
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
+  }
+  useEffect(() => {
+    const soundTimer = setTimeout(() => {
+      playSound();
+    }, 500);
+
+    return () => {
+      clearTimeout(soundTimer);
+      stopSound();
+    };
+  }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Tappt</Text>

@@ -11,6 +11,7 @@ import {
 import { Link } from "expo-router";
 import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
+import { Audio } from "expo-av";
 
 const { height, width } = Dimensions.get("window");
 const NUM_COLUMNS = 4; // Fixed number of columns
@@ -23,6 +24,40 @@ export default function WaitingRoom() {
   const setUserType = useStudentStore((state) => state.setUserType);
   const RoomCode = useStudentStore((state) => state.roomCode);
   const players = useStudentStore((state) => state.students);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  
+
+
+  async function playSound() {
+    try{
+      const { sound } = await Audio.Sound.createAsync(
+        require ("../assets/sound/Guestlist.mp3"),
+        { shouldPlay: true, isLooping: true }
+      );
+      soundRef.current = sound;
+      console.log("Playing Sound");
+      await sound.playAsync();
+    } catch (error) {
+      console.error("Error Playing sound:", error);
+    }
+  }
+  async function stopSound(){
+    if (soundRef.current) {
+      console.log ("Stopping sound");
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
+  }
+  useEffect(() => {
+    const timer = setTimeout (() => {
+      playSound();
+    },500);
+    return () => {
+      clearTimeout(timer);
+      stopSound();
+    };
+  },[]);
 
   console.log("The players are: ", players);
 
@@ -60,7 +95,8 @@ export default function WaitingRoom() {
   return (
     <View style={styles.container}>
       {/* Back Button */}
-      <Link href="/view-decks" style={styles.backButton}>
+      <Link href="/view-decks" style={styles.backButton}
+      onPress={()=> {stopSound();}}>
         <Text style={styles.backButtonText}>← Back</Text>
       </Link>
 
