@@ -522,8 +522,6 @@ app.get("/answerchoices/:deckID", async (req, res) => {
       const {deckID} = req.params
 
       //query for obtaining all questions and answers
-        console.log("loading hosted deck for this student...");
-
         const query = 
         `SELECT fld_card_q, fld_card_q_pk, fld_card_ans, fld_ans_correct, fld_q_ans_pk
          FROM card_decks.tbl_q_ans AS a INNER JOIN card_decks.tbl_card_question AS q
@@ -534,8 +532,6 @@ app.get("/answerchoices/:deckID", async (req, res) => {
 
         //wait for query to finalize
         const deck = await pool.query(query, [deckID])
-
-        console.log(deck)
 
         //send an 201 (OK) status as for success
         //return query in JSON format
@@ -789,10 +785,11 @@ app.ws('/join', function(ws, req) {
 
         const studentName = userMessage.name;
         const studentAnswer = userMessage.answer;
-        const questionID = Number(userMessage.questionNum); //convert to int because frontend made it string (probably b/c of json stringify)
+        const questionID = Number(userMessage.questionID); //convert to int because frontend made it string (probably b/c of json stringify)
         const studentClicks = userMessage.clickCount;
         const currentQuestion = userMessage.currentQuestion;
         const correctness = userMessage.correctness;
+        const questionNum = userMessage.questionNum;
 
         gameState.currentQuestion = currentQuestion;
         console.log("current question: ", gameState.currentQuestion);
@@ -803,6 +800,7 @@ app.ws('/join', function(ws, req) {
           questionID,
           studentClicks,
           correctness,
+          questionNum,
           currentQuestion,  //adding this here so backend can send allStudentsAnsweredQuestion when all students answered -> should we change this? its redundant
         });
 
@@ -822,11 +820,58 @@ app.ws('/join', function(ws, req) {
         if (gameState.studentsInRoom.length == numStudentsWhoAnswered.length){
           clearInterval(intervals); //stop the interval cause all students answered
           websockets.forEach((websocket) => {
+            console.log("sent allstudentsansweredquestion");
             websocket.send(JSON.stringify({
               type: "allStudentsAnsweredQuestion",
             }))
           });
         }
+      }
+
+      //send students their correctness for their answers
+      if (userMessage.type === "correctnessPls") {
+        const name = userMessage.data.name;
+        const currQNum = userMessage.data.currQNum;
+
+        //finding student's answer correctness (if correct or not)
+        //i know this code is yucky looking
+        let found = gameState.answers.filter(function (element) {
+          if (element.studentName === name && element.questionNum === currQNum) {
+            console.log("for question:", currQNum, "student", name, " answer correctness is", element.correctness);
+            console.log("found student!");
+            return true;
+          }
+          console.log("did not find student...");
+          return false
+        })
+
+
+        //finding if current student answer is correct or incorrect
+        //send string to frontend based on what THE determinator finds
+        let determinator = "";
+        if (found.length === 0) {
+          determinator = "failed found";
+        }
+        else {
+          console.log("found ->", found, "; found[0].correctness ->", found[0].correctness);
+          if (found[0].correctness === true){
+            determinator = "correct";
+          }
+          else if (found[0].correctness === false) {
+            determinator = "incorrect";
+          }
+          else {
+            determinator = "invalid :(";
+          }
+        }
+
+        console.log("determinator ->", determinator);
+
+        //send answer correctness to the student socket
+        ws.send(JSON.stringify({
+          type: "sentAnswerCorrectness",
+          data: determinator,
+        }))
       }
 
       if (userMessage.type === "countdownStarted"){ //sent when the timer starts on frontend
