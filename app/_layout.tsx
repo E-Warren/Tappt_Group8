@@ -58,6 +58,9 @@ export default function RootLayout() {
          headerShown: false,
        }} />
        <Stack.Screen name="finalscorers" options={{
+          headerShown: false,
+        }} />
+       <Stack.Screen name="waiting" options={{
          headerShown: false,
        }} />
 

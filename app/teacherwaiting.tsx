@@ -24,10 +24,11 @@ export default function WaitingRoom() {
   const setUserType = useStudentStore((state) => state.setUserType);
   const RoomCode = useStudentStore((state) => state.roomCode);
   const players = useStudentStore((state) => state.students);
+
   const soundRef = useRef<Audio.Sound | null>(null);
-  
 
 
+//sounnd!!!!!!
   async function playSound() {
     try{
       const { sound } = await Audio.Sound.createAsync(
@@ -58,6 +59,8 @@ export default function WaitingRoom() {
       stopSound();
     };
   },[]);
+
+
 
   console.log("The players are: ", players);
 
@@ -139,7 +142,7 @@ export default function WaitingRoom() {
   );
 }
 
-// ✅ **Only Animate the Last Added Player**
+
 const AnimatedPlayer = ({ name, isNew }: { name: string; isNew: boolean }) => {
   const scaleAnim = useRef(new Animated.Value(isNew ? 0 : 1)).current;
 

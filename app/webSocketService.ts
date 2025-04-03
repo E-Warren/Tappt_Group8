@@ -40,6 +40,9 @@ export const WebSocketService = {
                 if (message.type === "allStudentsAnsweredQuestion") {
                     useStudentStore.setState({ allStudentsAnswered : true });
                 }
+                if (message.type === "sentAnswerCorrectness") {
+                    useStudentStore.setState({ ansCorrectness: message.data })
+                }
                 
 
                 console.log(message);
