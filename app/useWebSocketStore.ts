@@ -14,6 +14,9 @@ interface StudentState {
     deckID: number;
     startedGame: boolean;
     allStudentsAnswered: boolean;
+    currQuestionNum: number;
+    ansCorrectness: string;
+    totalQuestions: number;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     setRoomCode: (roomCode: string) => void;
@@ -23,6 +26,9 @@ interface StudentState {
     setDeckID: (deckID: number) => void;
     setStartedGame: (startedGame: boolean) => void;
     setAllStudentsAnswered: (allStudentsAnswered: boolean) => void;
+    setCurrQuestionNum: (currQuestionNum: number) => void;
+    setAnsCorrectness: (ansCorrectness: string) => void;
+    setTotalQuestions: (totalQuestions: number) => void;
   }
   
 export const useStudentStore = create<StudentState>((set) => ({ //creates a store that can be imported to other files
@@ -36,6 +42,9 @@ export const useStudentStore = create<StudentState>((set) => ({ //creates a stor
     deckID: -1,
     startedGame: false,
     allStudentsAnswered: false,
+    currQuestionNum: 0,
+    ansCorrectness: "",
+    totalQuestions: 0,
     setName: (name) => {
         console.log("Name: ", name);
         set({ name })},
@@ -63,7 +72,15 @@ export const useStudentStore = create<StudentState>((set) => ({ //creates a stor
         set({startedGame});
     },
     setAllStudentsAnswered: (allStudentsAnswered) => {
-        console.log("all students have answered!");
         set({allStudentsAnswered});
+    },
+    setCurrQuestionNum: (currQuestionNum) => {
+        set({currQuestionNum});
+    },
+    setAnsCorrectness: (ansCorrectness) => {
+        set ({ansCorrectness});
+    },
+    setTotalQuestions: (totalQuestions) => {
+        set ({totalQuestions});
     },
 }));
