@@ -29,7 +29,6 @@ export default function studentClicksScreen() {
         console.log("Is clickable!");
         const handleClick = () => {
           clickIncrement(1);
-          console.log("click! new count: ", clickCount);
         };
 
         document.addEventListener('click', handleClick);
@@ -49,7 +48,6 @@ export default function studentClicksScreen() {
       const handleSpace = (event: KeyboardEvent) => {
         if (event.code === "Space") {
           clickIncrement(1);
-          console.log("space! new count: ", clickCount);
         }
       };
 

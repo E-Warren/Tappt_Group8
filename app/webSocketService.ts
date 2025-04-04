@@ -22,26 +22,33 @@ export const WebSocketService = {
                     useStudentStore.setState({ name: message.data }); //updates the student's name
                     useStudentStore.setState({ roomCode: message.code }); //update's the students room code
                 }
-                if (message.type === "studentsInGame"){ //backend sends a list of students in the game
+                else if (message.type === "studentsInGame"){ //backend sends a list of students in the game
                     useStudentStore.setState({ students: message.data }); //updates the list of students in the game
                 }
-                if (message.type === "generatedRoomCode"){ //used when the backend sends the room code to the teacher
+                else if (message.type === "generatedRoomCode"){ //used when the backend sends the room code to the teacher
                     useStudentStore.setState({ roomCode: message.data }); //sets the room code in zustand
                 }
-                if (message.type === "newCountdown"){
+                else if (message.type === "newCountdown"){
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
-                if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
+                else if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
                     useStudentStore.setState({ startedGame : message.data });
                 }
-                if (message.type === "sentDeckID") {
+                else if (message.type === "sentDeckID") {
                     useStudentStore.setState({ deckID : message.data });
                 }
-                if (message.type === "allStudentsAnsweredQuestion") {
+                else if (message.type === "allStudentsAnsweredQuestion") {
                     useStudentStore.setState({ allStudentsAnswered : true });
                 }
-                if (message.type === "sentAnswerCorrectness") {
+                else if (message.type === "sentAnswerCorrectness") {
                     useStudentStore.setState({ ansCorrectness: message.data })
+                }
+                else if (message.type === "studentLeft"){
+                    useStudentStore.getState().removeStudent(message.studentName);
+                }
+                else if (message.type === "hostLeft"){
+                    //remove all students from the game
+                    useStudentStore.getState().resetStudents();
                 }
                 
 

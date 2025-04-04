@@ -42,8 +42,6 @@ export default function GamePinScreen() { // Function used to get pin from User
         const data = await response.json();
 
         if (response.ok){
-          //create the student's websocket connection
-          await WebSocketService.createWebSocket();
           console.log("Created :)");
           //Call the backend message event "join" to add the student to the room
           WebSocketService.sendMessage(JSON.stringify({

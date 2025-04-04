@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import * as Speech from "expo-speech";
 import { Audio } from "expo-av";
 import QuestionWithTimerScreen from "./questiontimer";
+import { WebSocketService } from "./webSocketService";
 
 
 interface ReadingScreenProps {
@@ -51,6 +52,9 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
   }, []);
 
 if (isReadingComplete) {
+  WebSocketService.sendMessage(JSON.stringify({
+    type: 'countdownStarted',
+  }))
   return <QuestionWithTimerScreen />;
 }
 

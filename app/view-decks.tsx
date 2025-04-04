@@ -43,6 +43,7 @@ const deleteDeckFromBackend = async (deckId: string, token: string): Promise<boo
 };
 
 export default function DecksScreen() {
+  const resetStudents = useStudentStore(state => state.resetStudents);
   //set empty state
   const [decks, setDecks] = useState<Deck[]>([]);
 
@@ -135,11 +136,10 @@ export default function DecksScreen() {
             useStudentStore.getState().setDeckID(parseInt(item.id, 10));
 
             e.preventDefault();
-            await WebSocketService.createWebSocket();
             //send type and deckID into backend
 
             WebSocketService.sendMessage(JSON.stringify({ type: "host", deck: item.id }));
-
+            resetStudents();
             router.push("/teacherwaiting");
           }}
           style={[styles.deckButton, styles.hostButton]}

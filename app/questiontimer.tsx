@@ -1,17 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useStudentStore } from "./useWebSocketStore";
 
 interface QuestionWithTimerScreenProps {
-  timer?: number;
   question?: string;
   playerCount?: number;
 }
 
 const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
-  timer = 30,
   question = "In what year did the Boston Tea Party take place?",
   playerCount = 17,
 }) => {
+  const timer = useStudentStore((state) => state.currentTime);
   return (
     <View style={styles.container}>
       <Text style={styles.header}>◇ Tappt</Text>

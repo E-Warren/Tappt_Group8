@@ -1,6 +1,12 @@
 import { Stack } from "expo-router";
+import { WebSocketService } from "./webSocketService";
+import { useEffect } from "react";
 
 export default function RootLayout() {
+  useEffect(() => {
+    WebSocketService.createWebSocket();
+  }, [])
+  
   return (
     <Stack>
       <Stack.Screen name="index" options={{
@@ -61,6 +67,9 @@ export default function RootLayout() {
           headerShown: false,
         }} />
        <Stack.Screen name="waiting" options={{
+         headerShown: false,
+       }} />
+       <Stack.Screen name="roundScorers" options={{
          headerShown: false,
        }} />
 

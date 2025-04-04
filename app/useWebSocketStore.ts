@@ -20,18 +20,20 @@ interface StudentState {
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     setRoomCode: (roomCode: string) => void;
+    resetStudents: Function;
     addStudent: (newStudent: string) => void;
     incClickCount: (by: number) => void;
     setIsClickable: (clickable: boolean) => void;
     setDeckID: (deckID: number) => void;
     setStartedGame: (startedGame: boolean) => void;
     setAllStudentsAnswered: (allStudentsAnswered: boolean) => void;
+    removeStudent: (studentName: string) => void;
     setCurrQuestionNum: (currQuestionNum: number) => void;
     setAnsCorrectness: (ansCorrectness: string) => void;
     setTotalQuestions: (totalQuestions: number) => void;
   }
   
-export const useStudentStore = create<StudentState>((set) => ({ //creates a store that can be imported to other files
+export const useStudentStore = create<StudentState>((set, get) => ({ //creates a store that can be imported to other files
     name: "",
     userType: undefined,
     roomCode: "",
@@ -54,6 +56,9 @@ export const useStudentStore = create<StudentState>((set) => ({ //creates a stor
     setRoomCode: (roomCode) => {
         set({ roomCode });
     },
+    resetStudents: () => {
+        set({students: []});
+    },
     addStudent: (newStudent) => {
         set((state) => ({ students: [...state.students, newStudent]}));
     },
@@ -73,6 +78,13 @@ export const useStudentStore = create<StudentState>((set) => ({ //creates a stor
     },
     setAllStudentsAnswered: (allStudentsAnswered) => {
         set({allStudentsAnswered});
+    },
+    removeStudent: (studentName) => {
+        let currentStudents = get().students;
+        let newStudents = currentStudents.filter(student => {
+            return student !== studentName;
+        })
+        set({students: newStudents});
     },
     setCurrQuestionNum: (currQuestionNum) => {
         set({currQuestionNum});
