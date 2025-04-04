@@ -136,7 +136,6 @@ export default function DecksScreen() {
             useStudentStore.getState().setDeckID(parseInt(item.id, 10));
 
             e.preventDefault();
-            await WebSocketService.createWebSocket();
             //send type and deckID into backend
 
             WebSocketService.sendMessage(JSON.stringify({ type: "host", deck: item.id }));

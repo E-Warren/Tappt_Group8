@@ -706,6 +706,48 @@ const gameState = {
   hasStarted: false,
 }
 
+const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
+  if (type === "student"){
+    websockets.forEach((websocket) => {
+      websocket.send(JSON.stringify({
+        type: "studentLeft",
+        studentName, //return the time left
+      }))
+    })
+
+    gameState.studentsInRoom = gameState.studentsInRoom.filter(name => name !== studentName);
+    console.log("Students when one person leaves", gameState.studentsInRoom);
+
+    try {
+      const studentLeftQuery = `DELETE FROM room_students.tbl_room
+      WHERE fld_room_code = $1 and type = 'student';`;
+      const removeStudent = await pool.query(studentLeftQuery, [leavingRoomCode]);
+      console.log("Student successfully deleted from database");
+    } catch (error) {
+      console.log("There was an error when removing the student from database", error);
+    }
+
+
+  } else {
+    //handle when teacher leaves
+    websockets.forEach((websocket) => {
+      websocket.send(JSON.stringify({
+        type: "hostLeft",
+      }))
+    })
+
+    try{
+      const hostLeftQuery = `DELETE FROM room_students.tbl_room
+      WHERE fld_room_code = $1`;
+      const removeRoom = await pool.query(hostLeftQuery, [leavingRoomCode]);
+      console.log("successfully deleted the room from the game");
+    } catch (error) {
+      console.log("Error when deleting the room", error);
+    }
+  }
+
+}
+
 app.ws('/join', function(ws, req) {
   websockets.push(ws); //adds connection to array
   let studentName; 
@@ -721,16 +763,9 @@ app.ws('/join', function(ws, req) {
         studentName = returnedName; //store student's name
         type = "student";
         leavingRoomCode = userMessage.data.code;
+        gameState.studentsInRoom.push(returnedName);
         ws.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
-        const findGame = games.find((gameID) => gameID.roomCode === userMessage.data.code); //check if the game exists (if there is a host)
-        if (findGame !== undefined){ //if game exists
-          findGame.students.push({ //add student to the game
-            playerName: returnedName,
-          });
-          gameState.studentsInRoom.push(returnedName);
-          console.log("Students in game when joined:", gameState.studentsInRoom);
-          const listOfStudents = []; //stores the list of students in the game
-          findGame.students.forEach((student) => listOfStudents.push(student.playerName)); //will add the new student to the current list of students
+        const listOfStudents = gameState.studentsInRoom; //stores the list of students in the game
 
           websockets.forEach((websocket) => { //will update the students in the game (sends to each websocket)
             websocket.send(JSON.stringify({
@@ -738,10 +773,6 @@ app.ws('/join', function(ws, req) {
               data: listOfStudents
             }));
           })
-          
-        } else {
-          console.log("Error: the game could not be found (no host yet)");
-        }
       }
 
       if (userMessage.type === "host"){ //called when the teacher hits host deck
@@ -749,10 +780,6 @@ app.ws('/join', function(ws, req) {
         const returnedRoom = await hostRoom(); //will randomly generate a room code
         leavingRoomCode = returnedRoom;
         console.log("Teacher connected");
-        games.push({ //adds the room code and creates an empty array of students
-          roomCode: returnedRoom,
-          students: []
-        });
 
         gameState.deckID = userMessage.deck; // edit: now saves deckID from frontend! yay!
         console.log("hosted deckID:", gameState.deckID)
@@ -861,50 +888,14 @@ app.ws('/join', function(ws, req) {
         }
       }
 
-    });
-
-    ws.on('close', async () => {
-      console.log("Going to close the websocket!!!!!");
-
-      if (type === "student"){
-        websockets.forEach((websocket) => {
-          websocket.send(JSON.stringify({
-            type: "studentLeft",
-            studentName, //return the time left
-          }))
-        })
-
-        gameState.studentsInRoom = gameState.studentsInRoom.filter(name => name !== studentName);
-        console.log("Students when one person leaves", gameState.studentsInRoom);
-
-        try {
-          const studentLeftQuery = `DELETE FROM room_students.tbl_room
-          WHERE fld_room_code = $1 and type = 'student';`;
-          const removeStudent = await pool.query(studentLeftQuery, [leavingRoomCode]);
-          console.log("Student successfully deleted from database");
-        } catch (error) {
-          console.log("There was an error when removing the student from database", error);
-        }
-
-
-      } else {
-        //handle when teacher leaves
-        websockets.forEach((websocket) => {
-          websocket.send(JSON.stringify({
-            type: "hostLeft",
-          }))
-        })
-
-        try{
-          const hostLeftQuery = `DELETE FROM room_students.tbl_room
-          WHERE fld_room_code = $1`;
-          const removeRoom = await pool.query(hostLeftQuery, [leavingRoomCode]);
-          console.log("successfully deleted the room from the game");
-        } catch (error) {
-          console.log("Error when deleting the room", error);
-        }
+      if (userMessage.type === "gameEnded"){
+        handleRemoveAll(studentName, type, leavingRoomCode);
       }
 
+    });
+
+    ws.on('close', async (code, reason) => {
+      handleRemoveAll(studentName, type, leavingRoomCode);
     });
   });
 
