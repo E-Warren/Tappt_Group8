@@ -4,42 +4,43 @@ import * as Speech from "expo-speech";
 import { Audio } from "expo-av";
 import QuestionWithTimerScreen from "./questiontimer";
 import { WebSocketService } from "./webSocketService";
-
+import { useNavigation } from "@react-navigation/native"; // <- Add this if using React Navigation
 
 interface ReadingScreenProps {
   playerCount?: number;
 }
 
-const sampleQuestions =[
+const sampleQuestions = [
   "What is the capital of France?",
 ];
-
 
 async function playSound(e: any) {
   const { sound } = await Audio.Sound.createAsync(e);
   console.log("Playing Sound");
-  await sound.playAsync(); 
+  await sound.playAsync();
   setTimeout(() => {
     console.log("Unloading Sound");
-    sound.unloadAsync(); 
+    sound.unloadAsync();
   }, 1500);
 }
 
 const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
-  const [isReadingComplete, setIsReadingComplete ] = useState(false);
+  const [isReadingComplete, setIsReadingComplete] = useState(false);
+  const navigation = useNavigation(); // <- Hook into navigation
 
   useEffect(() => {
+    navigation.setOptions({ headerShown: false }); // <- Hides back arrow + screen title
+
     const soundTimer = setTimeout(() => {
       playSound(require("../assets/sound/question.mp3"));
     }, 500);
-
 
     const speechTimer = setTimeout(() => {
       Speech.speak(sampleQuestions[0], {
         onDone: () => {
           console.log("Speech finished");
           setTimeout(() => {
-            setIsReadingComplete (true);
+            setIsReadingComplete(true);
           }, 1000);
         },
       });
@@ -51,20 +52,22 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
     };
   }, []);
 
-if (isReadingComplete) {
-  WebSocketService.sendMessage(JSON.stringify({
-    type: 'countdownStarted',
-  }))
-  return <QuestionWithTimerScreen />;
-}
+  if (isReadingComplete) {
+    WebSocketService.sendMessage(
+      JSON.stringify({
+        type: "countdownStarted",
+      })
+    );
+    return <QuestionWithTimerScreen />;
+  }
 
-return (
-  <View style={styles.container}>
-    <Text style={styles.header}>◇ Tappt</Text>
-    <Text style={styles.players}>{playerCount} players</Text>
-    <Text style={styles.readingText}>Reading...</Text>
-  </View>
-);
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}>◇ Tappt</Text>
+      <Text style={styles.players}>{playerCount} players</Text>
+      <Text style={styles.readingText}>Reading...</Text>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
