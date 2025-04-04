@@ -44,7 +44,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   //get deckID stored in zustand
   const deckID = useStudentStore(state => state.deckID);
-  const setDeckID = useStudentStore(state => state.setDeckID);
   //obtain player's name
   const playername = useStudentStore(state => state.name);
 
@@ -52,13 +51,25 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   const totalQuestions = questions.length;
   //set total number of questions
   const setTotalQuestions = useStudentStore(state => state.setTotalQuestions);
-  setTotalQuestions(totalQuestions);
 
   //get current question through zustand state management
   const currQuestionNum = useStudentStore(state => state.currQuestionNum);
-  
-  //console.log("current question # ->", currQuestionNum);
 
+  //for avoiding error about this file affecting the rendering ability of /teacherwaiting
+  const [letsgo, setletsgo] = useState(false);
+
+  //set total questions -> so that /teacherwaiting doesn't have to rerender
+  useEffect(() => {
+    setTotalQuestions(totalQuestions);
+  }, [setTotalQuestions, totalQuestions]);
+
+  //if its time to go to waiting room, we go to waiting room
+  useEffect(() => {
+    if (letsgo === true) {
+      router.push("/waiting");
+      setletsgo(false);
+    }
+  }, [letsgo])
 
   //save student answers by sending them to backend!
   const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string) => {
@@ -74,8 +85,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         clickCount: 1, //CHANGE THIS -> HARDCODED
       }));
       console.log("correctness ->", correct);
-      //push to waiting once they've submitted their answer
-      router.push("/waiting");
+
+      setletsgo(true);
   }
 
   //for obtaining questions & answers for answer diamond display
@@ -160,7 +171,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
     //helps ensure that we don't load the screen until we get the teacher's deckID from backend
     if (deckID == -1) {
       requestDeckID();
-      setDeckID(deckID);
     }
     //if we got the deckID, we will send a GET request for obtaining questions
     else {
@@ -176,7 +186,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       console.log(event);
       if (event.key === "ArrowUp"){
         console.log("Student pressed the up arrow key");
-        const choice = questions[currIndex]?.choices?.find(c => c.label === "top");
+        const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "top");
         if (choice){
           console.log("The student chose the up arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -184,7 +194,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             data: {
               name,
               answer: choice.value,
-              questionNumber: questions[currIndex]?.questionID,
+              questionNumber: questions[currQuestionNum]?.questionID,
               clickCount: 100, //TODO: update this once the clicks are stored
             }
           }))
@@ -192,7 +202,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       }
       if (event.key === "ArrowDown") {
         console.log("Student pressed the down arrow key");
-        const choice = questions[currIndex]?.choices?.find(c => c.label === "bottom");
+        const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "bottom");
         if (choice) {
           console.log("The student chose the down arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -200,7 +210,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             data: {
               name,
               answer: choice.value,
-              questionNumber: questions[currIndex]?.questionID,
+              questionNumber: questions[currQuestionNum]?.questionID,
               clickCount: 100, //TODO: update this once the clicks are stored
             }
           }))
@@ -208,7 +218,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       }
       if (event.key === "ArrowLeft") {
         console.log("Student pressed the left arrow key");
-        const choice = questions[currIndex]?.choices?.find(c => c.label === "left");
+        const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "left");
         if (choice) {
           console.log("The student chose the left arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -216,7 +226,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             data: {
               name,
               answer: choice.value,
-              questionNumber: questions[currIndex]?.questionID,
+              questionNumber: questions[currQuestionNum]?.questionID,
               clickCount: 100, //TODO: update this once the clicks are stored
             }
           }))
@@ -224,7 +234,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       }
       if (event.key === "ArrowRight") {
         console.log("Student pressed the right arrow key");
-        const choice = questions[currIndex]?.choices?.find(c => c.label === "right");
+        const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "right");
         if (choice) {
           console.log("The student chose the right arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -232,7 +242,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             data: {
               name,
               answer: choice.value,
-              questionNumber: questions[currIndex]?.questionID,
+              questionNumber: questions[currQuestionNum]?.questionID,
               clickCount: 100, //TODO: update this once the clicks are stored
             }
           }))
@@ -404,4 +414,3 @@ const styles = StyleSheet.create({
 });
 
 export default AnswerChoiceScreen;
-
