@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useStudentStore } from "./useWebSocketStore";
+import { WebSocketService } from "./webSocketService";
+import { router } from "expo-router";
+import { Audio } from "expo-av";
 
 interface CorrectScreenProps {
   timer?: number;
@@ -9,8 +13,12 @@ interface CorrectScreenProps {
   onBonusSelect: (bonus: string) => void;
 }
 
-const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, questionNumber = 1, totalQuestions = 3, onBonusSelect }) => {
+const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect }) => {
   const [selectedBonus, setSelectedBonus] = useState<string | null>(null);
+  const questionNumber = useStudentStore(state => state.currQuestionNum);
+  const totalQuestions = useStudentStore(state => state.totalQuestions);
+  const playername = useStudentStore(state => state.name); 
+  const setAnsCorrectness = useStudentStore(state => state.setAnsCorrectness);
 
   const handleBonusSelect = (bonus: string) => {
     setSelectedBonus(bonus);
@@ -22,10 +30,64 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, questionNumbe
     }
   };
 
+  //sound!!!!
+  const soundRef = useRef<Audio.Sound | null>(null);
+
+  async function playSound() {
+    try {
+      const { sound } = await Audio.Sound.createAsync(
+        require("../assets/sound/correct.mp3"),
+        { shouldPlay: true, isLooping: true }
+      );
+      soundRef.current = sound;
+      console.log("Playing Sound");
+      await sound.setRateAsync(0.9,true);
+      await sound.playAsync();
+
+      setTimeout(() => {
+        stopSound();
+      }, 1100); 
+    } catch (error) {
+      console.error("Error Playing sound:", error);
+    }
+  }
+  async function stopSound() {
+    if (soundRef.current) {
+      console.log("Stopping Sound");
+      await soundRef.current.stopAsync();
+      await soundRef.current.unloadAsync();
+      soundRef.current = null;
+    }
+  }
+  useEffect(() => {
+    const soundTimer = setTimeout(() => {
+      playSound();
+    }, 500);
+
+    return () => {
+      clearTimeout(soundTimer);
+      stopSound();
+    };
+  }, []);
+
+
+  
+    //***temporary*** => substitute until we have teacher frontend routed to this point
+    //setting timeout for 5 seconds so that student can see incorrect page
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        console.log("resetting correctness... rerouting to /answerchoices");
+        setAnsCorrectness("");
+        router.push("/answerchoices");
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }, [])
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Tappt</Text>
-      <Text style={styles.username}>pink goose</Text>
+      <Text style={styles.username}>{playername}</Text>
 
       <View style={styles.checkmarkContainer}>
         <MaterialIcons name="check-circle" size={180} color="lightgreen" />

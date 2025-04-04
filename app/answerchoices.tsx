@@ -10,6 +10,7 @@ import {
 import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
 import { useEffect, useState } from "react";
+import { router } from "expo-router";
 
 interface AnswerChoiceScreenProps {
   questionID?: number;
@@ -32,8 +33,6 @@ const requestDeckID = async () => {
 const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   const arrowIcons = ["↑", "←", "→", "↓"];
 
-  //for keeping track of question count
-  const [currIndex, setIndex] = useState(0);
   //for setting questions up
   const [questions, setQuestions] = useState<AnswerChoiceScreenProps[]>([
       { question: "", questionID: -1, choices: [
@@ -45,28 +44,21 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   //get deckID stored in zustand
   const deckID = useStudentStore(state => state.deckID);
+  const setDeckID = useStudentStore(state => state.setDeckID);
   //obtain player's name
   const playername = useStudentStore(state => state.name);
 
-  //to determine if everyone answered question
-  const everyoneAnswered = useStudentStore(state => state.allStudentsAnswered);
-  const setAllStudentsAnswered = useStudentStore(state => state.setAllStudentsAnswered);
-
   //question length
   const totalQuestions = questions.length;
+  //set total number of questions
+  const setTotalQuestions = useStudentStore(state => state.setTotalQuestions);
+  setTotalQuestions(totalQuestions);
 
-  //updates the current question index if next is pressed
-  //**FOR DEVELOPMENT PURPOSES**
-  const onNextPress = () => {
-    console.log("Next pressed");
-    if (currIndex < questions.length) {
-      setIndex(currIndex + 1);
-      setAllStudentsAnswered(false);
-    }
-    else {
-      Alert.alert("All questions are done");
-    }
-  }
+  //get current question through zustand state management
+  const currQuestionNum = useStudentStore(state => state.currQuestionNum);
+  
+  //console.log("current question # ->", currQuestionNum);
+
 
   //save student answers by sending them to backend!
   const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string) => {
@@ -75,20 +67,16 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         type: "studentAnswer", 
         name: playername, 
         answer: answer,  
-        questionNum: questionID,
+        questionID: questionID,
         currentQuestion: currentQuestion,
         correctness: correct,
+        questionNum: currQuestionNum,
         clickCount: 1, //CHANGE THIS -> HARDCODED
       }));
+      console.log("correctness ->", correct);
+      //push to waiting once they've submitted their answer
+      router.push("/waiting");
   }
-
-  //for checking if everyone has answered -> configure this later to have correct routing
-  useEffect(() => {
-    console.log("checking if everyone answered current question...");
-    if (everyoneAnswered == true) {
-      console.log("everyone answered!");
-    }
-  }, [everyoneAnswered]);
 
   //for obtaining questions & answers for answer diamond display
   useEffect(() => {
@@ -96,9 +84,9 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
     const GetDeck = async () => {
 
       //deckID is preset to -1 in zustand. we need teacher's deck ID
-      if (deckID == -1)  {
-        console.log("waiting for valid deck...");
-        return;
+      //edited this so we're not constantly querying database for each question
+      if (deckID != -1)  {
+        console.log("got valid deck");
       }
 
       //because I cant have request body for GET requests -> send deckID through parameters (yayy)
@@ -161,7 +149,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
         //set our states up yippee
         setQuestions(qArr);
-        setIndex(0);
     
       } 
       catch (error) {
@@ -171,8 +158,9 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
     };
 
     //helps ensure that we don't load the screen until we get the teacher's deckID from backend
-    if (deckID === -1) {
+    if (deckID == -1) {
       requestDeckID();
+      setDeckID(deckID);
     }
     //if we got the deckID, we will send a GET request for obtaining questions
     else {
@@ -262,10 +250,10 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       <Text style={styles.header}>Tappt</Text>
       <Text style={styles.username}>{playername}</Text>
 
-      <Text style={styles.question}>{questions[currIndex]?.question || "questions are done. will need appriopriate routing for this."}</Text>
+      <Text style={styles.question}>{questions[currQuestionNum]?.question || "questions are done. will need appriopriate routing for this."}</Text>
 
       <View style={styles.diamondLayout}>
-        {questions[currIndex]?.choices?.map((choice, index) => {
+        {questions[currQuestionNum]?.choices?.map((choice, index) => {
           const positionStyle =
             index === 0
               ? styles.top
@@ -282,8 +270,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             <TouchableOpacity
               key={index}
               style={[styles.choiceButton, backgroundStyle, positionStyle]}
-              //questions[currIndex]?.questionID?? -1 is the fallback number if, somehow, questionID is undefined :')
-              onPress={() => onAnswerPress(choice.value, choice.correct, questions[currIndex]?.questionID?? -1, questions[currIndex]?.question?? "")}
+              //questions[currQuestionNum]?.questionID?? -1 is the fallback number if, somehow, questionID is undefined :')
+              onPress={() => onAnswerPress(choice.value, choice.correct, questions[currQuestionNum]?.questionID?? -1, questions[currQuestionNum]?.question?? "")}
             >
               <View style={styles.choiceContent}>
                 <Text style={styles.arrow}>{arrowIcons[index]}</Text>
@@ -296,13 +284,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
       <Text style={styles.timer}>{timer}</Text>
       <Text style={styles.questionCounter}>
-        Question {currIndex + 1} / {totalQuestions}
+        Question {currQuestionNum + 1} / {totalQuestions}
       </Text>
-
-      {/* NEW: Next Button */}
-      <TouchableOpacity style={styles.nextButton} onPress={onNextPress}>
-        <Text style={styles.nextButtonText}>Next →</Text>
-      </TouchableOpacity>
     </View>
   );
 };

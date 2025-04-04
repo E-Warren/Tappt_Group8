@@ -40,6 +40,9 @@ export const WebSocketService = {
                 else if (message.type === "allStudentsAnsweredQuestion") {
                     useStudentStore.setState({ allStudentsAnswered : true });
                 }
+                else if (message.type === "sentAnswerCorrectness") {
+                    useStudentStore.setState({ ansCorrectness: message.data })
+                }
                 else if (message.type === "studentLeft"){
                     useStudentStore.getState().removeStudent(message.studentName);
                 }
@@ -48,6 +51,7 @@ export const WebSocketService = {
                     useStudentStore.getState().resetStudents();
                 }
                 
+
                 console.log(message);
             }
         })
