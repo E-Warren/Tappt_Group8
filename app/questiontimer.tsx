@@ -16,12 +16,13 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
   const timer = useStudentStore((state) => state.currentTime);
 
   const timerIsUp = useStudentStore((state) => state.isTimeUp)
+  const haveAllStudentsAnswered = useStudentStore(state => state.allStudentsAnswered);
 
   useEffect(() => {
-    if (timerIsUp){
+    if (timerIsUp || haveAllStudentsAnswered){
       router.replace('/roundend');
     }
-  }, [timerIsUp])
+  }, [timerIsUp, haveAllStudentsAnswered])
 
   const navigation = useNavigation();
 

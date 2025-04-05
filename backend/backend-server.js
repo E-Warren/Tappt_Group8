@@ -756,6 +756,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
 
 }
 
+let intervals;
 
 app.ws('/join', function(ws, req) {
   websockets.push(ws); //adds connection to array
@@ -765,7 +766,7 @@ app.ws('/join', function(ws, req) {
     ws.on('message', async function(msg) { //get the message
       console.log(msg);
       const userMessage = JSON.parse(msg);
-      let intervals;
+      
 
       if (userMessage.type === 'join'){ //called when a student joins the room
         const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
@@ -866,6 +867,7 @@ app.ws('/join', function(ws, req) {
         console.log("students in the room: ", gameState.studentsInRoom)
 
         if (gameState.studentsInRoom.length == numStudentsWhoAnswered.length){
+          console.log("Going to stop the timer now!")
           clearInterval(intervals); //stop the interval cause all students answered
           websockets.forEach((websocket) => {
             console.log("sent allstudentsansweredquestion");

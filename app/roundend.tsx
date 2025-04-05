@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, Animated, StyleSheet, Pressable } from 'react-native';
+import { Link, router } from 'expo-router';
 import { useStudentStore } from './useWebSocketStore';
 
 const ResultsScreen = ({
@@ -108,8 +108,8 @@ const ResultsScreen = ({
           />
         </View>
       </View>
-      <Link href="/" style={styles.continueButton}>
-        <Text style={styles.continueText}>Continue →</Text>
+      <Link href="/roundScorers" style={styles.continueButton}>
+          <Text style={styles.continueText}>Continue →</Text>
       </Link>
     </View>
   );
