@@ -193,7 +193,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   }, [timeIsUp, studentAnwered])
 
   const timer = useStudentStore(state => state.currentTime);
-  const name = useStudentStore(state => state.name);
   useEffect(() => {
     const keydownHandler = (event: KeyboardEvent) => {
       console.log(event);
@@ -204,13 +203,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           console.log("The student chose the up arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
-            data: {
-              name,
-              answer: choice.value,
-              questionNumber: questions[currQuestionNum]?.questionID,
-              clickCount: 100, //TODO: update this once the clicks are stored
-            }
+            name: playername,
+            answer: choice.value,
+            questionID: questions[currQuestionNum]?.questionID?? -1,
+            currentQuestion: questions[currQuestionNum]?.question?? "",
+            correctness: choice.correct,
+            questionNum: currQuestionNum,
+            clickCount: 100, //TODO: update this once the clicks are stored
           }))
+          setletsgo(true);
         }
       }
       if (event.key === "ArrowDown") {
@@ -220,13 +221,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           console.log("The student chose the down arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
-            data: {
-              name,
-              answer: choice.value,
-              questionNumber: questions[currQuestionNum]?.questionID,
-              clickCount: 100, //TODO: update this once the clicks are stored
-            }
+            name: playername,
+            answer: choice.value,
+            questionID: questions[currQuestionNum]?.questionID?? -1,
+            currentQuestion: questions[currQuestionNum]?.question?? "",
+            correctness: choice.correct,
+            questionNum: currQuestionNum,
+            clickCount: 100, //TODO: update this once the clicks are stored
           }))
+          setletsgo(true);
         }
       }
       if (event.key === "ArrowLeft") {
@@ -236,13 +239,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           console.log("The student chose the left arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
-            data: {
-              name,
-              answer: choice.value,
-              questionNumber: questions[currQuestionNum]?.questionID,
-              clickCount: 100, //TODO: update this once the clicks are stored
-            }
+            name: playername,
+            answer: choice.value,
+            questionID: questions[currQuestionNum]?.questionID?? -1,
+            currentQuestion: questions[currQuestionNum]?.question?? "",
+            correctness: choice.correct,
+            questionNum: currQuestionNum,
+            clickCount: 100, //TODO: update this once the clicks are stored
           }))
+          setletsgo(true);
         }
       }
       if (event.key === "ArrowRight") {
@@ -252,13 +257,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           console.log("The student chose the right arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
-            data: {
-              name,
-              answer: choice.value,
-              questionNumber: questions[currQuestionNum]?.questionID,
-              clickCount: 100, //TODO: update this once the clicks are stored
-            }
+            name: playername,
+            answer: choice.value,
+            questionID: questions[currQuestionNum]?.questionID?? -1,
+            currentQuestion: questions[currQuestionNum]?.question?? "",
+            correctness: choice.correct,
+            questionNum: currQuestionNum,
+            clickCount: 100, //TODO: update this once the clicks are stored
           }))
+          setletsgo(true);
         }
       }
     }
