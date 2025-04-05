@@ -72,6 +72,7 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
   }, [])
 
   useEffect(() => {
+    console.log("Reseting the timer");
     useStudentStore.setState({ isTimeUp: false });
     useStudentStore.setState({ currentTime: 30 });
   }, [])

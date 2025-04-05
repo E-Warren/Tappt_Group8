@@ -18,6 +18,7 @@ interface StudentState {
     ansCorrectness: string;
     totalQuestions: number;
     isTimeUp: boolean;
+    hasAnswered: boolean;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     setRoomCode: (roomCode: string) => void;
@@ -49,6 +50,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     ansCorrectness: "",
     totalQuestions: 0,
     isTimeUp: false,
+    hasAnswered: false,
     setName: (name) => {
         console.log("Name: ", name);
         set({ name })},

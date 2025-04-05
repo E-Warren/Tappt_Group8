@@ -56,6 +56,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   const currQuestionNum = useStudentStore(state => state.currQuestionNum);
 
   const timeIsUp = useStudentStore(state => state.isTimeUp);
+  const studentAnwered = useStudentStore(state => state.hasAnswered);
   
   //console.log("current question # ->", currQuestionNum);
 
@@ -72,6 +73,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
     if (letsgo === true) {
       router.push("/waiting");
       setletsgo(false);
+      useStudentStore.setState({ hasAnswered: true});
     }
   }, [letsgo])
 
@@ -184,11 +186,11 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   }, [deckID]);
 
   useEffect(() => {
-    if (timeIsUp){
+    if (timeIsUp && !studentAnwered){
       useStudentStore.setState({ ansCorrectness: 'incorrect' })
       router.replace('/incorrect');
     }
-  }, [timeIsUp])
+  }, [timeIsUp, studentAnwered])
 
   const timer = useStudentStore(state => state.currentTime);
   const name = useStudentStore(state => state.name);
