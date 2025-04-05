@@ -56,6 +56,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   //get current question through zustand state management
   const currQuestionNum = useStudentStore(state => state.currQuestionNum);
+
+  const timeIsUp = useStudentStore(state => state.isTimeUp);
   
   //console.log("current question # ->", currQuestionNum);
 
@@ -169,6 +171,13 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   }, [deckID]);
 
+  useEffect(() => {
+    if (timeIsUp){
+      useStudentStore.setState({ ansCorrectness: 'incorrect' })
+      router.replace('/incorrect');
+    }
+  }, [timeIsUp])
+
   const timer = useStudentStore(state => state.currentTime);
   const name = useStudentStore(state => state.name);
   useEffect(() => {
@@ -176,7 +185,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       console.log(event);
       if (event.key === "ArrowUp"){
         console.log("Student pressed the up arrow key");
-        const choice = questions[currIndex]?.choices?.find(c => c.label === "top");
+        const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "top");
         if (choice){
           console.log("The student chose the up arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -184,7 +193,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             data: {
               name,
               answer: choice.value,
-              questionNumber: questions[currIndex]?.questionID,
+              questionNumber: questions[currQuestionNum]?.questionID,
               clickCount: 100, //TODO: update this once the clicks are stored
             }
           }))
@@ -192,7 +201,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       }
       if (event.key === "ArrowDown") {
         console.log("Student pressed the down arrow key");
-        const choice = questions[currIndex]?.choices?.find(c => c.label === "bottom");
+        const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "bottom");
         if (choice) {
           console.log("The student chose the down arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -200,7 +209,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             data: {
               name,
               answer: choice.value,
-              questionNumber: questions[currIndex]?.questionID,
+              questionNumber: questions[currQuestionNum]?.questionID,
               clickCount: 100, //TODO: update this once the clicks are stored
             }
           }))
@@ -208,7 +217,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       }
       if (event.key === "ArrowLeft") {
         console.log("Student pressed the left arrow key");
-        const choice = questions[currIndex]?.choices?.find(c => c.label === "left");
+        const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "left");
         if (choice) {
           console.log("The student chose the left arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -216,7 +225,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             data: {
               name,
               answer: choice.value,
-              questionNumber: questions[currIndex]?.questionID,
+              questionNumber: questions[currQuestionNum]?.questionID,
               clickCount: 100, //TODO: update this once the clicks are stored
             }
           }))
@@ -224,7 +233,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       }
       if (event.key === "ArrowRight") {
         console.log("Student pressed the right arrow key");
-        const choice = questions[currIndex]?.choices?.find(c => c.label === "right");
+        const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "right");
         if (choice) {
           console.log("The student chose the right arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -232,7 +241,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             data: {
               name,
               answer: choice.value,
-              questionNumber: questions[currIndex]?.questionID,
+              questionNumber: questions[currQuestionNum]?.questionID,
               clickCount: 100, //TODO: update this once the clicks are stored
             }
           }))

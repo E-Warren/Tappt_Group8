@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useStudentStore } from "./useWebSocketStore";
+import { router } from "expo-router";
 
 interface QuestionWithTimerScreenProps {
   question?: string;
@@ -12,6 +13,14 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
   playerCount = 17,
 }) => {
   const timer = useStudentStore((state) => state.currentTime);
+  const timerIsUp = useStudentStore((state) => state.isTimeUp)
+
+  useEffect(() => {
+    if (timerIsUp){
+      router.replace('/roundend');
+    }
+  }, [timerIsUp])
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>◇ Tappt</Text>

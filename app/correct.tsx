@@ -84,6 +84,12 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
       return () => clearTimeout(timer);
     }, [])
 
+    useEffect(() => {
+      useStudentStore.setState({ isTimeUp: false });
+      useStudentStore.setState({ currentTime: 30 });
+      console.log("The time is up boolean in zustand is now: ", useStudentStore.getState().isTimeUp);
+    }, [])
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Tappt</Text>

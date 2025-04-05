@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated, StyleSheet } from 'react-native';
 import { Link } from 'expo-router';
+import { useStudentStore } from './useWebSocketStore';
 
 const ResultsScreen = ({
   data = [5, 2, 7, 4], // In order of up, left, down, right
@@ -36,6 +37,12 @@ const ResultsScreen = ({
       extrapolate: 'clamp',
     })
   );
+
+  useEffect(() => {
+    useStudentStore.setState({ isTimeUp: false });
+    useStudentStore.setState({ currentTime: 30 });
+    console.log("The time is up boolean in zustand is now: ", useStudentStore.getState().isTimeUp);
+  }, [])
 
   return (
     <View style={styles.container}>

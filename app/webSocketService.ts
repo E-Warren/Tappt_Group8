@@ -32,6 +32,7 @@ export const WebSocketService = {
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
                 else if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
+                    
                     useStudentStore.setState({ startedGame : message.data });
                 }
                 else if (message.type === "sentDeckID") {
@@ -49,6 +50,9 @@ export const WebSocketService = {
                 else if (message.type === "hostLeft"){
                     //remove all students from the game
                     useStudentStore.getState().resetStudents();
+                } 
+                else if (message.type === "timeUp"){
+                    useStudentStore.setState({ isTimeUp: message.data })
                 }
                 
 

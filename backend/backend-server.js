@@ -703,6 +703,8 @@ const gameState = {
 }
 
 const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
+  console.log("Removing websocket connection");
+
   if (type === "student"){
     websockets.forEach((websocket) => {
       websocket.send(JSON.stringify({
@@ -920,6 +922,7 @@ app.ws('/join', function(ws, req) {
             websockets.forEach((websocket) => {
               websocket.send(JSON.stringify({
                 type: "timeUp", //send a message to everyone that time is up
+                data: true
               }))
             })
           } else { //else means there is still time left on the countdown
