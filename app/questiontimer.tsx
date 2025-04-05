@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useStudentStore } from "./useWebSocketStore";
 import { router } from "expo-router";
+import { useNavigation } from "@react-navigation/native"; // or "expo-router" if using Expo Router
 
 interface QuestionWithTimerScreenProps {
   question?: string;
@@ -13,6 +14,7 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
   playerCount = 17,
 }) => {
   const timer = useStudentStore((state) => state.currentTime);
+
   const timerIsUp = useStudentStore((state) => state.isTimeUp)
 
   useEffect(() => {
@@ -20,6 +22,13 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
       router.replace('/roundend');
     }
   }, [timerIsUp])
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, []);
+
 
   return (
     <View style={styles.container}>
@@ -35,7 +44,7 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#125e4b", // Deep teal/green background
+    backgroundColor: "#125e4b",
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
@@ -56,7 +65,7 @@ const styles = StyleSheet.create({
   },
   timer: {
     fontSize: 60,
-    color: "#f4a623", // Orange timer color
+    color: "#f4a623",
     fontWeight: "bold",
     marginBottom: 20,
   },

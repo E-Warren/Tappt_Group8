@@ -30,9 +30,6 @@ export default function Index() {
       <Link href={"/reading"} style={styles.button}>
         Go to reading screen 
       </Link>
-      <Link href={"/waiting"} style={styles.button}>
-        Go to waiting screen 
-      </Link>
       <Link href={"/questiontimer"} style={styles.button}>
         Go to teacher-side question with timer screen  
       </Link>

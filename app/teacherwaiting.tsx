@@ -8,7 +8,7 @@ import {
   Dimensions,
   TouchableOpacity
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
 import { Audio } from "expo-av";
@@ -24,6 +24,7 @@ export default function WaitingRoom() {
   const setUserType = useStudentStore((state) => state.setUserType);
   const RoomCode = useStudentStore((state) => state.roomCode);
   const players = useStudentStore((state) => state.students);
+  const gameStarted = useStudentStore(state => state.startedGame); 
 
   const soundRef = useRef<Audio.Sound | null>(null);
 
@@ -74,26 +75,15 @@ export default function WaitingRoom() {
     WebSocketService.sendMessage(JSON.stringify({ type: "gameStarted" }));
   };
 
-  // useEffect(() => {
-  //   This currently adds a name player ever 2 seconds, but will be changed to add a player when a user joins the room
-  //   if (players.length >= PLAYER_CAP) return; // Stop adding when cap is reached, this space can be used to continuously check for new users until the cap is reached
-  //   const interval = setInterval(() => {
-  //     setPlayers((prevPlayers) => {
-  //       if (prevPlayers.length >= PLAYER_CAP) {
-  //         clearInterval(interval);
-  //         return prevPlayers;
-  //       }
-  //       const lastPlayerId = prevPlayers.length > 0 ? prevPlayers[prevPlayers.length - 1].id : 0;
-  //       const newPlayer = {
-  //         id: lastPlayerId + 1,
-  //         name: `Player ${prevPlayers.length + 1}`,
-  //       };
-  //       setLastAddedId(newPlayer.id);
-  //       return [...prevPlayers, newPlayer];
-  //     });
-  //   }, 2000);
-  //   return () => clearInterval(interval);
-  // }, [players]); //[players.length]);
+  //go to reading page if gameStarted is true
+  useEffect(() => {
+    if (gameStarted) {
+      console.log("routing to reading page...");
+      //for stopping waiting room sound before we go to the reading page
+      stopSound();
+      router.push("/reading");
+    }
+  }, [gameStarted])
 
   return (
     <View style={styles.container}>
@@ -131,13 +121,13 @@ export default function WaitingRoom() {
       />
 
       {/* "Let's Go!" Button */}
-      <Link href="/reading" style={styles.startButton}>
+      <View style={styles.startButton}>
         <TouchableOpacity
           onPress={() => onPressStartGame()}
           >
           <Text style={styles.startButtonText}>Let's Go!</Text>
         </TouchableOpacity>
-      </Link>
+      </View>
     </View>
   );
 }

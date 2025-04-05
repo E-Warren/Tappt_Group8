@@ -702,6 +702,14 @@ const gameState = {
   hasStarted: false,
 }
 
+const resetGameState = async () => {
+  gameState.answers = [];
+  gameState.deckID = undefined;
+  gameState.currentQuestion = undefined;
+  gameState.studentsInRoom = [];
+  gameState.hasStarted = false;
+}
+
 const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
   console.log("Removing websocket connection");
 
@@ -727,6 +735,8 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
 
 
   } else {
+    //deleted EVERYTHING if host leaves
+    resetGameState();
     //handle when teacher leaves
     websockets.forEach((websocket) => {
       websocket.send(JSON.stringify({
@@ -745,6 +755,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
   }
 
 }
+
 
 app.ws('/join', function(ws, req) {
   websockets.push(ws); //adds connection to array
@@ -879,7 +890,7 @@ app.ws('/join', function(ws, req) {
             console.log("found student!");
             return true;
           }
-          console.log("did not find student...");
+          console.log("did not find student...", "question:", element.questionNum, "student:", element.studentName, "correctness:", element.correctness)
           return false
         })
 
