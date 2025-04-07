@@ -13,11 +13,6 @@ interface ReadingScreenProps {
   question?: string;
 }
 
-const sampleQuestions = [
-  "What is the capital of France?",
-];
-
-
 async function playSound(e: any) {
   const { sound } = await Audio.Sound.createAsync(e);
   console.log("Playing Sound");
@@ -82,6 +77,7 @@ useEffect(() => {
 
       console.log("Setting questions to: ", qArr);
       setQuestions(qArr);
+      
     } catch (err) {
       console.log("Error when trying to get the deck :(");
     }
@@ -97,16 +93,9 @@ useEffect(() => {
 }, [deckID]);
 
 
-
-
-
-
-
-
-
-
-
   useEffect(() => {
+    useStudentStore.setState({ totalQuestions: questions.length });
+    console.log("Total questions being asked is now: ", questions.length);
     navigation.setOptions({ headerShown: false }); // <- Hides back arrow + screen title
 
     const soundTimer = setTimeout(() => {
@@ -140,6 +129,7 @@ useEffect(() => {
   }, [questions, currQuestionNum]);
 
   if (isReadingComplete) {
+    useStudentStore.setState({ nextQuestion: false });
     WebSocketService.sendMessage(
       JSON.stringify({
         type: "countdownStarted",

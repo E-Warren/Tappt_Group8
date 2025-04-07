@@ -948,9 +948,21 @@ app.ws('/join', function(ws, req) {
           }
         }
       }
+      if (userMessage.type === "sendToNextQuestion"){
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "sendToNextAnswer"
+          }))
+        })
+      }
 
       if (userMessage.type === "gameEnded"){
         handleRemoveAll(studentName, type, leavingRoomCode);
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "gameHasEnded"
+          }))
+        })
       }
 
     });

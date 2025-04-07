@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useStudentStore } from './useWebSocketStore';
+import { WebSocketService } from './webSocketService';
 
 const roundScorersScreen = () => {
   const handlePress = () => {
@@ -9,8 +10,10 @@ const roundScorersScreen = () => {
     const newQuestionNum = pastQuestionNum + 1;
     useStudentStore.setState({ currQuestionNum: newQuestionNum });
     useStudentStore.setState({ currentTime: 30 });
-    useStudentStore.setState({ isTimeUp: false });
+    //useStudentStore.setState({ isTimeUp: false });
     useStudentStore.setState({ allStudentsAnswered: false });
+    useStudentStore.setState({ nextQuestion: true });
+    WebSocketService.sendMessage(JSON.stringify({ type: "sendToNextQuestion" }));
     router.replace('/reading');
   }
 

@@ -52,7 +52,17 @@ export const WebSocketService = {
                     useStudentStore.getState().resetStudents();
                 } 
                 else if (message.type === "timeUp"){
-                    useStudentStore.setState({ isTimeUp: message.data })
+                    console.log("Recieved the timeup message");
+                    useStudentStore.setState({ isTimeUp: message.data });
+                }
+                else if (message.type === "sendToNextAnswer"){
+                    console.log("Going to the next question")
+                    useStudentStore.setState({ nextQuestion: true });
+                    useStudentStore.setState({ isTimeUp: false });
+                    useStudentStore.setState({ currentTime: 30 });
+                } else if (message.type === "gameHasEnded"){
+                    useStudentStore.setState({ nextQuestion: true })
+                    useStudentStore.setState({ gameEnded: true });
                 }
                 
 
