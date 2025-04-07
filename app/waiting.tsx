@@ -21,6 +21,7 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
   const correctness = useStudentStore(state => state.ansCorrectness);
 
   const timeIsUp = useStudentStore(state => state.isTimeUp);
+  const nextQuestion = useStudentStore(state => state.nextQuestion);
   
   /*const obtainCorrectness = async () => {
     //get correctness for student answer for current question
@@ -78,17 +79,18 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
       //useStudentStore.setState({ isTimeUp: false });
       setAllStudentsAnswered(false);
       //setCurrQuestionNum(currQuestionNum + 1);
+      useStudentStore.setState({ nextQuestion: false });
 
       //the correctness of student answer will determine where the student will go...
       if (correctness === "correct") {
-        router.push("/correct");
+        router.replace("/correct");
       } 
       else if (correctness === "incorrect") {
-        router.push("/incorrect");
+        router.replace("/incorrect");
       } 
       else {
         console.log("Something went wrong :(");
-        router.push("/");
+        router.replace("/");
       }
     };
 

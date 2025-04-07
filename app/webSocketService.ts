@@ -77,5 +77,11 @@ export const WebSocketService = {
         }
         webSocket.send(message);
     },
+    disconnect: () => {
+        if (webSocket){
+            webSocket.close(1000, "Joining a new game");
+            webSocket = null;
+        }
+    }
 
 }  

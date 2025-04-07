@@ -714,6 +714,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
   console.log("Removing websocket connection");
 
   if (type === "student"){
+    resetGameState();
     websockets.forEach((websocket) => {
       websocket.send(JSON.stringify({
         type: "studentLeft",
@@ -769,6 +770,7 @@ app.ws('/join', function(ws, req) {
       
 
       if (userMessage.type === 'join'){ //called when a student joins the room
+        console.log("Going to join the room"); 
         const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
         studentName = returnedName; //store student's name
         type = "student";
@@ -969,6 +971,7 @@ app.ws('/join', function(ws, req) {
 
     ws.on('close', async (code, reason) => {
       handleRemoveAll(studentName, type, leavingRoomCode);
+      ws.close();
     });
   });
 
@@ -982,9 +985,11 @@ app.ws('/join', function(ws, req) {
         WHERE fld_room_code = $1;`;
 
         const checkRoomExists = await pool.query(checkRoomCode, [roomCode]);
+        console.log("The check room exists return is: ");
         console.log(checkRoomExists);
         if (checkRoomExists.rowCount > 0){ //if there is at least 1 row, that means the room exists
-            return res.status(200).json("Room exists!");
+          console.log("Yay the room exists");  
+          return res.status(200).json("Room exists!");
         } else {
             return res.status(404).json("Room not found");
         }

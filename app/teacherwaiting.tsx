@@ -81,7 +81,7 @@ export default function WaitingRoom() {
       console.log("routing to reading page...");
       //for stopping waiting room sound before we go to the reading page
       stopSound();
-      router.push("/reading");
+      router.replace("/reading");
     }
   }, [gameStarted])
 

@@ -74,7 +74,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   useEffect(() => {
     if (letsgo === true) {
       console.log("Routing to the waiting screen");
-      router.push("/waiting");
+      router.replace("/waiting");
       setletsgo(false);
       useStudentStore.setState({ hasAnswered: true});
     }

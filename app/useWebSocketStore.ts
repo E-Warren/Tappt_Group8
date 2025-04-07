@@ -107,7 +107,6 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     },
     resetGame: () => {
         set({name: "",
-            userType: undefined,
             roomCode: "",
             students: [],
             currentTime: 30,
@@ -117,7 +116,6 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
             startedGame: false,
             allStudentsAnswered: false,
             currQuestionNum: 0,
-            ansCorrectness: "",
             totalQuestions: 0,
             isTimeUp: false,
             hasAnswered: false,

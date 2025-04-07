@@ -2,11 +2,17 @@ import React, { useEffect } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Link, router } from "expo-router";
 import { useStudentStore } from "./useWebSocketStore";
+import { WebSocketService } from "./webSocketService";
+import { CommonActions } from "@react-navigation/native";
 
 const GameSummaryScreen = () => {
-  // useEffect(() => {
-  //   useStudentStore.setState({ gameEnded: false });
-  // }, [])
+  const handlePress = () => {
+    useStudentStore.getState().resetGame();
+    WebSocketService.sendMessage(JSON.stringify({
+      type: "gameEnded"
+    }));
+    window.location.href = "/slogin";
+  }
 
   return (
     <View style={styles.container}>
@@ -25,9 +31,9 @@ const GameSummaryScreen = () => {
         <Link href="/" style={styles.buttonYellow}>
           <Text style={styles.buttonText}>See what I missed</Text>
         </Link>
-        <Link href="/slogin" style={styles.buttonOrange}>
+        <Pressable onPress={handlePress} style={styles.buttonOrange}>
           <Text style={styles.buttonText}>Join a new game</Text>
-        </Link>
+        </Pressable>
       </View>
     </View>
   );
