@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, ScrollView, StyleSheet, Alert } from "react-native";
+import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from "react-native";
 import { Button } from "react-native-paper";
-import { Link, useNavigation, useRouter, useLocalSearchParams } from "expo-router";
+import { Link, useRouter, useLocalSearchParams } from "expo-router";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface Question { //question interface 
   questionText: string;
   answers: string[];
+  correctAnswers: boolean[];
 }
 
 export default function CreateDeckScreen() {
@@ -13,17 +15,9 @@ export default function CreateDeckScreen() {
   const router = useRouter();
   const {id} = useLocalSearchParams();
 
-  //getting rid of the /createdecks/[id] header at the top of the screen
-  //get rid of this code and you'd know why I'm adding this
-  const nav = useNavigation();
-  React.useLayoutEffect(()=> {
-    nav.setOptions({headerShown:false}); 
-  }, 
-  [nav]); 
-
   const [deckTitle, setDeckTitle] = useState("");
   const [questions, setQuestions] = useState<Question[]>([
-    { questionText: "", answers: ["", "", "", ""] },
+    { questionText: "", answers: ["", "", "", ""], correctAnswers: [false, false, false, false] },
   ]);
 
   //getting deck info from backend
@@ -66,9 +60,12 @@ export default function CreateDeckScreen() {
                   qMap.set(row.fld_card_q_pk, {
                     questionText: row.fld_card_q,
                     answers: [],
+                    correctAnswers: [],
                   });
                 }
+                  //map answers along with their correctness
                   qMap.get(row.fld_card_q_pk).answers.push(row.fld_card_ans);
+                  qMap.get(row.fld_card_q_pk).correctAnswers.push(row.fld_ans_correct);
               });
 
               //map each question info to qArr
@@ -125,6 +122,10 @@ export default function CreateDeckScreen() {
               badAns.push(`Question ${i+1}: Answer ${j + 1} exceeds the 256 character limit.`);
           }
       }
+      const correctCount = questions[i].correctAnswers.filter(Boolean).length;
+      if (correctCount < 1) {
+        badAns.push(`Question ${i + 1} must have at least one correct answer.`);
+      }
     }
 
     //check to see if there are any errors
@@ -136,7 +137,7 @@ export default function CreateDeckScreen() {
     }
 
     //else, add new question
-    setQuestions([...questions, { questionText: "", answers: ["", "", "", ""] }]);
+    setQuestions([...questions, { questionText: "", answers: ["", "", "", ""], correctAnswers: [false, false, false, false] }]);
   };
 
   const updateQuestionText = (index: number, text: string) => { //update question text boxes 
@@ -145,9 +146,25 @@ export default function CreateDeckScreen() {
     setQuestions(updated);
   };
 
+  const removeQuestion = (qIndex: number) => {
+    if (questions.length === 1) {
+      alert("At least one question is required.");
+      return;
+    }
+
+    const updated = questions.filter((_, index) => index !== qIndex);
+    setQuestions(updated);
+  };
+
   const updateAnswer = (qIndex: number, aIndex: number, text: string) => { //update answer text boxes
     const updated = [...questions];
     updated[qIndex].answers[aIndex] = text;
+    setQuestions(updated);
+  };
+
+  const toggleCorrectAnswer = (qIndex: number, aIndex: number) => {
+    const updated = [...questions];
+    updated[qIndex].correctAnswers[aIndex] = !updated[qIndex].correctAnswers[aIndex];
     setQuestions(updated);
   };
 
@@ -180,6 +197,10 @@ export default function CreateDeckScreen() {
           if (questions[i].answers[j].length > 256) {
               badAns.push(`Question ${i+1}: Answer ${j + 1} exceeds the 256 character limit.`);
           }
+      }
+      const correctCount = questions[i].correctAnswers.filter(Boolean).length;
+      if (correctCount < 1) {
+        badAns.push(`Question ${i + 1} must have at least one correct answer.`);
       }
     }
 
@@ -228,7 +249,6 @@ export default function CreateDeckScreen() {
   };
 
   return ( //includes back button to view decks page 
-    
     <ScrollView contentContainerStyle={styles.container}> 
         <View style={styles.headerContainer}>
             <Link href="/view-decks" style={styles.backButton}>
@@ -244,6 +264,17 @@ export default function CreateDeckScreen() {
       />
       {questions.map((q, qIndex) => (
         <View key={qIndex} style={styles.questionCard}>
+          <View style={styles.questionHeader}>
+            <Text style={styles.questionNumber}>Question {qIndex + 1}</Text>
+            <Button
+              onPress={() => removeQuestion(qIndex)}
+              mode="outlined"
+              style={styles.removeButton}
+              textColor="#d63031"
+            >
+              Remove
+            </Button>
+          </View>
           <TextInput
             style={styles.questionInput}
             placeholder="Type your question"
@@ -251,13 +282,31 @@ export default function CreateDeckScreen() {
             onChangeText={(text) => updateQuestionText(qIndex, text)}
           />
           {q.answers.map((a, aIndex) => (
-            <TextInput
+              <View
               key={aIndex}
-              style={styles.answerInput}
-              placeholder={`Answer ${aIndex + 1}`}
-              value={a}
-              onChangeText={(text) => updateAnswer(qIndex, aIndex, text)}
-            />
+              style={[
+                styles.answerRow,
+                q.correctAnswers[aIndex] && styles.correctAnswerRow,
+              ]}
+            >
+              <Pressable
+                onPress={() => toggleCorrectAnswer(qIndex, aIndex)}
+                style={styles.checkboxSquare}
+              >
+                <View style={styles.checkboxBox}>
+                  {q.correctAnswers[aIndex] && (
+                    <MaterialIcons name="check" size={18} color="green" />
+                  )}
+                </View>
+              </Pressable>
+
+              <TextInput
+                style={styles.answerInput}
+                placeholder={`Answer ${aIndex + 1}`}
+                value={a}
+                onChangeText={(text) => updateAnswer(qIndex, aIndex, text)}
+              />
+            </View>
           ))}
         </View>
       ))}
@@ -271,7 +320,8 @@ export default function CreateDeckScreen() {
   );
 }
 
-const styles = StyleSheet.create({ //style and formatting for create decks screen 
+
+const styles = StyleSheet.create({
   container: {
     padding: 20,
     backgroundColor: "#7F55E0FF",
@@ -312,6 +362,22 @@ const styles = StyleSheet.create({ //style and formatting for create decks scree
     shadowRadius: 3,
     elevation: 2,
   },
+  questionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  questionNumber: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  removeButton: {
+    borderColor: "#d63031",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 5,
+  },
   questionInput: {
     fontSize: 16,
     marginBottom: 10,
@@ -319,10 +385,40 @@ const styles = StyleSheet.create({ //style and formatting for create decks scree
     borderColor: "#ccc",
   },
   answerInput: {
+    flex: 1,
     borderBottomWidth: 1,
     borderColor: "#ddd",
     paddingVertical: 8,
-    marginBottom: 10,
+    fontSize: 16,
+  },
+  answerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+    gap: 6,
+  },
+  correctAnswerRow: {
+    borderWidth: 2,
+    borderColor: "green",
+    borderRadius: 6,
+    padding: 4,
+    backgroundColor: "#e6ffea",
+  },
+  checkboxSquare: {
+    marginRight: 10,
+    height: 24,
+    width: 24,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  checkboxBox: {
+    height: 20,
+    width: 20,
+    borderWidth: 2,
+    borderColor: "#555",
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   addButton: {
     backgroundColor: "#6C5CE7",

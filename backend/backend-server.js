@@ -378,7 +378,7 @@ app.get("/createdecks/:id", authenticateToken, async (req, res) => {
 
         //query for obtaining all decks and their descriptions
         const query = 
-        `SELECT fld_deck_name, fld_card_q_pk, fld_card_q, fld_q_ans_pk, fld_card_ans
+        `SELECT fld_deck_name, fld_card_q_pk, fld_card_q, fld_q_ans_pk, fld_card_ans, fld_ans_correct
          FROM card_decks.tbl_q_ans AS a INNER JOIN card_decks.tbl_card_question AS q
 	        ON a.fld_card_q_fk = q.fld_card_q_pk
 	        INNER JOIN card_decks.tbl_card_decks AS c
@@ -451,25 +451,26 @@ app.put("/createdecks/:id", authenticateToken, async (req, res) => {
 
             //for every question in deck, and for every answer in question, insert
             for (q of QnA) {
-                query = 
-                `INSERT INTO card_decks.tbl_card_question(fld_deck_id_fk, fld_card_q)
-                VALUES($1, $2)
-                RETURNING fld_card_q_pk;
+              query = 
+              `INSERT INTO card_decks.tbl_card_question(fld_deck_id_fk, fld_card_q)
+              VALUES($1, $2)
+              RETURNING fld_card_q_pk;
+              `
+              questionID  = await pool.query(query, [id, q.questionText])
+
+              console.log("successful insert question: ", q.questionText)
+
+              //edited this -> to allow both answer text and correctness to be added into database by iterating through QnA array
+              for (let i = 0; i < q.answers.length; i++) {
+                query =
+                `INSERT INTO card_decks.tbl_q_ans(fld_card_q_fk, fld_card_ans, fld_ans_correct)
+                VALUES($1, $2, $3)
+                RETURNING *;
                 `
-                questionID  = await pool.query(query, [id, q.questionText])
-
-                console.log("successful insert question: ", q.questionText)
-
-                for (ans of q.answers) {
-                    query =
-                    `INSERT INTO card_decks.tbl_q_ans(fld_card_q_fk, fld_card_ans, fld_ans_correct)
-                    VALUES($1, $2, $3)
-                    RETURNING *;
-                    `
-                    //cannot add anything other than 'False' to question correctness for npw
-                    insert_all  = await pool.query(query, [questionID.rows[0].fld_card_q_pk, ans, 'FALSE'])
-                    console.log("Inserted answer:", ans, "questionID:", questionID.rows[0].fld_card_q_pk)
-                }
+                //query for inserting answer text and correctness into database
+                insert_all  = await pool.query(query, [questionID.rows[0].fld_card_q_pk, q.answers[i], q.correctAnswers[i]])
+                console.log("Inserted answer:", q.answers[i], "correctness:", q.correctAnswers[i], "questionID:", questionID.rows[0].fld_card_q_pk)
+             }
             }
 
             res.status(201).json({message: "Deck update was a success!"})
