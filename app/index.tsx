@@ -12,9 +12,6 @@ export default function Index() {
       <Link href={"/slogin"} style={styles.button}>
         Go to student login screen
       </Link>
-      <Link href={"/createdecks"} style={styles.button}>
-        Go to create decks screen
-      </Link>
       <Link href={"/view-decks"} style={styles.button}>
         Go to view decks screen 
       </Link>
@@ -59,4 +56,3 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
-
