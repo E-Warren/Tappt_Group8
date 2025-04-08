@@ -73,6 +73,9 @@ export default function RootLayout() {
        <Stack.Screen name="roundScorers" options={{
          headerShown: false,
        }} />
+       <Stack.Screen name="createdecks/[id]" options={{
+         headerShown: false,
+       }} />
 
       </Stack>
       
