@@ -19,6 +19,9 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
 
   const playername = useStudentStore(state => state.name);
   const correctness = useStudentStore(state => state.ansCorrectness);
+
+  const timeIsUp = useStudentStore(state => state.isTimeUp);
+  const nextQuestion = useStudentStore(state => state.nextQuestion);
   
   /*const obtainCorrectness = async () => {
     //get correctness for student answer for current question
@@ -73,19 +76,21 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
     //need this so student routing is dependent on what the websocket responds with, not what frontend thinks they should go to
     const determineCorrectness = () => {
       console.log("Everyone answered... Routing back to questions");
+      //useStudentStore.setState({ isTimeUp: false });
       setAllStudentsAnswered(false);
-      setCurrQuestionNum(currQuestionNum + 1);
+      //setCurrQuestionNum(currQuestionNum + 1);
+      //useStudentStore.setState({ nextQuestion: false });
 
       //the correctness of student answer will determine where the student will go...
       if (correctness === "correct") {
-        router.push("/correct");
+        router.replace("/correct");
       } 
       else if (correctness === "incorrect") {
-        router.push("/incorrect");
+        router.replace("/incorrect");
       } 
       else {
         console.log("Something went wrong :(");
-        router.push("/");
+        router.replace("/");
       }
     };
 
@@ -93,6 +98,7 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
     //TODO: add timer parameter here
     if (everyoneAnswered) {
       //if the websocket sent an invalid form of correctness... >:(
+        console.log("Everyone answered is: ", everyoneAnswered)
       if (!["correct", "incorrect"].includes(correctness)) {
         obtainCorrectness();
       } 
@@ -102,7 +108,6 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
       }
     }
   }, [everyoneAnswered, correctness]);
-
 
 
   return (

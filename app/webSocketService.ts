@@ -32,6 +32,7 @@ export const WebSocketService = {
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
                 else if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
+                    
                     useStudentStore.setState({ startedGame : message.data });
                 }
                 else if (message.type === "sentDeckID") {
@@ -49,6 +50,21 @@ export const WebSocketService = {
                 else if (message.type === "hostLeft"){
                     //remove all students from the game
                     useStudentStore.getState().resetStudents();
+                } 
+                else if (message.type === "timeUp"){
+                    console.log("Recieved the timeup message");
+                    useStudentStore.setState({ isTimeUp: message.data });
+                }
+                else if (message.type === "sendToNextAnswer"){
+                    console.log("Going to the next question")
+                    useStudentStore.setState({ 
+                        nextQuestion: true, 
+                        isTimeUp: false,
+                        currentTime: 30,
+                    });
+                } else if (message.type === "gameHasEnded"){
+                    useStudentStore.setState({ nextQuestion: true });
+                    useStudentStore.setState({ gameEnded: true });
                 }
                 
 
@@ -63,5 +79,11 @@ export const WebSocketService = {
         }
         webSocket.send(message);
     },
+    disconnect: () => {
+        if (webSocket){
+            webSocket.close(1000, "Joining a new game");
+            webSocket = null;
+        }
+    }
 
 }  

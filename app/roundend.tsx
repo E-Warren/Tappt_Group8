@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, Animated, StyleSheet, Pressable } from 'react-native';
+import { Link, router } from 'expo-router';
+import { useStudentStore } from './useWebSocketStore';
+import { WebSocketService } from './webSocketService';
 
 const ResultsScreen = ({
   data = [5, 2, 7, 4], // In order of up, left, down, right
@@ -8,6 +10,8 @@ const ResultsScreen = ({
   correctAnswerCount = 7,
   totalPlayers = 17,
 }) => {
+  const currentNumber = useStudentStore((state) => state.currQuestionNum);
+  const totalNumQuestions = useStudentStore((state) => state.totalQuestions);
   const diamondData = ['2001', '1773', '1492', '1912'];
   const diamondColors = [
     { original: styles.diamondPurple, grey: styles.diamondPurpleGrey },
@@ -36,6 +40,32 @@ const ResultsScreen = ({
       extrapolate: 'clamp',
     })
   );
+
+  useEffect(() => {
+    //useStudentStore.setState({ isTimeUp: false });
+    useStudentStore.setState({ currentTime: 30 });
+    console.log("The time is up boolean in zustand is now: ", useStudentStore.getState().isTimeUp);
+  }, [])
+
+  const handlePress = () => {
+    console.log("Current question is: ", currentNumber, " total questions is: ", totalNumQuestions);
+     if ((currentNumber + 1) !== totalNumQuestions){
+       router.replace('/roundScorers');
+     } else {
+      WebSocketService.sendMessage(
+        JSON.stringify({
+          type: "gameEnded",
+        })
+      )
+      WebSocketService.sendMessage(
+        JSON.stringify({
+          type: "sendToNextQuestion",
+        })
+      )
+       router.replace('/finalscorers');
+       useStudentStore.setState({ gameEnded: false });
+     }
+   }
 
   return (
     <View style={styles.container}>
@@ -101,9 +131,9 @@ const ResultsScreen = ({
           />
         </View>
       </View>
-      <Link href="/" style={styles.continueButton}>
-        <Text style={styles.continueText}>Continue →</Text>
-      </Link>
+      <Pressable onPress={handlePress} style={styles.continueButton}>
+          <Text style={styles.continueText}>Continue →</Text>
+      </Pressable>
     </View>
   );
 };

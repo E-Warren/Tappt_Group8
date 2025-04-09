@@ -5,6 +5,7 @@ import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
 import { router } from "expo-router";
 import { Audio } from "expo-av";
+import { useIsFocused } from "@react-navigation/native";
 
 interface IncorrectScreenProps {
   timer?: number;
@@ -17,6 +18,7 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
   const totalQuestions = useStudentStore(state => state.totalQuestions);
   const playername = useStudentStore(state => state.name); 
   const setAnsCorrectness = useStudentStore(state => state.setAnsCorrectness);
+  const goToNextQuestion = useStudentStore(state => state.nextQuestion);
 
   //sound!!!!
   const soundRef = useRef<Audio.Sound | null>(null);
@@ -62,13 +64,28 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
   //***temporary*** => substitute until we have teacher frontend routed to this point
   //setting timeout for 5 seconds so that student can see incorrect page
   useEffect(() => {
-    const timer = setTimeout(() => {
-      console.log("resetting correctness... rerouting to /answerchoices");
-      setAnsCorrectness("");
-      router.push("/answerchoices");
-    }, 5000);
+      if (goToNextQuestion){
+        if ((questionNumber + 1) !== totalQuestions){
+          useStudentStore.setState({ hasAnswered: false});
+          useStudentStore.setState({ nextQuestion: false });
+          useStudentStore.setState({ currQuestionNum: questionNumber + 1});
+          useStudentStore.setState({ allStudentsAnswered: false });
+          console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
+          console.log("resetting correctness... rerouting to /answerchoices");
+          setAnsCorrectness("");
+          router.replace("/answerchoices");
+        } else {
+          router.replace("/endgame");
+        }
+      }
 
-    return () => clearTimeout(timer);
+  }, [goToNextQuestion])
+
+  useEffect(() => {
+    console.log("Reseting the timer");
+    useStudentStore.setState({ isTimeUp: false });
+    useStudentStore.setState({ currentTime: 30 });
+    useStudentStore.setState({ allStudentsAnswered: false });
   }, [])
 
 
@@ -85,7 +102,7 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
       <Text style={styles.tryAgainText}>Better luck next time...</Text>
 
       <Text style={styles.timer}>{timer}</Text>
-      <Text style={styles.questionCounter}>Question {questionNumber} / {totalQuestions}</Text>
+      <Text style={styles.questionCounter}>Question {questionNumber + 1} / {totalQuestions}</Text>
     </View>
   );
 };

@@ -712,7 +712,10 @@ const resetGameState = async () => {
 }
 
 const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
+  console.log("Removing websocket connection");
+
   if (type === "student"){
+    gameState.studentsInRoom = gameState.studentsInRoom.filter(name => name != studentName);
     websockets.forEach((websocket) => {
       websocket.send(JSON.stringify({
         type: "studentLeft",
@@ -755,6 +758,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
 
 }
 
+let intervals;
 
 app.ws('/join', function(ws, req) {
   websockets.push(ws); //adds connection to array
@@ -764,9 +768,10 @@ app.ws('/join', function(ws, req) {
     ws.on('message', async function(msg) { //get the message
       console.log(msg);
       const userMessage = JSON.parse(msg);
-      let intervals;
+      
 
       if (userMessage.type === 'join'){ //called when a student joins the room
+        console.log("Going to join the room"); 
         const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
         studentName = returnedName; //store student's name
         type = "student";
@@ -865,6 +870,7 @@ app.ws('/join', function(ws, req) {
         console.log("students in the room: ", gameState.studentsInRoom)
 
         if (gameState.studentsInRoom.length == numStudentsWhoAnswered.length){
+          console.log("Going to stop the timer now!")
           clearInterval(intervals); //stop the interval cause all students answered
           websockets.forEach((websocket) => {
             console.log("sent allstudentsansweredquestion");
@@ -932,6 +938,7 @@ app.ws('/join', function(ws, req) {
             websockets.forEach((websocket) => {
               websocket.send(JSON.stringify({
                 type: "timeUp", //send a message to everyone that time is up
+                data: true
               }))
             })
           } else { //else means there is still time left on the countdown
@@ -944,15 +951,28 @@ app.ws('/join', function(ws, req) {
           }
         }
       }
+      if (userMessage.type === "sendToNextQuestion"){
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "sendToNextAnswer"
+          }))
+        })
+      }
 
       if (userMessage.type === "gameEnded"){
         handleRemoveAll(studentName, type, leavingRoomCode);
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "gameHasEnded"
+          }))
+        })
       }
 
     });
 
     ws.on('close', async (code, reason) => {
       handleRemoveAll(studentName, type, leavingRoomCode);
+      ws.close();
     });
   });
 
@@ -966,9 +986,11 @@ app.ws('/join', function(ws, req) {
         WHERE fld_room_code = $1;`;
 
         const checkRoomExists = await pool.query(checkRoomCode, [roomCode]);
+        console.log("The check room exists return is: ");
         console.log(checkRoomExists);
         if (checkRoomExists.rowCount > 0){ //if there is at least 1 row, that means the room exists
-            return res.status(200).json("Room exists!");
+          console.log("Yay the room exists");  
+          return res.status(200).json("Room exists!");
         } else {
             return res.status(404).json("Room not found");
         }

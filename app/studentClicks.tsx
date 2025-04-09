@@ -79,7 +79,6 @@ export default function studentClicksScreen() {
             Click Count:
         </Text>
         <Text style={styles.clickText}> 
-        {/* TODO: Hardcoded a click count here - add updated count to variables up top */}
             {clickCount}
         </Text>
       </View>

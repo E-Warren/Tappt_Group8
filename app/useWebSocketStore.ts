@@ -17,6 +17,10 @@ interface StudentState {
     currQuestionNum: number;
     ansCorrectness: string;
     totalQuestions: number;
+    isTimeUp: boolean;
+    hasAnswered: boolean;
+    nextQuestion: boolean;
+    gameEnded: boolean;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     setRoomCode: (roomCode: string) => void;
@@ -31,6 +35,7 @@ interface StudentState {
     setCurrQuestionNum: (currQuestionNum: number) => void;
     setAnsCorrectness: (ansCorrectness: string) => void;
     setTotalQuestions: (totalQuestions: number) => void;
+    resetGame: Function;
   }
   
 export const useStudentStore = create<StudentState>((set, get) => ({ //creates a store that can be imported to other files
@@ -47,6 +52,10 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     currQuestionNum: 0,
     ansCorrectness: "",
     totalQuestions: 0,
+    isTimeUp: false,
+    hasAnswered: false,
+    nextQuestion: false,
+    gameEnded: false,
     setName: (name) => {
         console.log("Name: ", name);
         set({ name })},
@@ -93,6 +102,25 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
         set ({ansCorrectness});
     },
     setTotalQuestions: (totalQuestions) => {
+        console.log("Setting total questions to: ", totalQuestions);
         set ({totalQuestions});
     },
+    resetGame: () => {
+        set({name: "",
+            roomCode: "",
+            students: [],
+            currentTime: 30,
+            clickCount: 0,
+            isClickable: false,
+            deckID: -1,
+            startedGame: false,
+            allStudentsAnswered: false,
+            currQuestionNum: 0,
+            totalQuestions: 0,
+            isTimeUp: false,
+            hasAnswered: false,
+            nextQuestion: false,
+            gameEnded: false,
+        })
+    }
 }));

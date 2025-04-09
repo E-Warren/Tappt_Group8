@@ -5,6 +5,7 @@ import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
 import { router } from "expo-router";
 import { Audio } from "expo-av";
+import { useIsFocused } from "@react-navigation/native";
 
 interface CorrectScreenProps {
   timer?: number;
@@ -19,6 +20,9 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
   const totalQuestions = useStudentStore(state => state.totalQuestions);
   const playername = useStudentStore(state => state.name); 
   const setAnsCorrectness = useStudentStore(state => state.setAnsCorrectness);
+  const goToNextQuestion = useStudentStore(state => state.nextQuestion);
+  const isFocused = useIsFocused();
+
 
   const handleBonusSelect = (bonus: string) => {
     setSelectedBonus(bonus);
@@ -75,13 +79,28 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
     //***temporary*** => substitute until we have teacher frontend routed to this point
     //setting timeout for 5 seconds so that student can see incorrect page
     useEffect(() => {
-      const timer = setTimeout(() => {
-        console.log("resetting correctness... rerouting to /answerchoices");
-        setAnsCorrectness("");
-        router.push("/answerchoices");
-      }, 5000);
+        if (goToNextQuestion){
+          if ((questionNumber + 1) !== totalQuestions){
+            useStudentStore.setState({ hasAnswered: false});
+            useStudentStore.setState({ nextQuestion: false });
+            useStudentStore.setState({ currQuestionNum: questionNumber + 1})
+            useStudentStore.setState({ allStudentsAnswered: false });
+            console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
+            //useStudentStore.setState({ isTimeUp: false });
+            console.log("resetting correctness... rerouting to /answerchoices");
+            setAnsCorrectness("");
+            router.replace("/answerchoices");
+          } else {
+            router.replace("/endgame");
+          }
+        }
+    }, [goToNextQuestion])
 
-      return () => clearTimeout(timer);
+    useEffect(() => {
+      useStudentStore.setState({ isTimeUp: false });
+      useStudentStore.setState({ currentTime: 30 });
+      console.log("The time is up boolean in zustand is now: ", useStudentStore.getState().isTimeUp);
+      useStudentStore.setState({ allStudentsAnswered: false });
     }, [])
 
   return (
@@ -114,7 +133,7 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
       )}
 
       <Text style={styles.timer}>{timer}</Text>
-      <Text style={styles.questionCounter}>Question {questionNumber} / {totalQuestions}</Text>
+      <Text style={styles.questionCounter}>Question {questionNumber + 1} / {totalQuestions}</Text>
     </View>
   );
 };

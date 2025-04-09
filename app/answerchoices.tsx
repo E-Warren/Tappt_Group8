@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 
 interface AnswerChoiceScreenProps {
   questionID?: number;
@@ -31,6 +32,7 @@ const requestDeckID = async () => {
 }
 
 const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
+  const isFocused = useIsFocused();
   const arrowIcons = ["↑", "←", "→", "↓"];
 
   //for setting questions up
@@ -55,6 +57,11 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   //get current question through zustand state management
   const currQuestionNum = useStudentStore(state => state.currQuestionNum);
 
+  const timeIsUp = useStudentStore(state => state.isTimeUp);
+  const studentAnwered = useStudentStore(state => state.hasAnswered);
+  
+  //console.log("current question # ->", currQuestionNum);
+
   //for avoiding error about this file affecting the rendering ability of /teacherwaiting
   const [letsgo, setletsgo] = useState(false);
 
@@ -66,8 +73,10 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   //if its time to go to waiting room, we go to waiting room
   useEffect(() => {
     if (letsgo === true) {
-      router.push("/waiting");
+      console.log("Routing to the waiting screen");
+      router.replace("/waiting");
       setletsgo(false);
+      useStudentStore.setState({ hasAnswered: true});
     }
   }, [letsgo])
 
@@ -117,7 +126,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           throw new Error("Failed to get deck.");
         }
 
-        const qArr = [];
+        const qArr: Array<any> = [];
         const qMap = new Map();
 
         //mapping each question, questionID, and answer to a map
@@ -179,8 +188,36 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   }, [deckID]);
 
+  let answerSent = false;
+
+  useEffect(() => {
+
+    if (!isFocused) {
+      return;
+    }
+    if (timeIsUp && !studentAnwered && !answerSent){
+      console.log("Sending no answer")
+      if (!answerSent){
+        answerSent = true;
+        useStudentStore.setState({ ansCorrectness: 'incorrect' })
+        useStudentStore.setState({ hasAnswered: true});
+        WebSocketService.sendMessage(JSON.stringify({
+          type: "studentAnswer",
+          name: playername,
+          answer: "No answer",
+          questionID: questions[currQuestionNum]?.questionID?? -1,
+          currentQuestion: questions[currQuestionNum]?.question?? "",
+          correctness: "incorrect",
+          questionNum: currQuestionNum,
+          clickCount: 100, //TODO: update this once the clicks are stored
+        }))
+        console.log("Routing to the incorrect screen");
+        router.replace('/incorrect');
+      }
+    }
+  }, [timeIsUp])
+
   const timer = useStudentStore(state => state.currentTime);
-  const name = useStudentStore(state => state.name);
   useEffect(() => {
     const keydownHandler = (event: KeyboardEvent) => {
       console.log(event);
@@ -191,13 +228,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           console.log("The student chose the up arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
-            data: {
-              name,
-              answer: choice.value,
-              questionNumber: questions[currQuestionNum]?.questionID,
-              clickCount: 100, //TODO: update this once the clicks are stored
-            }
+            name: playername,
+            answer: choice.value,
+            questionID: questions[currQuestionNum]?.questionID?? -1,
+            currentQuestion: questions[currQuestionNum]?.question?? "",
+            correctness: choice.correct,
+            questionNum: currQuestionNum,
+            clickCount: 100, //TODO: update this once the clicks are stored
           }))
+          setletsgo(true);
         }
       }
       if (event.key === "ArrowDown") {
@@ -207,13 +246,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           console.log("The student chose the down arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
-            data: {
-              name,
-              answer: choice.value,
-              questionNumber: questions[currQuestionNum]?.questionID,
-              clickCount: 100, //TODO: update this once the clicks are stored
-            }
+            name: playername,
+            answer: choice.value,
+            questionID: questions[currQuestionNum]?.questionID?? -1,
+            currentQuestion: questions[currQuestionNum]?.question?? "",
+            correctness: choice.correct,
+            questionNum: currQuestionNum,
+            clickCount: 100, //TODO: update this once the clicks are stored
           }))
+          setletsgo(true);
         }
       }
       if (event.key === "ArrowLeft") {
@@ -223,13 +264,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           console.log("The student chose the left arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
-            data: {
-              name,
-              answer: choice.value,
-              questionNumber: questions[currQuestionNum]?.questionID,
-              clickCount: 100, //TODO: update this once the clicks are stored
-            }
+            name: playername,
+            answer: choice.value,
+            questionID: questions[currQuestionNum]?.questionID?? -1,
+            currentQuestion: questions[currQuestionNum]?.question?? "",
+            correctness: choice.correct,
+            questionNum: currQuestionNum,
+            clickCount: 100, //TODO: update this once the clicks are stored
           }))
+          setletsgo(true);
         }
       }
       if (event.key === "ArrowRight") {
@@ -239,13 +282,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           console.log("The student chose the right arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
-            data: {
-              name,
-              answer: choice.value,
-              questionNumber: questions[currQuestionNum]?.questionID,
-              clickCount: 100, //TODO: update this once the clicks are stored
-            }
+            name: playername,
+            answer: choice.value,
+            questionID: questions[currQuestionNum]?.questionID?? -1,
+            currentQuestion: questions[currQuestionNum]?.question?? "",
+            correctness: choice.correct,
+            questionNum: currQuestionNum,
+            clickCount: 100, //TODO: update this once the clicks are stored
           }))
+          setletsgo(true);
         }
       }
     }

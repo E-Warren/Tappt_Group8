@@ -82,7 +82,7 @@ export default function WaitingRoom() {
     if (gameStarted) {
       console.log("routing to reading page...");
       stopSound();
-      router.push("/reading");
+      router.replace("/reading");
     }
   }, [gameStarted]);
 

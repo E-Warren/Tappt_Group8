@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 export default function RootLayout() {
   useEffect(() => {
+    console.log("Going to create a new websocket connection");
     WebSocketService.createWebSocket();
   }, [])
   
