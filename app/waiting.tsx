@@ -79,7 +79,7 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
       //useStudentStore.setState({ isTimeUp: false });
       setAllStudentsAnswered(false);
       //setCurrQuestionNum(currQuestionNum + 1);
-      useStudentStore.setState({ nextQuestion: false });
+      //useStudentStore.setState({ nextQuestion: false });
 
       //the correctness of student answer will determine where the student will go...
       if (correctness === "correct") {

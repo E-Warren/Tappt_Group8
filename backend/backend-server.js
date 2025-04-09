@@ -715,7 +715,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
   console.log("Removing websocket connection");
 
   if (type === "student"){
-    resetGameState();
+    gameState.studentsInRoom = gameState.studentsInRoom.filter(name => name != studentName);
     websockets.forEach((websocket) => {
       websocket.send(JSON.stringify({
         type: "studentLeft",

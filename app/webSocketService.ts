@@ -57,11 +57,13 @@ export const WebSocketService = {
                 }
                 else if (message.type === "sendToNextAnswer"){
                     console.log("Going to the next question")
-                    useStudentStore.setState({ nextQuestion: true });
-                    useStudentStore.setState({ isTimeUp: false });
-                    useStudentStore.setState({ currentTime: 30 });
+                    useStudentStore.setState({ 
+                        nextQuestion: true, 
+                        isTimeUp: false,
+                        currentTime: 30,
+                    });
                 } else if (message.type === "gameHasEnded"){
-                    useStudentStore.setState({ nextQuestion: true })
+                    useStudentStore.setState({ nextQuestion: true });
                     useStudentStore.setState({ gameEnded: true });
                 }
                 

@@ -94,7 +94,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#379AE6FF', 
     padding: 20,
     paddingTop: 10,
-    alignItems: 'center'
+    alignItems: 'center',
+    height: "100%",
+    width: "100%",
+    overflow: 'scroll',
   },
   headerContainer: {
     width: '100%',
@@ -161,7 +164,7 @@ const styles = StyleSheet.create({
   },
   buttonsContainer: {
     marginTop: 30,
-    left: 440
+    right: -440
   },
   button: {
     paddingHorizontal: 20,
