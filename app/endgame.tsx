@@ -7,11 +7,13 @@ import { CommonActions } from "@react-navigation/native";
 
 const GameSummaryScreen = () => {
   const handlePress = () => {
-    useStudentStore.getState().resetGame();
+    // useStudentStore.getState().resetGame();
     WebSocketService.sendMessage(JSON.stringify({
       type: "gameEnded"
     }));
-    window.location.href = "/slogin";
+    router.dismissAll();
+    router.navigate("/slogin");
+    //window.location.href = "/slogin";
   }
 
   return (

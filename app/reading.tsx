@@ -129,7 +129,7 @@ useEffect(() => {
   }, [questions, currQuestionNum]);
 
   if (isReadingComplete) {
-    useStudentStore.setState({ nextQuestion: false });
+    //useStudentStore.setState({ nextQuestion: false });
     WebSocketService.sendMessage(
       JSON.stringify({
         type: "countdownStarted",

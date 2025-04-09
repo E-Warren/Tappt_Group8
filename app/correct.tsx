@@ -79,28 +79,26 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
     //***temporary*** => substitute until we have teacher frontend routed to this point
     //setting timeout for 5 seconds so that student can see incorrect page
     useEffect(() => {
-        if (goToNextQuestion){
+        if (goToNextQuestion === (questionNumber + 1)){
           if ((questionNumber + 1) !== totalQuestions){
-            useStudentStore.setState({ hasAnswered: false});
-            useStudentStore.setState({ nextQuestion: false });
             useStudentStore.setState({ currQuestionNum: questionNumber + 1})
-            useStudentStore.setState({ allStudentsAnswered: false });
             console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
-            //useStudentStore.setState({ isTimeUp: false });
             console.log("resetting correctness... rerouting to /answerchoices");
             setAnsCorrectness("");
+            console.log("Routing to answerchoices from the correct page")
             router.replace("/answerchoices");
           } else {
+            console.log("Routing to end of the game through incorrect");
             router.replace("/endgame");
           }
         }
     }, [goToNextQuestion])
 
     useEffect(() => {
+      useStudentStore.setState({ allStudentsAnswered: false });
       useStudentStore.setState({ isTimeUp: false });
       useStudentStore.setState({ currentTime: 30 });
-      console.log("The time is up boolean in zustand is now: ", useStudentStore.getState().isTimeUp);
-      useStudentStore.setState({ allStudentsAnswered: false });
+      useStudentStore.setState({ hasAnswered: false});
     }, [])
 
   return (

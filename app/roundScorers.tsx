@@ -10,9 +10,7 @@ const roundScorersScreen = () => {
     const newQuestionNum = pastQuestionNum + 1;
     useStudentStore.setState({ currQuestionNum: newQuestionNum });
     useStudentStore.setState({ currentTime: 30 });
-    //useStudentStore.setState({ isTimeUp: false });
     useStudentStore.setState({ allStudentsAnswered: false });
-    useStudentStore.setState({ nextQuestion: true });
     WebSocketService.sendMessage(JSON.stringify({ type: "sendToNextQuestion" }));
     router.replace('/reading');
   }
