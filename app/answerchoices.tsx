@@ -12,6 +12,7 @@ import { WebSocketService } from "./webSocketService";
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
+import * as Speech from "expo-speech";
 
 interface AnswerChoiceScreenProps {
   questionID?: number;
@@ -293,10 +294,30 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           setletsgo(true);
         }
       }
-    }
+      if(event.key === " "){
+        console.log ("Student pressed the space key");
+        const currentQuestion = questions[currQuestionNum] || { question: "No question is displayed", choices: [] };
+        Speech.speak (currentQuestion.question,{
+          onDone: () => {
+            console.log("Speech finished");
+            currentQuestion.choices.forEach((choice, index) => {
+              setTimeout(() => {
+                console.log(`${choice.label} value:`, choice.value);
+                const choiceValue = choice.value || "No values available";
+                Speech.speak(`${choice.label}: ${choiceValue}`,{
+                  onDone: () => {
+                    console.log(`${choice.label} read`);
+                  },
+                });
+              }, index * 2000);
+            });
+          }
+        });
+    };
+  }
     window.addEventListener("keydown", keydownHandler);
     return () => window.removeEventListener("keydown", keydownHandler);
-  }, [questions])
+  }, [questions]);
 
 
 
