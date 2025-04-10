@@ -59,8 +59,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   const timeIsUp = useStudentStore(state => state.isTimeUp);
   const studentAnwered = useStudentStore(state => state.hasAnswered);
-  
-  //console.log("current question # ->", currQuestionNum);
+
 
   //for avoiding error about this file affecting the rendering ability of /teacherwaiting
   const [letsgo, setletsgo] = useState(false);
@@ -191,17 +190,17 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   let answerSent = false;
 
   useEffect(() => {
-
-    if (!isFocused) {
+    //isFocused is used because past screens were not unmounting - meaning it would log a student's answer twice
+    if (!isFocused) { //checks if this is the screen the view is looking at
       return;
     }
+    //if time is up, the student has not answered, and the answer has not been sent, then route to incorrect screen
     if (timeIsUp && !studentAnwered && !answerSent){
-      console.log("Sending no answer")
-      if (!answerSent){
-        answerSent = true;
-        useStudentStore.setState({ ansCorrectness: 'incorrect' })
-        useStudentStore.setState({ hasAnswered: true});
-        WebSocketService.sendMessage(JSON.stringify({
+      if (!answerSent){ //makes sure answer was not sent
+        answerSent = true; //change answerSent to reflect that the answer has been sent
+        useStudentStore.setState({ ansCorrectness: 'incorrect' }) //set answer as incorrect
+        useStudentStore.setState({ hasAnswered: true}); //student has answered
+        WebSocketService.sendMessage(JSON.stringify({ //send the students "no answer"
           type: "studentAnswer",
           name: playername,
           answer: "No answer",
@@ -212,20 +211,21 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           clickCount: 100, //TODO: update this once the clicks are stored
         }))
         console.log("Routing to the incorrect screen");
-        router.replace('/incorrect');
+        router.replace('/incorrect'); //route student to "incorrect" screen
       }
     }
-  }, [timeIsUp])
+  }, [timeIsUp]) //re-render every time timeIsUp changes to true
 
   const timer = useStudentStore(state => state.currentTime);
   useEffect(() => {
+    //the following keyHanglers are for the arrow keys
     const keydownHandler = (event: KeyboardEvent) => {
       console.log(event);
-      if (event.key === "ArrowUp"){
+      if (event.key === "ArrowUp"){ //if the student chose the up arrow key
         console.log("Student pressed the up arrow key");
+        //get the choice value that corresponds to top (up arrow)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "top");
-        if (choice){
-          console.log("The student chose the up arrow with value: ", choice.value);
+        if (choice){ //if that is a valid choice, send the choice to the backend
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
             name: playername,
@@ -236,14 +236,15 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             questionNum: currQuestionNum,
             clickCount: 100, //TODO: update this once the clicks are stored
           }))
-          setletsgo(true);
+          setletsgo(true); //let students continue to waiting page
         }
       }
-      if (event.key === "ArrowDown") {
+      if (event.key === "ArrowDown") { //if student hits down arrow
         console.log("Student pressed the down arrow key");
+        //get the choice value associated with the bottom (down arrow)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "bottom");
         if (choice) {
-          console.log("The student chose the down arrow with value: ", choice.value);
+          //send the student's choice to backend
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
             name: playername,
@@ -257,8 +258,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           setletsgo(true);
         }
       }
-      if (event.key === "ArrowLeft") {
-        console.log("Student pressed the left arrow key");
+      if (event.key === "ArrowLeft") { //student chose the left arrow option
+        //find the value associated with left (left arrow)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "left");
         if (choice) {
           console.log("The student chose the left arrow with value: ", choice.value);
@@ -275,8 +276,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           setletsgo(true);
         }
       }
-      if (event.key === "ArrowRight") {
-        console.log("Student pressed the right arrow key");
+      if (event.key === "ArrowRight") { //student pressed the right arrow key
+        //find the value associated with the label right (right arrow key)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "right");
         if (choice) {
           console.log("The student chose the right arrow with value: ", choice.value);
@@ -295,6 +296,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       }
     }
     window.addEventListener("keydown", keydownHandler);
+    //remove the event listener upon dismount
     return () => window.removeEventListener("keydown", keydownHandler);
   }, [questions])
 

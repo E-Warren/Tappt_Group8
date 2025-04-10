@@ -65,7 +65,6 @@ export const WebSocketService = {
                 else if (message.type === "sendToNextAnswer"){
                     console.log("Going to the next question")
                     useStudentStore.setState((state) => ({ 
-                        //nextQuestion: true, 
                         nextQuestion: state.nextQuestion + 1,
                         isTimeUp: false,
                         currentTime: 30,
@@ -79,12 +78,6 @@ export const WebSocketService = {
                         gameEnded: true, 
                         startedGame: false,
                         name: "",
-                        // roomCode: "",
-                        // totalQuestions: 0,
-                        // currQuestionNum: 0,
-                        // clickCount: 0,
-                        // students: [],
-                        // deckID: -1,
                     }));
                 }
                 

@@ -14,13 +14,17 @@ interface ReadingScreenProps {
 }
 
 async function playSound(e: any) {
+  let soundPlayed = false;
   const { sound } = await Audio.Sound.createAsync(e);
   console.log("Playing Sound");
-  await sound.playAsync();
-  setTimeout(() => {
-    console.log("Unloading Sound");
-    sound.unloadAsync();
-  }, 1500);
+  if (!soundPlayed){
+    await sound.playAsync();
+    setTimeout(() => {
+      console.log("Unloading Sound");
+      sound.unloadAsync();
+      soundPlayed = true;
+    }, 1500);
+  }
 }
 
 const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
@@ -129,7 +133,6 @@ useEffect(() => {
   }, [questions, currQuestionNum]);
 
   if (isReadingComplete) {
-    //useStudentStore.setState({ nextQuestion: false });
     WebSocketService.sendMessage(
       JSON.stringify({
         type: "countdownStarted",

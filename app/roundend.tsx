@@ -42,7 +42,7 @@ const ResultsScreen = ({
   );
 
   useEffect(() => {
-    useStudentStore.setState({ currentTime: 30 });
+    //useStudentStore.setState({ currentTime: 30 });
   }, [])
 
   const handlePress = () => {
