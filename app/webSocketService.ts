@@ -21,6 +21,14 @@ export const WebSocketService = {
                 if (message.type === "newStudentName"){ //used when the backend sends the student name
                     useStudentStore.setState({ name: message.data }); //updates the student's name
                     useStudentStore.setState({ roomCode: message.code }); //update's the students room code
+                    useStudentStore.setState({ 
+                        roomCode: "",
+                        totalQuestions: 0,
+                        currQuestionNum: 0,
+                        clickCount: 0,
+                        students: [],
+                        deckID: -1,
+                    })
                 }
                 else if (message.type === "studentsInGame"){ //backend sends a list of students in the game
                     useStudentStore.setState({ students: message.data }); //updates the list of students in the game
@@ -32,7 +40,6 @@ export const WebSocketService = {
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
                 else if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
-                    
                     useStudentStore.setState({ startedGame : message.data });
                 }
                 else if (message.type === "sentDeckID") {
@@ -57,17 +64,25 @@ export const WebSocketService = {
                 }
                 else if (message.type === "sendToNextAnswer"){
                     console.log("Going to the next question")
-                    useStudentStore.setState({ 
-                        nextQuestion: true, 
+                    useStudentStore.setState((state) => ({ 
+                        nextQuestion: true,
                         isTimeUp: false,
                         currentTime: 30,
-                    });
+                        hasAnswered: false,
+                        allStudentsAnswered: false,
+                        ansCorrectness: "",
+                    }));
                 } else if (message.type === "gameHasEnded"){
-                    useStudentStore.setState({ nextQuestion: true });
-                    useStudentStore.setState({ gameEnded: true });
+                    console.log("Checking: ", useStudentStore.getState().name, " against ", message.name);
+                        console.log("Recieved the websocket game has ended message");
+                        useStudentStore.setState((state) => ({ 
+                            nextQuestion: false,
+                            gameEnded: true, 
+                            startedGame: false,
+                            name: "",
+                        }));
                 }
                 
-
                 console.log(message);
             }
         })

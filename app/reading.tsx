@@ -4,8 +4,9 @@ import * as Speech from "expo-speech";
 import { Audio } from "expo-av";
 import QuestionWithTimerScreen from "./questiontimer";
 import { WebSocketService } from "./webSocketService";
-import { useNavigation } from "@react-navigation/native"; // <- Add this if using React Navigation
+import { useIsFocused, useNavigation } from "@react-navigation/native"; // <- Add this if using React Navigation
 import { useStudentStore } from "./useWebSocketStore";
+import { router } from "expo-router";
 
 interface ReadingScreenProps {
   playerCount?: number;
@@ -14,6 +15,7 @@ interface ReadingScreenProps {
 }
 
 async function playSound(e: any) {
+  
   const { sound } = await Audio.Sound.createAsync(e);
   console.log("Playing Sound");
   await sound.playAsync();
@@ -94,42 +96,43 @@ useEffect(() => {
 
 
   useEffect(() => {
-    useStudentStore.setState({ totalQuestions: questions.length });
-    console.log("Total questions being asked is now: ", questions.length);
-    navigation.setOptions({ headerShown: false }); // <- Hides back arrow + screen title
-
-    const soundTimer = setTimeout(() => {
-      playSound(require("../assets/sound/question.mp3"));
-    }, 500);
-
-    //{questions[currQuestionNum]?.question || "questions are done. will need appriopriate routing for this."}
-
-    const speechTimer = setTimeout(() => {
-      console.log("The current question number being asked is: ", currQuestionNum, " and question length is: ", questions.length);
-      console.log("The current question being asked is: ", questions[currQuestionNum]);
-      const questionAsked = questions[currQuestionNum];
-      if (questionAsked){
-        Speech.speak(questionAsked.question || "No more questions!", {
-          onDone: () => {
-            console.log("Speech finished");
-            setTimeout(() => {
-              setIsReadingComplete(true);
-            }, 1000);
-          },
-        });
-      } else {
-        console.log("No question being asked");
-      }
-    }, 2800);
-
-    return () => {
-      clearTimeout(soundTimer);
-      clearTimeout(speechTimer);
-    };
+      console.log("Inside the read question use effect")
+      useStudentStore.setState({ totalQuestions: questions.length });
+      console.log("Total questions being asked is now: ", questions.length);
+      navigation.setOptions({ headerShown: false }); // <- Hides back arrow + screen title
+  
+        const soundTimer = setTimeout(() => {
+          console.log("Going to play the ding sound")
+          playSound(require("../assets/sound/question.mp3"));
+          let soundPlayed = true;
+        }, 500);
+  
+      const speechTimer = setTimeout(() => {
+        console.log("The current question number being asked is: ", currQuestionNum, " and question length is: ", questions.length);
+        console.log("The current question being asked is: ", questions[currQuestionNum]);
+        const questionAsked = questions[currQuestionNum];
+        if (questionAsked){
+          console.log("Going to read out the question");
+          Speech.speak(questionAsked.question || "No more questions!", {
+            onDone: () => {
+              console.log("Speech finished");
+              setTimeout(() => {
+                setIsReadingComplete(true);
+              }, 1000);
+            },
+          });
+        } else {
+          console.log("No question being asked");
+        }
+      }, 2800);
+  
+      return () => {
+        clearTimeout(soundTimer);
+        clearTimeout(speechTimer);
+      };
   }, [questions, currQuestionNum]);
 
   if (isReadingComplete) {
-    useStudentStore.setState({ nextQuestion: false });
     WebSocketService.sendMessage(
       JSON.stringify({
         type: "countdownStarted",

@@ -1,7 +1,8 @@
 import { Text, View, StyleSheet } from "react-native";
 import { useStudentStore } from "./useWebSocketStore";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function Index() {
     const studentName = useStudentStore(state => state.name); //gets the student's name from zustand
@@ -9,16 +10,18 @@ export default function Index() {
 
     //to determine whether to be kicked out of the waiting room into the big, bad, tappt game >:)
     const gameStarted = useStudentStore(state => state.startedGame); 
-
-    const router = useRouter()
+    const isFocused = useIsFocused();
+    const router = useRouter();
 
     //CHANGE LATER: add appriopriate routing to click page first instead of question diamond
     //if game started, go to question diamond
     useEffect(() => {
         console.log("entered routing; gamestarted =", gameStarted);
-        if (gameStarted == true) {
+        if (gameStarted) {
+            console.log("Routing to answer choices through student waiting")
             router.replace("/answerchoices");
         }
+
     }, [gameStarted]);
 
     //useEffect (() => {

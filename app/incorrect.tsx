@@ -64,29 +64,22 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
   //***temporary*** => substitute until we have teacher frontend routed to this point
   //setting timeout for 5 seconds so that student can see incorrect page
   useEffect(() => {
+    //checks if the next question is ready to be read (set through teacher side)
       if (goToNextQuestion){
-        if ((questionNumber + 1) !== totalQuestions){
-          useStudentStore.setState({ hasAnswered: false});
-          useStudentStore.setState({ nextQuestion: false });
+        if ((questionNumber + 1) !== totalQuestions){ //checks if we reached the end of the deck
           useStudentStore.setState({ currQuestionNum: questionNumber + 1});
-          useStudentStore.setState({ allStudentsAnswered: false });
-          console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
           console.log("resetting correctness... rerouting to /answerchoices");
-          setAnsCorrectness("");
+          useStudentStore.setState({ nextQuestion: false });
+          //setAnsCorrectness("");
+          console.log("Routing to answerchoices through the incorrect screen")
           router.replace("/answerchoices");
         } else {
+          //means we have reached the end of the deck so go to endgame screen
+          console.log("Routing to end of the game through incorrect");
           router.replace("/endgame");
         }
       }
-
   }, [goToNextQuestion])
-
-  useEffect(() => {
-    console.log("Reseting the timer");
-    useStudentStore.setState({ isTimeUp: false });
-    useStudentStore.setState({ currentTime: 30 });
-    useStudentStore.setState({ allStudentsAnswered: false });
-  }, [])
 
 
   return (
