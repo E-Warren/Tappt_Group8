@@ -12,6 +12,7 @@ import { WebSocketService } from "./webSocketService";
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
+import * as Speech from "expo-speech";
 
 interface AnswerChoiceScreenProps {
   questionID?: number;
@@ -43,6 +44,9 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         { label: "right", value: "", correct: false },
         { label: "bottom", value: "", correct: false },] },
   ]);
+
+  //reading pause 
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   //get deckID stored in zustand
   const deckID = useStudentStore(state => state.deckID);
@@ -222,6 +226,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
     const keydownHandler = (event: KeyboardEvent) => {
       console.log(event);
       if (event.key === "ArrowUp"){
+        Speech.stop();
+        setIsSpeaking(false);
         console.log("Student pressed the up arrow key");
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "top");
         if (choice){
@@ -243,6 +249,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         console.log("Student pressed the down arrow key");
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "bottom");
         if (choice) {
+          Speech.stop();
+          setIsSpeaking(false);
           console.log("The student chose the down arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
@@ -261,6 +269,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         console.log("Student pressed the left arrow key");
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "left");
         if (choice) {
+          Speech.stop();
+          setIsSpeaking(false);
           console.log("The student chose the left arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
@@ -279,6 +289,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         console.log("Student pressed the right arrow key");
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "right");
         if (choice) {
+          Speech.stop();
+          setIsSpeaking(false);
           console.log("The student chose the right arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
@@ -293,11 +305,59 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           setletsgo(true);
         }
       }
-    }
-    window.addEventListener("keydown", keydownHandler);
-    return () => window.removeEventListener("keydown", keydownHandler);
-  }, [questions])
+      if(event.key === " "){
+        event.preventDefault();
+        console.log ("Student pressed the space key");
 
+        if (isSpeaking) {
+          Speech.stop();
+          setIsSpeaking(false);
+          console.log("Speech paused");
+        } else {
+        const currentQuestion = questions[currQuestionNum] || {
+          question: "No question is displayed",
+          choices: [] };
+       
+        Speech.speak (currentQuestion.question,{
+          onDone: () => {
+            console.log("Speech finished");
+            currentQuestion.choices.forEach((choice, index) => {
+              setTimeout(() => {
+                console.log(`${choice.label} value:`, choice.value);
+                const choiceValue = choice.value || "No values available";
+                Speech.speak(`${choice.label}: ${choiceValue}`,{
+                  onDone: () => {
+                    console.log(`${choice.label} read`);
+                  },
+                });
+              }, index * 2000);
+            });
+          },
+        });
+        setIsSpeaking(true);
+      } 
+    }
+  };
+    window.addEventListener("keydown", keydownHandler);
+
+    return () => {
+      window.removeEventListener("keydown", keydownHandler);
+    };
+  }, [questions, currQuestionNum, isSpeaking]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      Speech.stop();
+      setIsSpeaking(false);
+      console.log("Speech stopped due to blur/unfocus");
+    }
+  
+    return () => {
+      Speech.stop();
+      setIsSpeaking(false);
+      console.log("Speech stopped on unmount");
+    };
+  }, [isFocused]);
 
 
   return (
