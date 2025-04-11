@@ -65,23 +65,24 @@ export const WebSocketService = {
                 else if (message.type === "sendToNextAnswer"){
                     console.log("Going to the next question")
                     useStudentStore.setState((state) => ({ 
-                        nextQuestion: state.nextQuestion + 1,
+                        nextQuestion: true,
                         isTimeUp: false,
                         currentTime: 30,
                         hasAnswered: false,
                         allStudentsAnswered: false,
+                        ansCorrectness: "",
                     }));
                 } else if (message.type === "gameHasEnded"){
-                    //useStudentStore.setState({ nextQuestion: true }
-                    useStudentStore.setState((state) => ({ 
-                        nextQuestion: 0,
-                        gameEnded: true, 
-                        startedGame: false,
-                        name: "",
-                    }));
+                    console.log("Checking: ", useStudentStore.getState().name, " against ", message.name);
+                        console.log("Recieved the websocket game has ended message");
+                        useStudentStore.setState((state) => ({ 
+                            nextQuestion: false,
+                            gameEnded: true, 
+                            startedGame: false,
+                            name: "",
+                        }));
                 }
                 
-
                 console.log(message);
             }
         })

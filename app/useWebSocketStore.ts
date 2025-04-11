@@ -19,7 +19,7 @@ interface StudentState {
     totalQuestions: number;
     isTimeUp: boolean;
     hasAnswered: boolean;
-    nextQuestion: number;
+    nextQuestion: boolean;
     gameEnded: boolean;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
@@ -54,7 +54,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     totalQuestions: 0,
     isTimeUp: false,
     hasAnswered: false,
-    nextQuestion: 0,
+    nextQuestion: false,
     gameEnded: false,
     setName: (name) => {
         console.log("Name: ", name);
@@ -119,7 +119,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
             totalQuestions: 0,
             isTimeUp: false,
             hasAnswered: false,
-            nextQuestion: 0,
+            nextQuestion: false,
             gameEnded: false,
         })
     }

@@ -65,11 +65,12 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
   //setting timeout for 5 seconds so that student can see incorrect page
   useEffect(() => {
     //checks if the next question is ready to be read (set through teacher side)
-      if (goToNextQuestion === (questionNumber + 1)){
+      if (goToNextQuestion){
         if ((questionNumber + 1) !== totalQuestions){ //checks if we reached the end of the deck
           useStudentStore.setState({ currQuestionNum: questionNumber + 1});
           console.log("resetting correctness... rerouting to /answerchoices");
-          setAnsCorrectness("");
+          useStudentStore.setState({ nextQuestion: false });
+          //setAnsCorrectness("");
           console.log("Routing to answerchoices through the incorrect screen")
           router.replace("/answerchoices");
         } else {

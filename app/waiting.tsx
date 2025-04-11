@@ -67,12 +67,14 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
           data: { name: playername, currQNum: currQuestionNum },
         })
       );
+      console.log("The student answer was: ", correctness)
     };
 
     //seperate handler for determining student correctness
     //need this so student routing is dependent on what the websocket responds with, not what frontend thinks they should go to
     const determineCorrectness = () => {
       console.log("Everyone answered... Routing back to questions");
+      console.log("The student answer used to route is: ", correctness);
 
       //the correctness of student answer will determine where the student will go...
       if (correctness === "correct") {

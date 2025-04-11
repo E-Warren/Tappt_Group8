@@ -6,10 +6,12 @@ import { WebSocketService } from "./webSocketService";
 import { CommonActions } from "@react-navigation/native";
 
 const GameSummaryScreen = () => {
+  const playerName = useStudentStore((state) => state.name);
   const handlePress = () => {
     //send the gameEnded message
     WebSocketService.sendMessage(JSON.stringify({
-      type: "gameEnded"
+      type: "gameEnded",
+      name: playerName,
     }));
     router.dismissAll(); //clear the stack history to prevent errors on next game
     router.navigate("/slogin");

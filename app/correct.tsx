@@ -80,12 +80,13 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
     //setting timeout for 5 seconds so that student can see incorrect page
     useEffect(() => {
       //this function checks if the teacher has hit the continue (goToNextQuestion holds the next question number)
-        if (goToNextQuestion === (questionNumber + 1)){ //checks if the next question is ready to be asked
+        if (goToNextQuestion){ //checks if the next question is ready to be asked
           if ((questionNumber + 1) !== totalQuestions){ //checks if teacher has reached the end of the deck
             useStudentStore.setState({ currQuestionNum: questionNumber + 1}) //update the current question number (student side)
             console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
             console.log("resetting correctness... rerouting to /answerchoices");
-            setAnsCorrectness(""); 
+            useStudentStore.setState({ nextQuestion: false });
+            //setAnsCorrectness(""); 
             console.log("Routing to answerchoices from the correct page")
             router.replace("/answerchoices");
           } else {
