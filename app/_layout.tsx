@@ -76,6 +76,9 @@ export default function RootLayout() {
        <Stack.Screen name="createdecks/[id]" options={{
          headerShown: false,
        }} />
+       <Stack.Screen name="review" options={{
+         headerShown: false,
+       }} />
 
       </Stack>
       
