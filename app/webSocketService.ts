@@ -62,9 +62,13 @@ export const WebSocketService = {
                         isTimeUp: false,
                         currentTime: 30,
                     });
-                } else if (message.type === "gameHasEnded"){
+                } 
+                else if (message.type === "gameHasEnded"){
                     useStudentStore.setState({ nextQuestion: true });
                     useStudentStore.setState({ gameEnded: true });
+                }
+                else if (message.type === "clickingOver") {
+                    useStudentStore.setState({ completedReading: true});
                 }
                 
 
