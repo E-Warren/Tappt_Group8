@@ -23,6 +23,11 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
   const goToNextQuestion = useStudentStore(state => state.nextQuestion);
   const isFocused = useIsFocused();
 
+  //testing
+  const hasAns = useStudentStore(state => state.hasAnswered);
+  const nextQ = useStudentStore(state => state.nextQuestion);
+  const setNextQuestion = useStudentStore(state => state.setNextQuestion);
+
 
   const handleBonusSelect = (bonus: string) => {
     setSelectedBonus(bonus);
@@ -73,23 +78,38 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
       stopSound();
     };
   }, []);
-
-
   
     //***temporary*** => substitute until we have teacher frontend routed to this point
     //setting timeout for 5 seconds so that student can see incorrect page
     useEffect(() => {
+        console.log("student info: ");
+        console.log("goToNextQuestion: ", goToNextQuestion);
+        console.log("hasAnswered: ", hasAns);
+
         if (goToNextQuestion){
           if ((questionNumber + 1) !== totalQuestions){
+            /*useStudentStore.setState({ 
+              hasAnswered: false, 
+              nextQuestion: false,
+              allStudentsAnswered: false,
+              currQuestionNum: questionNumber + 1
+            });*/
+
             useStudentStore.setState({ hasAnswered: false});
             useStudentStore.setState({ nextQuestion: false });
+
             useStudentStore.setState({ currQuestionNum: questionNumber + 1})
             useStudentStore.setState({ allStudentsAnswered: false });
+            
+            console.log("go to next question is set to: ", useStudentStore.getState().nextQuestion);
             console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
             //useStudentStore.setState({ isTimeUp: false });
             console.log("resetting correctness... rerouting to /answerchoices");
             setAnsCorrectness("");
-            router.replace("/answerchoices");
+
+            //go to student clicks now
+            router.replace("/studentClicks");
+
           } else {
             router.replace("/endgame");
           }

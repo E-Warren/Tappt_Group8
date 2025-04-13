@@ -541,6 +541,7 @@ app.get("/answerchoices/:deckID", async (req, res) => {
     //throw 500 error if any error occurred during or after querying
     catch(error) {
       console.log("we gots an error during get /answerchoices:");
+      console.log(error);
       res.status(500).json(error)
     }
 })
@@ -933,7 +934,7 @@ app.ws('/join', function(ws, req) {
         intervals = setInterval(decrementSecond, 1000);
         function decrementSecond () {
           timeLeft -= 1; //decrement the time
-          if (timeLeft === 0){ //means time is up!
+          if (timeLeft <= 0){ //means time is up!
             clearInterval(intervals); //stop the interval
             websockets.forEach((websocket) => {
               websocket.send(JSON.stringify({
@@ -955,6 +956,16 @@ app.ws('/join', function(ws, req) {
         websockets.forEach((websocket) => {
           websocket.send(JSON.stringify({
             type: "sendToNextAnswer"
+          }))
+        })
+      }
+
+      //when reading is done -> help route to answerchoices because clicking done
+      if (userMessage.type === "completedReading") {
+        console.log("recieved message that reading was completed...");
+        websockets.forEach((websocket) => {
+          websocket.send(JSON.stringify({
+            type: "clickingOver"
           }))
         })
       }

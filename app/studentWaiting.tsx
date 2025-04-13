@@ -17,7 +17,8 @@ export default function Index() {
     useEffect(() => {
         console.log("entered routing; gamestarted =", gameStarted);
         if (gameStarted == true) {
-            router.replace("/answerchoices");
+            router.replace("/studentClicks");
+            //router.replace("/answerchoices");
         }
     }, [gameStarted]);
 
