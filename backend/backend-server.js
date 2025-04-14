@@ -718,7 +718,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
   if (type === "student"){
     gameState.studentsInRoom = gameState.studentsInRoom.filter(name => name != studentName);
     websockets.forEach((websocket) => {
-      websocket.send(JSON.stringify({
+      websocket.socket.send(JSON.stringify({
         type: "studentLeft",
         studentName, //return the time left
       }))
@@ -742,7 +742,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
     resetGameState();
     //handle when teacher leaves
     websockets.forEach((websocket) => {
-      websocket.send(JSON.stringify({
+      websocket.socket.send(JSON.stringify({
         type: "hostLeft",
       }))
     })
@@ -762,7 +762,8 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
 let intervals;
 
 app.ws('/join', function(ws, req) {
-  websockets.push(ws); //adds connection to array
+  const socketConnection = {socket: ws};
+  websockets.push(socketConnection); //adds connection to array
   let studentName; 
   let type;
   let leavingRoomCode;
@@ -775,6 +776,7 @@ app.ws('/join', function(ws, req) {
         console.log("Going to join the room"); 
         const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
         studentName = returnedName; //store student's name
+        socketConnection.userName = returnedName;
         type = "student";
         leavingRoomCode = userMessage.data.code;
         gameState.studentsInRoom.push(returnedName);
@@ -782,7 +784,7 @@ app.ws('/join', function(ws, req) {
         const listOfStudents = gameState.studentsInRoom; //stores the list of students in the game
 
           websockets.forEach((websocket) => { //will update the students in the game (sends to each websocket)
-            websocket.send(JSON.stringify({
+            websocket.socket.send(JSON.stringify({
               type: "studentsInGame",
               data: listOfStudents
             }));
@@ -815,7 +817,7 @@ app.ws('/join', function(ws, req) {
 
         //send that the game has started to all sockets
         websockets.forEach((websocket) => {
-          websocket.send(JSON.stringify({
+          websocket.socket.send(JSON.stringify({
             type: "gameHasBegun",
             data: true,
           }))
@@ -827,7 +829,7 @@ app.ws('/join', function(ws, req) {
       if (userMessage.type === "sendDeckID") {
         //send that the game has started to all sockets
         websockets.forEach((websocket) => {
-          websocket.send(JSON.stringify({
+          websocket.socket.send(JSON.stringify({
             type: "sentDeckID",
             data: gameState.deckID,
           }))
@@ -875,7 +877,7 @@ app.ws('/join', function(ws, req) {
           clearInterval(intervals); //stop the interval cause all students answered
           websockets.forEach((websocket) => {
             console.log("sent allstudentsansweredquestion");
-            websocket.send(JSON.stringify({
+            websocket.socket.send(JSON.stringify({
               type: "allStudentsAnsweredQuestion",
             }))
           });
@@ -937,14 +939,14 @@ app.ws('/join', function(ws, req) {
           if (timeLeft <= 0){ //means time is up!
             clearInterval(intervals); //stop the interval
             websockets.forEach((websocket) => {
-              websocket.send(JSON.stringify({
+              websocket.socket.send(JSON.stringify({
                 type: "timeUp", //send a message to everyone that time is up
                 data: true
               }))
             })
           } else { //else means there is still time left on the countdown
             websockets.forEach((websocket) => {
-              websocket.send(JSON.stringify({
+              websocket.socket.send(JSON.stringify({
                 type: "newCountdown",
                 timeLeft, //return the time left
               }))
@@ -954,7 +956,7 @@ app.ws('/join', function(ws, req) {
       }
       if (userMessage.type === "sendToNextQuestion"){
         websockets.forEach((websocket) => {
-          websocket.send(JSON.stringify({
+          websocket.socket.send(JSON.stringify({
             type: "sendToNextAnswer"
           }))
         })
@@ -964,7 +966,7 @@ app.ws('/join', function(ws, req) {
       if (userMessage.type === "completedReading") {
         console.log("recieved message that reading was completed...");
         websockets.forEach((websocket) => {
-          websocket.send(JSON.stringify({
+          websocket.socket.send(JSON.stringify({
             type: "clickingOver"
           }))
         })
@@ -972,11 +974,18 @@ app.ws('/join', function(ws, req) {
 
       if (userMessage.type === "gameEnded"){
         handleRemoveAll(studentName, type, leavingRoomCode);
-        websockets.forEach((websocket) => {
-          websocket.send(JSON.stringify({
+        const endSocketGame = websockets.find(user => user.userName === userMessage.name);
+        if (endSocketGame){
+          endSocketGame.socket.send(JSON.stringify({
             type: "gameHasEnded"
           }))
-        })
+        }
+        // websockets.forEach((websocket) => {
+        //   websocket.socket.send(JSON.stringify({
+        //     type: "gameHasEnded",
+        //     name: userMessage.name
+        //   }))
+        // })
       }
 
     });

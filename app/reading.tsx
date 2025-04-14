@@ -4,8 +4,9 @@ import * as Speech from "expo-speech";
 import { Audio } from "expo-av";
 import QuestionWithTimerScreen from "./questiontimer";
 import { WebSocketService } from "./webSocketService";
-import { useNavigation } from "@react-navigation/native"; // <- Add this if using React Navigation
+import { useIsFocused, useNavigation } from "@react-navigation/native"; // <- Add this if using React Navigation
 import { useStudentStore } from "./useWebSocketStore";
+import { router } from "expo-router";
 
 interface ReadingScreenProps {
   playerCount?: number;
@@ -14,6 +15,7 @@ interface ReadingScreenProps {
 }
 
 async function playSound(e: any) {
+  
   const { sound } = await Audio.Sound.createAsync(e);
   console.log("Playing Sound");
   await sound.playAsync();
@@ -108,6 +110,7 @@ useEffect(() => {
 
   useEffect(() => {
     //avoid first question being reread
+    useStudentStore.setState({ totalQuestions: questions.length });
     if (questions.length === 0 || isReadingComplete) {
       return;
     }

@@ -32,7 +32,6 @@ export const WebSocketService = {
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
                 else if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
-                    
                     useStudentStore.setState({ startedGame : message.data });
                 }
                 else if (message.type === "sentDeckID") {
@@ -57,21 +56,33 @@ export const WebSocketService = {
                 }
                 else if (message.type === "sendToNextAnswer"){
                     console.log("Going to the next question")
-                    useStudentStore.setState({ 
-                        nextQuestion: true, 
+                    useStudentStore.setState((state) => ({ 
+                        nextQuestion: true,
                         isTimeUp: false,
                         currentTime: 30,
-                    });
-                } 
-                else if (message.type === "gameHasEnded"){
-                    useStudentStore.setState({ nextQuestion: true });
-                    useStudentStore.setState({ gameEnded: true });
+                        hasAnswered: false,
+                        allStudentsAnswered: false,
+                        ansCorrectness: "",
+                    }));
+                } else if (message.type === "gameHasEnded"){
+                    console.log("Checking: ", useStudentStore.getState().name, " against ", message.name);
+                        console.log("Recieved the websocket game has ended message");
+                        useStudentStore.setState((state) => ({ 
+                            nextQuestion: false,
+                            gameEnded: true, 
+                            startedGame: false,
+                            name: "",
+                            totalQuestions: 0,
+                            currQuestionNum: 0,
+                            clickCount: 0,
+                            students: [],
+                            deckID: -1,
+                        }));
                 }
                 else if (message.type === "clickingOver") {
                     useStudentStore.setState({ completedReading: true});
                 }
                 
-
                 console.log(message);
             }
         })

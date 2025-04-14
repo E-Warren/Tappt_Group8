@@ -42,9 +42,7 @@ const ResultsScreen = ({
   );
 
   useEffect(() => {
-    //useStudentStore.setState({ isTimeUp: false });
-    useStudentStore.setState({ currentTime: 30 });
-    console.log("The time is up boolean in zustand is now: ", useStudentStore.getState().isTimeUp);
+    //useStudentStore.setState({ currentTime: 30 });
   }, [])
 
   const handlePress = () => {
@@ -52,16 +50,18 @@ const ResultsScreen = ({
      if ((currentNumber + 1) !== totalNumQuestions){
        router.replace('/roundScorers');
      } else {
-      WebSocketService.sendMessage(
-        JSON.stringify({
-          type: "gameEnded",
-        })
-      )
+
       WebSocketService.sendMessage(
         JSON.stringify({
           type: "sendToNextQuestion",
         })
       )
+      WebSocketService.sendMessage(
+        JSON.stringify({
+          type: "gameEnded",
+        })
+      )
+
        router.replace('/finalscorers');
        useStudentStore.setState({ gameEnded: false });
      }
