@@ -27,8 +27,14 @@ async function playSound(e: any) {
 
 const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
   const [isReadingComplete, setIsReadingComplete] = useState(false);
+
   const navigation = useNavigation(); // <- Hook into navigation
   const [questions, setQuestions] = useState<ReadingScreenProps[]>([]);
+
+
+  //testing
+  const nextQ = useStudentStore(state => state.nextQuestion);
+  const setNextQuestion = useStudentStore(state => state.setNextQuestion);
 
   //------------ Setting up the questions -----------------
 const deckID = useStudentStore(state => state.deckID);
@@ -94,52 +100,83 @@ useEffect(() => {
 
 }, [deckID]);
 
+  //so that the first question isn't read twice (because of rerendering):
+  useEffect(() => {
+    if (questions.length > 0) {
+      useStudentStore.setState({ totalQuestions: questions.length });
+    }
+  }, [questions])
+
 
   useEffect(() => {
-      console.log("Inside the read question use effect")
-      useStudentStore.setState({ totalQuestions: questions.length });
-      console.log("Total questions being asked is now: ", questions.length);
-      navigation.setOptions({ headerShown: false }); // <- Hides back arrow + screen title
-  
-        const soundTimer = setTimeout(() => {
-          console.log("Going to play the ding sound")
-          playSound(require("../assets/sound/question.mp3"));
-          let soundPlayed = true;
-        }, 500);
-  
-      const speechTimer = setTimeout(() => {
-        console.log("The current question number being asked is: ", currQuestionNum, " and question length is: ", questions.length);
-        console.log("The current question being asked is: ", questions[currQuestionNum]);
-        const questionAsked = questions[currQuestionNum];
-        if (questionAsked){
-          console.log("Going to read out the question");
-          Speech.speak(questionAsked.question || "No more questions!", {
-            onDone: () => {
-              console.log("Speech finished");
-              setTimeout(() => {
-                setIsReadingComplete(true);
-              }, 1000);
-            },
-          });
-        } else {
-          console.log("No question being asked");
-        }
-      }, 2800);
-  
-      return () => {
-        clearTimeout(soundTimer);
-        clearTimeout(speechTimer);
-      };
-  }, [questions, currQuestionNum]);
+    //avoid first question being reread
+    useStudentStore.setState({ totalQuestions: questions.length });
+    if (questions.length === 0 || isReadingComplete) {
+      return;
+    }
 
+    console.log("questions.length ->", questions.length);
+
+    console.log("Total questions being asked is now: ", questions.length);
+    navigation.setOptions({ headerShown: false }); // <- Hides back arrow + screen title
+
+    const soundTimer = setTimeout(() => {
+      playSound(require("../assets/sound/question.mp3"));
+    }, 500);
+
+    //{questions[currQuestionNum]?.question || "questions are done. will need appriopriate routing for this."}
+
+    const speechTimer = setTimeout(() => {
+      console.log("The current question number being asked is: ", currQuestionNum, " and question length is: ", questions.length);
+      console.log("The current question being asked is: ", questions[currQuestionNum]);
+      const questionAsked = questions[currQuestionNum];
+      if (questionAsked){
+        Speech.speak(questionAsked.question || "No more questions!", {
+          onDone: () => {
+            console.log("Speech finished");
+            setTimeout(() => {
+              setIsReadingComplete(true);
+            }, 1000);
+          },
+        });
+      } else {
+        console.log("No question being asked");
+      }
+    }, 2800);
+
+    return () => {
+      clearTimeout(soundTimer);
+      clearTimeout(speechTimer);
+    };
+  }, [isReadingComplete, questions, currQuestionNum]);
+
+//useeffect so that readscreen doesn't have trouble rendering
+//sends to the backend to start the countdown and reading has been completed (so kick them kids out of studentClicks)
+useEffect (() => {
   if (isReadingComplete) {
+    useStudentStore.setState({ nextQuestion: false });
+    //setNextQuestion(false);
     WebSocketService.sendMessage(
       JSON.stringify({
         type: "countdownStarted",
       })
     );
-    return <QuestionWithTimerScreen />;
+
+    //DELETE
+    console.log("NEXTQUESTION STATUS: ", nextQ);
+
+    WebSocketService.sendMessage(
+      JSON.stringify({
+        type: "completedReading",
+      })
+    );
   }
+}, [isReadingComplete])
+
+//now seperate because react doesn't like this inside useEffect
+if (isReadingComplete) {
+  return <QuestionWithTimerScreen />;
+}
 
   return (
     <View style={styles.container}>

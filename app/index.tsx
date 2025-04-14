@@ -36,6 +36,9 @@ export default function Index() {
       <Link href={"/roundScorers"} style={styles.button}>
         Go to round leaderboard 
       </Link>
+      <Link href={"/review"} style={styles.button}>
+        Go to review screen 
+      </Link>
     </View>
   );
 }

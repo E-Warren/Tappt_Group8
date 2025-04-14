@@ -17,9 +17,9 @@ export default function Index() {
     //if game started, go to question diamond
     useEffect(() => {
         console.log("entered routing; gamestarted =", gameStarted);
-        if (gameStarted) {
-            console.log("Routing to answer choices through student waiting")
-            router.replace("/answerchoices");
+        if (gameStarted == true) {
+            router.replace("/studentClicks");
+            //router.replace("/answerchoices");
         }
 
     }, [gameStarted]);

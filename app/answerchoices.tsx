@@ -21,7 +21,6 @@ interface AnswerChoiceScreenProps {
   questionNumber?: number;
   totalQuestions?: number;
   onAnswerPress?: (value: string, correct: boolean, questionID: number, currentQuestion: string) => void;
-  onNextPress?: () => void; // NEW PROP
 }
 
 //obtain deckID from backend teacher socket
@@ -60,9 +59,25 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   const timeIsUp = useStudentStore(state => state.isTimeUp);
   const studentAnwered = useStudentStore(state => state.hasAnswered);
 
+  //click count!!!!!!!!
+  const clickCount = useStudentStore(state => state.clickCount);
+  
+  //console.log("current question # ->", currQuestionNum);
 
   //for avoiding error about this file affecting the rendering ability of /teacherwaiting
   const [letsgo, setletsgo] = useState(false);
+
+  //if for some reason, nextQuestion is set to true prematurely, set it to false
+  //should solve multiple games problem
+  const nextQuestion = useStudentStore(state => state.nextQuestion);
+    //testing
+    console.log("next question =", nextQuestion);
+
+  useEffect(() => {
+    if (nextQuestion) {
+      useStudentStore.setState({nextQuestion: false});
+    }
+  }, [nextQuestion])
 
   //set total questions -> so that /teacherwaiting doesn't have to rerender
   useEffect(() => {
@@ -90,8 +105,9 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         currentQuestion: currentQuestion,
         correctness: correct,
         questionNum: currQuestionNum,
-        clickCount: 1, //CHANGE THIS -> HARDCODED
+        clickCount: clickCount, //click count now added yayayyay
       }));
+      console.log("click count -> ", clickCount)
       console.log("correctness ->", correct);
 
       setletsgo(true);
@@ -208,7 +224,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           currentQuestion: questions[currQuestionNum]?.question?? "",
           correctness: "incorrect",
           questionNum: currQuestionNum,
-          clickCount: 100, //TODO: update this once the clicks are stored
+          clickCount: clickCount, //updated: click counts stored
         }))
         console.log("Routing to the incorrect screen");
         router.replace('/incorrect'); //route student to "incorrect" screen
@@ -234,7 +250,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             currentQuestion: questions[currQuestionNum]?.question?? "",
             correctness: choice.correct,
             questionNum: currQuestionNum,
-            clickCount: 100, //TODO: update this once the clicks are stored
+            clickCount: clickCount, //updated: click counts stored
           }))
           setletsgo(true); //let students continue to waiting page
         }
@@ -253,7 +269,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             currentQuestion: questions[currQuestionNum]?.question?? "",
             correctness: choice.correct,
             questionNum: currQuestionNum,
-            clickCount: 100, //TODO: update this once the clicks are stored
+            clickCount: clickCount, //updated: click counts stored
           }))
           setletsgo(true);
         }
@@ -271,7 +287,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             currentQuestion: questions[currQuestionNum]?.question?? "",
             correctness: choice.correct,
             questionNum: currQuestionNum,
-            clickCount: 100, //TODO: update this once the clicks are stored
+            clickCount: clickCount, //updated: click counts stored
           }))
           setletsgo(true);
         }
@@ -289,7 +305,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             currentQuestion: questions[currQuestionNum]?.question?? "",
             correctness: choice.correct,
             questionNum: currQuestionNum,
-            clickCount: 100, //TODO: update this once the clicks are stored
+            clickCount: clickCount, //updated: click counts stored
           }))
           setletsgo(true);
         }
