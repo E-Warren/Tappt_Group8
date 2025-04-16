@@ -271,11 +271,9 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         console.log("Student pressed the up arrow key");
         //get the choice value that corresponds to top (up arrow)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "top");
-
         if (window.speechSynthesis && window.speechSynthesis.speaking) {
           window.speechSynthesis.cancel();
         }
-
         if (choice){ //if that is a valid choice, send the choice to the backend
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
