@@ -70,12 +70,13 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
   const readStepRef = useRef(0);
 
+  //TTS function to make repeat question and answer
   const readAloud = () => {
     if (!synth || !questions || questions.length === 0) return;
   
     const currentQ = questions[currQuestionNum];
-    const totalSteps = 1 + (currentQ?.choices?.length ?? 0); // 질문 + 선택지 수
-    const step = readStepRef.current % totalSteps; // 루프 돌리기 위해 % 사용
+    const totalSteps = 1 + (currentQ?.choices?.length ?? 0); 
+    const step = readStepRef.current % totalSteps; 
     let textToRead = "";
   
     if (step === 0) {
@@ -89,7 +90,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
     synth.cancel();
     synth.speak(utterance);
   
-    readStepRef.current++; // 다음에 읽을 항목으로 이동
+    readStepRef.current++;
   };
 
   useEffect(() => {
