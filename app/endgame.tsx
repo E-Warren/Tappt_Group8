@@ -31,12 +31,12 @@ const GameSummaryScreen = () => {
         answered <Text style={styles.boldText}>12</Text> out of <Text style={styles.boldText}>13</Text> questions correctly.
       </Text>
       <View style={styles.buttonContainer}>
-        <Link href="/" style={styles.buttonYellow}>
+        <Link href="/review" style={styles.buttonYellow}>
           <Text style={styles.buttonText}>See what I missed</Text>
         </Link>
-        <Pressable onPress={handlePress} style={styles.buttonOrange}>
-          <Text style={styles.buttonText}>Join a new game</Text>
-        </Pressable>
+        <Link href="/slogin" style={styles.buttonOrange}>
+          <Text style={styles.buttonText}>Join a new game!</Text>
+        </Link>
       </View>
     </View>
   );

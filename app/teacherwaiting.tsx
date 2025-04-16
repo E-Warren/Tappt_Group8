@@ -14,8 +14,8 @@ import { WebSocketService } from "./webSocketService";
 import { Audio } from "expo-av";
 
 const { height, width } = Dimensions.get("window");
-const NUM_COLUMNS = 5; // Fixed number of columns
-const PLAYER_BOX_WIDTH = width / NUM_COLUMNS - 10; // Ensure fixed-size columns
+const NUM_COLUMNS = 4; // Fixed number of columns
+const PLAYER_BOX_WIDTH = width / NUM_COLUMNS * 1.05 
 
 export default function WaitingRoom() {
   const players = useStudentStore((state) => state.students);
