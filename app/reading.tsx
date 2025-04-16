@@ -176,7 +176,8 @@ useEffect(() => {
             }, questionAsked.choices.length * 2000 + 1000); 
           },
         });
-      } else {
+      } 
+      else {
         console.log("No question being asked");
       }
     }, 2800)

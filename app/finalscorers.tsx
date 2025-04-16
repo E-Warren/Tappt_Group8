@@ -1,8 +1,11 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
+import { useStudentStore } from "./useWebSocketStore";
+import { WebSocketService } from "./webSocketService";
 
 const TopScorersScreen = () => {
+
   const firstPlaceAnim = useRef(new Animated.Value(0)).current;
   const secondPlaceAnim = useRef(new Animated.Value(0)).current;
   const thirdPlaceAnim = useRef(new Animated.Value(0)).current;

@@ -9,6 +9,13 @@ export default function GamePinScreen() { // Function used to get pin from User
   const [error, setError] = useState(false); 
   const {name} = useStudentStore(state => state); //get the saved name from zustand
   console.log("Entered student login!!");
+
+  //reset gameEnded
+  const gameEnded = useStudentStore((state) => state.gameEnded);
+  useEffect(() => {
+    useStudentStore.setState({gameEnded: false});
+  }, [gameEnded])
+
   useEffect(() => {
     if (name !== ""){ //ensures the student has a name and sends them to the waiting page
       router.push("/studentWaiting");
