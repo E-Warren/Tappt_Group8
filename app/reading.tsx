@@ -4,8 +4,9 @@ import * as Speech from "expo-speech";
 import { Audio } from "expo-av";
 import QuestionWithTimerScreen from "./questiontimer";
 import { WebSocketService } from "./webSocketService";
-import { useNavigation } from "@react-navigation/native"; // <- Add this if using React Navigation
+import { useIsFocused, useNavigation } from "@react-navigation/native"; // <- Add this if using React Navigation
 import { useStudentStore } from "./useWebSocketStore";
+import { router } from "expo-router";
 
 interface ReadingScreenProps {
   playerCount?: number;
@@ -15,6 +16,7 @@ interface ReadingScreenProps {
 }
 
 async function playSound(e: any) {
+  
   const { sound } = await Audio.Sound.createAsync(e);
   console.log("Playing Sound");
   await sound.playAsync();
@@ -26,6 +28,7 @@ async function playSound(e: any) {
 
 const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
   const [isReadingComplete, setIsReadingComplete] = useState(false);
+
   const navigation = useNavigation(); // <- Hook into navigation
   const [questions, setQuestions] = useState<ReadingScreenProps[]>([
     { question: "", questionID: -1, choices: [
@@ -34,6 +37,12 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
       { label: "right", value: "", correct: false },
       { label: "bottom", value: "", correct: false },] },
     ]);
+
+
+  //testing
+  const nextQ = useStudentStore(state => state.nextQuestion);
+  const setNextQuestion = useStudentStore(state => state.setNextQuestion);
+
   //------------ Setting up the questions -----------------
 const deckID = useStudentStore(state => state.deckID);
 const currQuestionNum = useStudentStore(state => state.currQuestionNum);
@@ -73,12 +82,12 @@ useEffect(() => {
             choices: [],
           });
         }
-          //setting up answers and their correctness
-          qMap.get(row.fld_card_q_pk).choices.push({
-            value: row.fld_card_ans,
-            correct: row.fld_ans_correct,
-          });
+        qMap.get(row.fld_card_q_pk).choices.push({
+          value: row.fld_card_ans,
+          correct: row.fld_ans_correct,
+        });
       });
+      
   
       qMap.forEach((questionData) => {
         const filledChoices = [...questionData.choices];
@@ -87,13 +96,12 @@ useEffect(() => {
           filledChoices.push({ value: "", correct: false });
         }
 
-        //assign labels to each answer so that the top label is the first answer, left in the second, and so on
         const labeledChoices = filledChoices.slice(0, 4).map((choice, index) => ({
           label: ["top", "left", "right", "bottom"][index],
           value: choice.value,
           correct: choice.correct,
         }));
-
+        
         qArr.push({
           questionID: questionData.questionID,
           question: questionData.question,
@@ -101,7 +109,8 @@ useEffect(() => {
         });
       });
 
-      console.log("Setting set to: ", qArr);
+      console.log("Setting questions to: ", qArr);
+      
       setQuestions(qArr);
       
     } catch (err) {
@@ -118,9 +127,23 @@ useEffect(() => {
 
 }, [deckID]);
 
+  //so that the first question isn't read twice (because of rerendering):
+  useEffect(() => {
+    if (questions.length > 0) {
+      useStudentStore.setState({ totalQuestions: questions.length });
+    }
+  }, [questions])
+
 
   useEffect(() => {
+    //avoid first question being reread
     useStudentStore.setState({ totalQuestions: questions.length });
+    if (questions.length === 0 || isReadingComplete) {
+      return;
+    }
+
+    console.log("questions.length ->", questions.length);
+
     console.log("Total questions being asked is now: ", questions.length);
     navigation.setOptions({ headerShown: false }); // <- Hides back arrow + screen title
 
@@ -134,12 +157,10 @@ useEffect(() => {
       console.log("The current question number being asked is: ", currQuestionNum, " and question length is: ", questions.length);
       console.log("The current question being asked is: ", questions[currQuestionNum]);
       const questionAsked = questions[currQuestionNum];
-
       if (questionAsked){
         Speech.speak(questionAsked.question || "No more questions!", {
           onDone: () => {
             console.log("Speech finished");
-
             questionAsked.choices.forEach((choice, index) => {
               setTimeout(() => {
                 console.log(`${choice.label} value:`, choice.value);
@@ -151,7 +172,6 @@ useEffect(() => {
                 });
               }, index * 2000); 
             });
-
             setTimeout(() => {
               setIsReadingComplete(true);
             }, questionAsked.choices.length * 2000 + 1000); 
@@ -162,21 +182,40 @@ useEffect(() => {
       }
     }, 2800)
 
+
     return () => {
       clearTimeout(soundTimer);
       clearTimeout(speechTimer);
     };
-  }, [questions, currQuestionNum]);
+  }, [isReadingComplete, questions, currQuestionNum]);
 
+//useeffect so that readscreen doesn't have trouble rendering
+//sends to the backend to start the countdown and reading has been completed (so kick them kids out of studentClicks)
+useEffect (() => {
   if (isReadingComplete) {
     useStudentStore.setState({ nextQuestion: false });
+    //setNextQuestion(false);
     WebSocketService.sendMessage(
       JSON.stringify({
         type: "countdownStarted",
       })
     );
-    return <QuestionWithTimerScreen />;
+
+    //DELETE
+    console.log("NEXTQUESTION STATUS: ", nextQ);
+
+    WebSocketService.sendMessage(
+      JSON.stringify({
+        type: "completedReading",
+      })
+    );
   }
+}, [isReadingComplete])
+
+//now seperate because react doesn't like this inside useEffect
+if (isReadingComplete) {
+  return <QuestionWithTimerScreen />;
+}
 
   return (
     <View style={styles.container}>
