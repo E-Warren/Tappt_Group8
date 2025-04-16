@@ -67,36 +67,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   //for avoiding error about this file affecting the rendering ability of /teacherwaiting
   const [letsgo, setletsgo] = useState(false);
 
-  const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
-  const readStepRef = useRef(0);
-
-  //TTS function to make repeat question and answer
-  const readAloud = () => {
-    if (!synth || !questions || questions.length === 0) return;
-  
-    const currentQ = questions[currQuestionNum];
-    const totalSteps = 1 + (currentQ?.choices?.length ?? 0); 
-    const step = readStepRef.current % totalSteps; 
-    let textToRead = "";
-  
-    if (step === 0) {
-      textToRead = currentQ?.question ?? "";
-    } else {
-      const choice = currentQ.choices[step - 1];
-      textToRead = `${choice.label}: ${choice.value}`;
-    }
-  
-    const utterance = new SpeechSynthesisUtterance(textToRead);
-    synth.cancel();
-    synth.speak(utterance);
-  
-    readStepRef.current++;
-  };
-
-  useEffect(() => {
-    readStepRef.current = 0;
-  }, [currQuestionNum]);
-
   //if for some reason, nextQuestion is set to true prematurely, set it to false
   //should solve multiple games problem
   const nextQuestion = useStudentStore(state => state.nextQuestion);
@@ -271,11 +241,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         console.log("Student pressed the up arrow key");
         //get the choice value that corresponds to top (up arrow)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "top");
-
-        if (window.speechSynthesis && window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel();
-        }
-
         if (choice){ //if that is a valid choice, send the choice to the backend
           WebSocketService.sendMessage(JSON.stringify({
             type: "studentAnswer",
@@ -294,9 +259,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         console.log("Student pressed the down arrow key");
         //get the choice value associated with the bottom (down arrow)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "bottom");
-        if (window.speechSynthesis && window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel();
-        }
         if (choice) {
           //send the student's choice to backend
           WebSocketService.sendMessage(JSON.stringify({
@@ -315,9 +277,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       if (event.key === "ArrowLeft") { //student chose the left arrow option
         //find the value associated with left (left arrow)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "left");
-        if (window.speechSynthesis && window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel();
-        }
         if (choice) {
           console.log("The student chose the left arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -336,9 +295,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       if (event.key === "ArrowRight") { //student pressed the right arrow key
         //find the value associated with the label right (right arrow key)
         const choice = questions[currQuestionNum]?.choices?.find(c => c.label === "right");
-        if (window.speechSynthesis && window.speechSynthesis.speaking) {
-          window.speechSynthesis.cancel();
-        }
         if (choice) {
           console.log("The student chose the right arrow with value: ", choice.value);
           WebSocketService.sendMessage(JSON.stringify({
@@ -354,12 +310,6 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           setletsgo(true);
         }
       }
-      if (event.key.toLowerCase() === "f") {
-        event.preventDefault();
-        readAloud();
-        return;
-        }
-      
     }
     window.addEventListener("keydown", keydownHandler);
     //remove the event listener upon dismount

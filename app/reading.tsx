@@ -12,7 +12,6 @@ interface ReadingScreenProps {
   playerCount?: number;
   questionID?: number;
   question?: string;
-  choices?: { label: string; value: string; correct: boolean }[];
 }
 
 async function playSound(e: any) {
@@ -30,18 +29,7 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
   const [isReadingComplete, setIsReadingComplete] = useState(false);
 
   const navigation = useNavigation(); // <- Hook into navigation
-  const [questions, setQuestions] = useState<ReadingScreenProps[]>([
-    { question: "", questionID: -1, choices: [
-      { label: "top", value: "", correct: false },
-      { label: "left", value: "", correct: false },
-      { label: "right", value: "", correct: false },
-      { label: "bottom", value: "", correct: false },] },
-    ]);
-
-
-  //testing
-  const nextQ = useStudentStore(state => state.nextQuestion);
-  const setNextQuestion = useStudentStore(state => state.setNextQuestion);
+  const [questions, setQuestions] = useState<ReadingScreenProps[]>([]);
 
 
   //testing
@@ -84,38 +72,18 @@ useEffect(() => {
           qMap.set(row.fld_card_q_pk, {
             questionID: row.fld_card_q_pk,
             question: row.fld_card_q,
-            choices: [],
           });
         }
-        qMap.get(row.fld_card_q_pk).choices.push({
-          value: row.fld_card_ans,
-          correct: row.fld_ans_correct,
-        });
-      });
-      
+      })
   
       qMap.forEach((questionData) => {
-        const filledChoices = [...questionData.choices];
-
-        while (filledChoices.length < 4) {
-          filledChoices.push({ value: "", correct: false });
-        }
-
-        const labeledChoices = filledChoices.slice(0, 4).map((choice, index) => ({
-          label: ["top", "left", "right", "bottom"][index],
-          value: choice.value,
-          correct: choice.correct,
-        }));
-        
         qArr.push({
           questionID: questionData.questionID,
           question: questionData.question,
-          choices: labeledChoices
         });
       });
 
       console.log("Setting questions to: ", qArr);
-      
       setQuestions(qArr);
       
     } catch (err) {
@@ -166,27 +134,15 @@ useEffect(() => {
         Speech.speak(questionAsked.question || "No more questions!", {
           onDone: () => {
             console.log("Speech finished");
-            questionAsked.choices.forEach((choice, index) => {
-              setTimeout(() => {
-                console.log(`${choice.label} value:`, choice.value);
-                const choiceValue = choice.value || "No value available";
-                Speech.speak(`${choice.label}: ${choiceValue}`, {
-                  onDone: () => {
-                    console.log(`Choice ${choice.label} read`);
-                  },
-                });
-              }, index * 2000); 
-            });
             setTimeout(() => {
               setIsReadingComplete(true);
-            }, questionAsked.choices.length * 2000 + 1000); 
+            }, 1000);
           },
         });
       } else {
         console.log("No question being asked");
       }
-    }, 2800)
-
+    }, 2800);
 
     return () => {
       clearTimeout(soundTimer);
