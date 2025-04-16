@@ -113,23 +113,11 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
 
       <Text style={styles.correctText}>That's right!</Text>
 
-      {selectedBonus ? (
+      
         <Text style={styles.bonusMessage}>
-          {selectedBonus === "doublePoints"
-            ? "You chose x2 points per click!"
-            : "You froze all players next round!"}
+          You get !! {/* implement bonus message here */}
         </Text>
-      ) : (
-        <>
-          <Text style={styles.chooseBonus}>Choose your bonus:</Text>
-          <TouchableOpacity style={styles.bonusButtonGreen} onPress={() => handleBonusSelect("doublePoints")}>
-            <Text style={styles.bonusText}>x2 points per click</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.bonusButtonPurple} onPress={() => handleBonusSelect("freezePlayers")}>
-            <Text style={styles.bonusText}>Freeze all the players next round</Text>
-          </TouchableOpacity>
-        </>
-      )}
+     
 
       <Text style={styles.timer}>{timer}</Text>
       <Text style={styles.questionCounter}>Question {questionNumber + 1} / {totalQuestions}</Text>
