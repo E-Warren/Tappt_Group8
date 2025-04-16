@@ -64,20 +64,22 @@ export const WebSocketService = {
                         allStudentsAnswered: false,
                         ansCorrectness: "",
                     }));
-                } else if (message.type === "gameHasEnded"){
+                } 
+                else if (message.type === "gameHasEnded"){
                     console.log("Checking: ", useStudentStore.getState().name, " against ", message.name);
-                        console.log("Recieved the websocket game has ended message");
-                        useStudentStore.setState((state) => ({ 
-                            nextQuestion: false,
-                            gameEnded: true, 
-                            startedGame: false,
-                            name: "",
-                            totalQuestions: 0,
-                            currQuestionNum: 0,
-                            clickCount: 0,
-                            students: [],
-                            deckID: -1,
-                        }));
+                    console.log("Recieved the websocket game has ended message");
+                    useStudentStore.setState((state) => ({ 
+                        nextQuestion: false,
+                        gameEnded: true, 
+                        startedGame: false,
+                        name: "",
+                        totalQuestions: 0,
+                        currQuestionNum: 0,
+                        clickCount: 0,
+                        students: [],
+                        deckID: -1,
+                        roomCode: "",
+                    }));
                 }
                 else if (message.type === "clickingOver") {
                     useStudentStore.setState({ completedReading: true});

@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   SafeAreaView,
   ScrollView,
-  StyleSheet
+  StyleSheet,
+  Pressable,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
+import { useStudentStore } from "./useWebSocketStore";
+import { WebSocketService } from "./webSocketService";
 
 // Dummy Data: 2 correct cards, 1 incorrect card, can be removed later
 const dummyCorrectAnswers = [
@@ -43,14 +46,31 @@ const ReviewScreen = ({
 }) => {
   const totalQuestions = correctAnswers.length + incorrectAnswers.length;
   const correctCount = correctAnswers.length;
+  const gameEnded = useStudentStore((state) => state.gameEnded);
+  const playerName = useStudentStore((state) => state.name);
+
+    //to handle routing back to student login
+    useEffect(() => {
+      if (gameEnded) {
+        router.replace("/slogin");
+      }
+    }, [gameEnded]);
+  
+    //will only say game ended if student chooses to join a new game
+    const handlePress = () => {
+      WebSocketService.sendMessage(JSON.stringify({
+        type: "gameEnded",
+        name: playerName,
+      }));
+    };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.topBar}>
         <Text style={styles.logoText}>Tappt</Text>
-        <Link href="/slogin" style={styles.newGameButton}>
+        <Pressable onPress={handlePress} style={styles.newGameButton}>
           <Text style={styles.newGameButtonText}>Join a new game</Text>
-        </Link>
+        </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
