@@ -43,6 +43,11 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
   const nextQ = useStudentStore(state => state.nextQuestion);
   const setNextQuestion = useStudentStore(state => state.setNextQuestion);
 
+
+  //testing
+  const nextQ = useStudentStore(state => state.nextQuestion);
+  const setNextQuestion = useStudentStore(state => state.setNextQuestion);
+
   //------------ Setting up the questions -----------------
 const deckID = useStudentStore(state => state.deckID);
 const currQuestionNum = useStudentStore(state => state.currQuestionNum);

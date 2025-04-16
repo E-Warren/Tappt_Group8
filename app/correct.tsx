@@ -23,6 +23,11 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
   const goToNextQuestion = useStudentStore(state => state.nextQuestion);
   const isFocused = useIsFocused();
 
+  //testing
+  const hasAns = useStudentStore(state => state.hasAnswered);
+  const nextQ = useStudentStore(state => state.nextQuestion);
+  const setNextQuestion = useStudentStore(state => state.setNextQuestion);
+
 
   const handleBonusSelect = (bonus: string) => {
     setSelectedBonus(bonus);
@@ -73,35 +78,29 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
       stopSound();
     };
   }, []);
-
-
   
     //***temporary*** => substitute until we have teacher frontend routed to this point
     //setting timeout for 5 seconds so that student can see incorrect page
     useEffect(() => {
-        if (goToNextQuestion){
-          if ((questionNumber + 1) !== totalQuestions){
-            useStudentStore.setState({ hasAnswered: false});
+
+      //this function checks if the teacher has hit the continue (goToNextQuestion holds the next question number)
+        if (goToNextQuestion){ //checks if the next question is ready to be asked
+          if ((questionNumber + 1) !== totalQuestions){ //checks if teacher has reached the end of the deck
+            useStudentStore.setState({ currQuestionNum: questionNumber + 1}) //update the current question number (student side)
             useStudentStore.setState({ nextQuestion: false });
             useStudentStore.setState({ currQuestionNum: questionNumber + 1})
-            useStudentStore.setState({ allStudentsAnswered: false });
+            console.log("go to next question is set to: ", useStudentStore.getState().nextQuestion);
             console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
-            //useStudentStore.setState({ isTimeUp: false });
             console.log("resetting correctness... rerouting to /answerchoices");
-            setAnsCorrectness("");
-            router.replace("/answerchoices");
+            //go to student clicks now
+            router.replace("/studentClicks");
           } else {
+            //if reached the end of the deck, send to endgame screen
+            console.log("Routing to end of the game through incorrect");
             router.replace("/endgame");
           }
         }
     }, [goToNextQuestion])
-
-    useEffect(() => {
-      useStudentStore.setState({ isTimeUp: false });
-      useStudentStore.setState({ currentTime: 30 });
-      console.log("The time is up boolean in zustand is now: ", useStudentStore.getState().isTimeUp);
-      useStudentStore.setState({ allStudentsAnswered: false });
-    }, [])
 
   return (
     <View style={styles.container}>

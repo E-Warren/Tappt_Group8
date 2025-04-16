@@ -11,7 +11,6 @@ interface QuestionWithTimerScreenProps {
 }
 
 const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
-  question = "In what year did the Boston Tea Party take place?",
   playerCount = 17,
 }) => {
   const timer = useStudentStore((state) => state.currentTime);
@@ -20,6 +19,7 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
   const haveAllStudentsAnswered = useStudentStore(state => state.allStudentsAnswered);
 
   useEffect(() => {
+    //if the timer is up or all the students have answered, route teacher to roundend screen
     if (timerIsUp || haveAllStudentsAnswered){
       router.replace('/roundend');
     }

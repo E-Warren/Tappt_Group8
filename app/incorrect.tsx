@@ -20,6 +20,9 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
   const setAnsCorrectness = useStudentStore(state => state.setAnsCorrectness);
   const goToNextQuestion = useStudentStore(state => state.nextQuestion);
 
+  //testing
+  const hasAns = useStudentStore(state => state.hasAnswered);
+
   //sound!!!!
   const soundRef = useRef<Audio.Sound | null>(null);
 
@@ -59,34 +62,36 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
     };
   }, []);
 
-
-
   //***temporary*** => substitute until we have teacher frontend routed to this point
   //setting timeout for 5 seconds so that student can see incorrect page
   useEffect(() => {
+    //checks if the next question is ready to be read (set through teacher side)
       if (goToNextQuestion){
+        console.log("student info: ");
+        console.log("goToNextQuestion: ", goToNextQuestion);
+        console.log("hasAnswered: ", hasAns);
+
         if ((questionNumber + 1) !== totalQuestions){
-          useStudentStore.setState({ hasAnswered: false});
           useStudentStore.setState({ nextQuestion: false });
+          
+          //test
+          console.log("goToNextQuestion: ", goToNextQuestion);
+
           useStudentStore.setState({ currQuestionNum: questionNumber + 1});
-          useStudentStore.setState({ allStudentsAnswered: false });
+          console.log("go to next question is set to: ", useStudentStore.getState().nextQuestion);
           console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
           console.log("resetting correctness... rerouting to /answerchoices");
-          setAnsCorrectness("");
-          router.replace("/answerchoices");
+          
+          //go to student clicks now
+          router.replace("/studentClicks");
+
         } else {
+          //means we have reached the end of the deck so go to endgame screen
+          console.log("Routing to end of the game through incorrect");
           router.replace("/endgame");
         }
       }
-
   }, [goToNextQuestion])
-
-  useEffect(() => {
-    console.log("Reseting the timer");
-    useStudentStore.setState({ isTimeUp: false });
-    useStudentStore.setState({ currentTime: 30 });
-    useStudentStore.setState({ allStudentsAnswered: false });
-  }, [])
 
 
   return (
