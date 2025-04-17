@@ -79,10 +79,14 @@ export const WebSocketService = {
                         students: [],
                         deckID: -1,
                         roomCode: "",
+                        bonus: "",
                     }));
                 }
                 else if (message.type === "clickingOver") {
                     useStudentStore.setState({ completedReading: true});
+                }
+                else if (message.type === "sentBonus") {
+                    useStudentStore.setState({bonus: message.bonus})
                 }
                 
                 console.log(message);

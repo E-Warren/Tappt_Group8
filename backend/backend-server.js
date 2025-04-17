@@ -356,8 +356,6 @@ app.get("/view-decks", authenticateToken, async (req, res) => {
         //wait for query to finalize
         const decks = await pool.query(query, [req.userID.trim()])
 
-        console.log(decks)
-
         //send an 201 (OK) status as for success
         //return query in JSON format
         res.status(201).json(decks.rows)
@@ -387,8 +385,6 @@ app.get("/createdecks/:id", authenticateToken, async (req, res) => {
 
         //wait for query to finalize
         const decks = await pool.query(query, [id])
-
-        console.log(decks.rows)
 
         //if deck key doesn't exist -> only happens if you messed with the URL
         //return 404 error
@@ -544,6 +540,9 @@ app.get("/answerchoices/:deckID", async (req, res) => {
       console.log(error);
       res.status(500).json(error)
     }
+    pool.on("error", (err, client) => {
+      console.error("Unexpected error on idle PostgreSQL client", err);
+    });
 })
 
 
@@ -712,6 +711,81 @@ const resetGameState = async () => {
   gameState.hasStarted = false;
 }
 
+//for generating bonus probability
+const getProbabilityInt = async () => {
+  //generate a number between 1 and 100 inclusively
+  return Math.floor(Math.random() * 100) + 1;
+}
+
+const bonusDecider = async (name, qNum) => {
+  //finding the first place person -> first find max clicks
+  const topClicks = Math.max(...gameState.answers.map(max => max.studentClicks));
+
+  //comparing max clicks person to websocket person name
+  const firstPlace = gameState.answers.filter(person => person.studentClicks === topClicks && person.questionNum === qNum);
+
+  //ya bonus probability
+  const bonusProb = await getProbabilityInt();
+  let yourBonus = "";
+  console.log("bonus probability: ", bonusProb);
+
+  //doing bonus selection based on if person is first place or not
+  //if failed to find the first place
+  if (firstPlace.length === 0) {
+    yourBonus = "failed";
+  }
+  else if (name === firstPlace[0].studentName) { //if first place
+    //colors
+    console.log(name, "is first place with", topClicks, "clicks")
+    if (bonusProb <= 25) {
+      yourBonus = "10% Bonus";
+    }
+    else if (bonusProb > 25 && bonusProb <= 45) {
+      yourBonus = "15% Bonus";
+    }
+    else if (bonusProb > 45 && bonusProb <= 60) {
+      yourBonus = "20% Bonus";
+    }
+    else if (bonusProb > 60 && bonusProb <= 85) {
+      yourBonus = "1.5x Multiplier";
+    }
+    else if (bonusProb > 85) {
+      yourBonus = "2x Multiplier";
+    }
+    else {
+      yourBonus = "failed";
+    }
+  }
+  else {  //if not first place
+    if (bonusProb <= 20) {
+      yourBonus = "10% Bonus";
+    }
+    else if (bonusProb > 20 && bonusProb <= 35) {
+      yourBonus = "15% Bonus";
+    }
+    else if (bonusProb > 35 && bonusProb <= 45) {
+      yourBonus = "20% Bonus";
+    }
+    else if (bonusProb > 45 && bonusProb <= 65) {
+      yourBonus = "1.5x Multiplier";
+    }
+    else if (bonusProb > 65 && bonusProb <= 75) {
+      yourBonus = "2x Multiplier";
+    }
+    else if (bonusProb > 75 && bonusProb <= 90) {
+      yourBonus = "5% Steal";
+    }
+    else if (bonusProb > 90) {
+      yourBonus = "10% Steal";
+    }
+    else {
+      yourBonus = "failed";
+    }
+  }
+
+  return yourBonus;
+}
+
 const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
   console.log("Removing websocket connection");
 
@@ -876,7 +950,6 @@ app.ws('/join', function(ws, req) {
           console.log("Going to stop the timer now!")
           clearInterval(intervals); //stop the interval cause all students answered
           websockets.forEach((websocket) => {
-            console.log("sent allstudentsansweredquestion");
             websocket.socket.send(JSON.stringify({
               type: "allStudentsAnsweredQuestion",
             }))
@@ -898,7 +971,6 @@ app.ws('/join', function(ws, req) {
             console.log("found student!");
             return true;
           }
-          console.log("did not find student...", "question:", element.questionNum, "student:", element.studentName, "correctness:", element.correctness)
           return false
         })
 
@@ -910,7 +982,6 @@ app.ws('/join', function(ws, req) {
           determinator = "failed found";
         }
         else {
-          console.log("found ->", found, "; found[0].correctness ->", found[0].correctness);
           if (found[0].correctness === true){
             determinator = "correct";
           }
@@ -954,12 +1025,30 @@ app.ws('/join', function(ws, req) {
           }
         }
       }
+
+      //send to next question
       if (userMessage.type === "sendToNextQuestion"){
         websockets.forEach((websocket) => {
           websocket.socket.send(JSON.stringify({
             type: "sendToNextAnswer"
           }))
         })
+      }
+
+      //bonus probability handler
+      //sends bonus after bonus is calculated
+      if (userMessage.type === "sendBonus") {
+        const yourBonus = await bonusDecider(userMessage.name, userMessage.qNum);
+
+        //colored yellow console.log
+        console.log(userMessage.name, "got bonus:", yourBonus);
+
+        //send bonus
+        ws.send(JSON.stringify({
+          type: "sentBonus",
+          bonus: yourBonus,
+        }))
+
       }
 
       //when reading is done -> help route to answerchoices because clicking done
