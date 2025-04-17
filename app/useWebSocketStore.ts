@@ -22,6 +22,7 @@ interface StudentState {
     nextQuestion: boolean;
     gameEnded: boolean;
     completedReading: boolean;
+    bonus: string;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     setRoomCode: (roomCode: string) => void;
@@ -39,6 +40,7 @@ interface StudentState {
     resetGame: Function;
     setCompletedReading: (completedReading: boolean) => void;
     setNextQuestion: (nextQuestion: boolean) => void;
+    setBonus: (bonus: string) => void;
   }
   
 export const useStudentStore = create<StudentState>((set, get) => ({ //creates a store that can be imported to other files
@@ -60,6 +62,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     nextQuestion: false,
     gameEnded: false,
     completedReading: false,
+    bonus: "",
     setName: (name) => {
         console.log("Name: ", name);
         set({ name })},
@@ -133,5 +136,8 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     },
     setNextQuestion: (nextQuestion) => {
         set({nextQuestion});
-    }
+    },
+    setBonus: (bonus) => {
+        set({ bonus });
+    },
 }));

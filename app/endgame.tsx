@@ -9,19 +9,6 @@ const GameSummaryScreen = () => {
   const playerName = useStudentStore((state) => state.name);
   const gameEnded = useStudentStore((state) => state.gameEnded);
 
-  /*useEffect(() => {
-    WebSocketService.sendMessage(JSON.stringify({
-      type: "gameEnded",
-      name: playerName,
-    }));
-  }, [gameEnded])
-
-  const handlePress = () => {
-    //send the gameEnded message
-
-    router.replace("/slogin");
-  }*/
-
   const reviewPress = () => {
     router.replace("/review");
   };

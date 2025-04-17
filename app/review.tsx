@@ -49,20 +49,20 @@ const ReviewScreen = ({
   const gameEnded = useStudentStore((state) => state.gameEnded);
   const playerName = useStudentStore((state) => state.name);
 
-    //to handle routing back to student login
-    useEffect(() => {
-      if (gameEnded) {
-        router.replace("/slogin");
-      }
-    }, [gameEnded]);
-  
-    //will only say game ended if student chooses to join a new game
-    const handlePress = () => {
-      WebSocketService.sendMessage(JSON.stringify({
-        type: "gameEnded",
-        name: playerName,
-      }));
-    };
+  //to handle routing back to student login
+  useEffect(() => {
+    if (gameEnded) {
+      router.replace("/slogin");
+    }
+  }, [gameEnded]);
+
+  //will only say game ended if student chooses to join a new game
+  const handlePress = () => {
+    WebSocketService.sendMessage(JSON.stringify({
+      type: "gameEnded",
+      name: playerName,
+    }));
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
