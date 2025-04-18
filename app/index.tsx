@@ -1,61 +1,88 @@
-import { Text, View, StyleSheet } from "react-native";
-import { Link } from 'expo-router';
-import 'react-native-reanimated';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router"; // Import for navigation
 
-export default function Index() {
+// ✅ Correct export for Expo Router (no white header)
+
+
+const PlayScreen = () => {
+  const router = useRouter(); // Router for navigation
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Welcome to the home screen</Text>
-      <Link href={"/login"} style={styles.button}>
-        Go to login screen
-      </Link>
-      <Link href={"/slogin"} style={styles.button}>
-        Go to student login screen
-      </Link>
-      <Link href={"/view-decks"} style={styles.button}>
-        Go to view decks screen 
-      </Link>
-      <Link href={"/studentClicks"} style={styles.button}>
-        Go to student click count screen 
-      </Link>
-      <Link href={"/endgame"} style={styles.button}>
-         Go to end game screen 
-      </Link>
-      <Link href={"/roundend"} style={styles.button}>
-         Go to end of round screen 
-      </Link>
-      <Link href={"/reading"} style={styles.button}>
-        Go to reading screen 
-      </Link>
-      <Link href={"/questiontimer"} style={styles.button}>
-        Go to teacher-side question with timer screen  
-      </Link>
-      <Link href={"/finalscorers"} style={styles.button}>
-         Go to final leaderboard 
-      </Link>
-      <Link href={"/roundScorers"} style={styles.button}>
-        Go to round leaderboard 
-      </Link>
-      <Link href={"/review"} style={styles.button}>
-        Go to review screen 
-      </Link>
+      {/* Top-left branding */}
+      <Text style={styles.header}> ◇ Tappt</Text>
+
+      {/* Main title */}
+      <Text style={styles.title}> How would you like to play? </Text>
+
+      {/* Button row */}
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={() => router.push("/slogin")}
+        >
+          <Text style={styles.buttonText}>Student</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.hostButton}
+          onPress={() => router.push("/view-decks")}
+        >
+          <Text style={styles.buttonText}>Teacher</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#5a60ea",
+    paddingTop: 40,
+    paddingHorizontal: 20,
+  },
+  header: {
+    fontSize: 28,
+    color: "white",
+    fontWeight: "500",
+    marginBottom: 40,
+  },
+  title: {
+    fontSize: 40,
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 50,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  createButton: {
+    flex: 1,
+    backgroundColor: "#f06292",
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FC6A03",
+    paddingVertical: 120,
+    marginRight: 15,
   },
-  text: {
-    color: '#fff'
+  hostButton: {
+    flex: 1,
+    backgroundColor: "#f4a623",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 120,
+    marginLeft: 15,
   },
-  button: {
-    fontSize: 20,
-    textDecorationLine: 'underline',
-    color: '#fff',
+  buttonText: {
+    color: "white",
+    fontSize: 40,
+    fontWeight: "bold",
   },
 });
+
+export default PlayScreen;
