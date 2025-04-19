@@ -1,0 +1,60 @@
+name: deploy - DEVELOPMENT SIDE FE
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH Key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY_DEV }}" > ec2-dev-key.pem
+          chmod 600 ec2-dev-key.pem
+
+      - name: Rsync to EC2
+        run: |
+          rsync -az --delete -e "ssh -i ec2-dev-key.pem -o StrictHostKeyChecking=no" ./ "${{ secrets.USERNAME }}@${{ secrets.HOST_DNS_DEV }}:/home/${{ secrets.USERNAME }}/frontend-temp"
+
+      - name: Rebuild React on EC2
+        run: |
+          ssh -i ec2-dev-key.pem -o StrictHostKeyChecking=no "${{ secrets.USERNAME }}@${{ secrets.HOST_DNS_DEV }}" << EOF
+            set -e
+            cd ~/frontend-temp
+
+            # set up node & dependencies
+            echo "INSTALLING NODE"
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
+            export NVM_DIR="\$HOME/.nvm"
+            source "\$NVM_DIR/nvm.sh"
+            nvm install 22
+            npm install
+
+            # write config.ts
+            echo "WRITING CONFIG FILE"
+            pwd
+            echo "${{ secrets.CONFIG_DEV }}" > app/config.ts
+            echo "CONFIG FILE WRITTEN. SEE ROOT:"
+            ls
+            echo "CONFIG FILE WRITTEN. SEE /app:"
+            ls app
+
+            # build the frontend
+            echo "BUILDING APP"
+            pwd
+            npx expo export --platform web
+            echo "APP HAS BEEN BUILT. SEE:"
+            ls
+            pwd
+
+            # deploy
+            echo "DEPLOYING TO /var/www/frontend"
+            sudo rm -rf /var/www/frontend/*
+            sudo cp -r dist/* /var/www/frontend/
+          EOF

@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Keyboard } from "r
 import { Link, router } from "expo-router"; 
 import { useStudentStore } from './useWebSocketStore'
 import { WebSocketService } from "./webSocketService";
+import Config from './config';
 
 export default function GamePinScreen() { // Function used to get pin from User
   const [pin, setPin] = useState("");
@@ -36,7 +37,7 @@ export default function GamePinScreen() { // Function used to get pin from User
 
       try{
         //call the backent endpoint to determine if the entered code is a valid code (meaning there is already a host)
-        const response = await fetch('http://localhost:5000/validRoomCode', {
+        const response = await fetch(`${Config.BE_HOST}/validRoomCode`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

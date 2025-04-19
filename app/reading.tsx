@@ -7,6 +7,7 @@ import { WebSocketService } from "./webSocketService";
 import { useIsFocused, useNavigation } from "@react-navigation/native"; // <- Add this if using React Navigation
 import { useStudentStore } from "./useWebSocketStore";
 import { router } from "expo-router";
+import Config from './config';
 
 interface ReadingScreenProps {
   playerCount?: number;
@@ -55,7 +56,7 @@ const requestDeckID = async () => {
 useEffect(() => {
   const getQuestions = async () => {
     try{
-      const response = await fetch(`http://localhost:5000/answerchoices/${deckID}`, {
+      const response = await fetch(`${Config.BE_HOST}/answerchoices/${deckID}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
