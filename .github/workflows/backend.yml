@@ -1,0 +1,46 @@
+name: deploy - BACKEND
+
+on:
+  push:
+    branches:
+      - main
+      - deployed
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH Key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY_BACK }}" > backend-key.pem
+          chmod 600 backend-key.pem
+
+      - name: Rsync Backend Code
+        run: |
+          rsync -az --delete -e "ssh -i backend-key.pem -o StrictHostKeyChecking=no" ./backend/ "${{ secrets.USERNAME }}@${{ secrets.HOST_DNS_BACK }}:/home/${{ secrets.USERNAME }}/backend-temp/"
+
+      - name: Install & Restart Backend App
+        run: |
+          ssh -i backend-key.pem -o StrictHostKeyChecking=no "${{ secrets.USERNAME }}@${{ secrets.HOST_DNS_BACK }}" << 'EOF'
+            cd ~/backend-temp
+
+            # install node
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
+            \. "$HOME/.nvm/nvm.sh"
+            nvm install 22
+            npm install
+
+            # Replace old code
+            pm2 stop backend-server || true
+            rm -rf ~/backend
+            mv ~/backend-temp ~/backend
+
+            cd ~/backend
+            echo "${{ secrets.ENV }}" > .env
+            pm2 start backend-server.js --name backend-server
+            pm2 save
+          EOF
