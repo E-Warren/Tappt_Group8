@@ -3,6 +3,8 @@ import { View, Text, TextInput, ScrollView, StyleSheet, Pressable } from "react-
 import { Button } from "react-native-paper";
 import { Link, useRouter, useLocalSearchParams } from "expo-router";
 import { MaterialIcons } from "@expo/vector-icons";
+import Config from '../config';
+
 
 interface Question { //question interface 
   questionText: string;
@@ -26,7 +28,7 @@ export default function CreateDeckScreen() {
       const token = localStorage.getItem('token');
         //get deck with [id] from backend
         try {
-            const response = await fetch(`http://localhost:5000/createdecks/${id}`, {
+            const response = await fetch(`${Config.BE_HOST}/createdecks/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -216,7 +218,7 @@ export default function CreateDeckScreen() {
     try {
       const token = localStorage.getItem('token');
 
-        const response = await fetch(`http://localhost:5000/createdecks/${id}`, {
+        const response = await fetch(`${Config.BE_HOST}/createdecks/${id}`, {
           method: 'PUT',
           headers: {
               'Content-Type': 'application/json',
