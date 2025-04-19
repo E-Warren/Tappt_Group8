@@ -8,6 +8,8 @@ import * as Google from 'expo-auth-session/providers/google';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as WebBrowser from "expo-web-browser";
 //import { useNavigate } from 'react-router-dom'; //new
+import Config from './config';
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -62,7 +64,7 @@ export default function LoginScreen() {
 
   const sendEmailToServer = async (email: string) => {
     try {
-      const response = await fetch("http://localhost:5000/google-login", {
+      const response = await fetch(`${Config.BE_HOST}/google-login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -137,7 +139,7 @@ export default function LoginScreen() {
     }
 
     try {
-        const response = await fetch('http://localhost:5000/login', {
+        const response = await fetch(`${Config.BE_HOST}/login`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

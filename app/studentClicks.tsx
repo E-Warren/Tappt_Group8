@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 25,
     fontWeight: "300",
+    userSelect: 'none',
   },
   top: {
     flexDirection: "row",

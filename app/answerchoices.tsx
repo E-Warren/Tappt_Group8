@@ -12,6 +12,8 @@ import { WebSocketService } from "./webSocketService";
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
+import Config from './config';
+
 
 interface AnswerChoiceScreenProps {
   questionID?: number;
@@ -156,7 +158,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
       //because I cant have request body for GET requests -> send deckID through parameters (yayy)
       try {
-        const response = await fetch(`http://localhost:5000/answerchoices/${deckID}`, {
+        const response = await fetch(`${Config.BE_HOST}/answerchoices/${deckID}`, {
           method: 'GET',
           headers: {
               'Content-Type': 'application/json'
