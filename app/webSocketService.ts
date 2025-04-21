@@ -81,6 +81,7 @@ export const WebSocketService = {
                         deckID: -1,
                         roomCode: "",
                         bonus: "",
+                        completedReading: false,
                     }));
                 }
                 else if (message.type === "clickingOver") {

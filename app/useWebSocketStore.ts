@@ -128,6 +128,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
             hasAnswered: false,
             nextQuestion: false,
             gameEnded: false,
+            completedReading: false,
         })
     },
     setCompletedReading: (completedReading) => {
