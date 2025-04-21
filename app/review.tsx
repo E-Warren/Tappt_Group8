@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,47 +7,89 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
+import Config from './config';
 
-// Dummy Data: 2 correct cards, 1 incorrect card, can be removed later
-const dummyCorrectAnswers = [
-  {
-    questionNumber: 1,
-    question: "What is the capital of France?",
-    userAnswer: "Paris",
-    correctAnswer: "Paris",
-    isCorrect: true
-  },
-  {
-    questionNumber: 3,
-    question: "What does CPU stand for?",
-    userAnswer: "Central Processing Unit",
-    correctAnswer: "Central Processing Unit",
-    isCorrect: true
-  }
-];
+//interface setup for correct answers
+interface correctAnswers {
+  questionNumber: number,
+  question: string,
+  userAnswer: string,
+  correctAnswer: string[],
+  isCorrect: boolean,
+}
 
-const dummyIncorrectAnswers = [
-  {
-    questionNumber: 5,
-    question: "What type of figurative language compares things using 'like' or 'as'?",
-    userAnswer: "Personification",
-    correctAnswer: "Simile",
-    isCorrect: false
-  }
-];
+//interface setup for incorrect answers
+interface incorrectAnswers {
+  questionNumber: number,
+  question: string,
+  userAnswer: string,
+  correctAnswer: string[],
+  isCorrect: boolean,
+}
 
-const ReviewScreen = ({
-    // Dummy props for testing
-  correctAnswers = dummyCorrectAnswers,
-  incorrectAnswers = dummyIncorrectAnswers
-}) => {
-  const totalQuestions = correctAnswers.length + incorrectAnswers.length;
-  const correctCount = correctAnswers.length;
+const ReviewScreen = () => {
+  const [incorrectDeck, setIncorrectDecks] = useState<incorrectAnswers[]>([]);
+  const [correctDeck, setCorrectDecks] = useState<correctAnswers[]>([]);
+  const totalQuestions = correctDeck.length + incorrectDeck.length;
+  const correctCount = correctDeck.length;
   const gameEnded = useStudentStore((state) => state.gameEnded);
   const playerName = useStudentStore((state) => state.name);
+  const code = useStudentStore(state => state.roomCode);
+
+  // getting the review materials (from database)
+  useEffect(() => {
+    const getReview = async () => {
+      //get decks from backend
+      try {
+        const response = await fetch(`${Config.BE_HOST}/review/${code}/${playerName}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert("Unable to get review. Please try again.");
+          return;
+        }
+
+        const correctData = data.filter((deck: any) => deck.fld_correctness === true);
+        const incorrectData = data.filter((deck: any) => deck.fld_correctness === false);
+
+        //set up correct/incorrect interfacess
+        const insertCorrectDecks: correctAnswers[] = correctData.map((deck: any) => ({
+          questionNumber: deck.fld_question_number + 1,
+          question: deck.fld_question,
+          userAnswer: deck.fld_student_ans,
+          correctAnswer: deck.fld_correct_ans.split(',').map((ans: string) => ans.trim()),
+          isCorrect: deck.fld_correctness,
+        }));
+
+        const insertIncorrectDecks: incorrectAnswers[] = incorrectData.map((deck: any) => ({
+          questionNumber: deck.fld_question_number + 1,
+          question: deck.fld_question,
+          userAnswer: deck.fld_student_ans,
+          correctAnswer: deck.fld_correct_ans.split(',').map((ans: string) => ans.trim()),
+          isCorrect: deck.fld_correctness,
+        }));
+
+        setCorrectDecks(insertCorrectDecks);
+        setIncorrectDecks(insertIncorrectDecks);
+      }
+      catch(error) {
+        console.log("Error during fetch:", error);
+        alert("Server error, please try again later.");
+      }
+    }
+
+    getReview();
+  }, []);
 
   //to handle routing back to student login
   useEffect(() => {
@@ -81,8 +123,8 @@ const ReviewScreen = ({
 
 
         <Text style={styles.sectionTitle}>Correct</Text>
-        {correctAnswers.length > 0 ? (
-          correctAnswers.map((item, idx) => (
+        {correctDeck.length > 0 ? (
+          correctDeck.map((item, idx) => (
             <AnswerCard
               key={`correct-${idx}`}
               questionNumber={item.questionNumber}
@@ -97,8 +139,8 @@ const ReviewScreen = ({
         )}
 
         <Text style={styles.sectionTitle}>Incorrect</Text>
-        {incorrectAnswers.length > 0 ? (
-          incorrectAnswers.map((item, idx) => (
+        {incorrectDeck.length > 0 ? (
+          incorrectDeck.map((item, idx) => (
             <AnswerCard
               key={`incorrect-${idx}`}
               questionNumber={item.questionNumber}
@@ -120,7 +162,7 @@ interface AnswerCardProps {
   questionNumber: number;
   question: string;
   userAnswer: string;
-  correctAnswer: string;
+  correctAnswer: string[];
   isCorrect: boolean;
 }
 
@@ -136,7 +178,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ questionNumber, question, userA
         </View>
         <View style={styles.answerBlock}>
           <Text style={styles.answerLabel}>Correct answer:</Text>
-          <Text style={styles.answerValue}>{correctAnswer}</Text>
+          <Text style={styles.answerValue}>{correctAnswer.join(', ')}</Text>
         </View>
       </View>
     </View>
