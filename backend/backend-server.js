@@ -570,11 +570,36 @@ app.get("/answerchoices/:deckID", async (req, res) => {
       console.log(error);
       res.status(500).json(error)
     }
-    pool.on("error", (err, client) => {
-      console.error("Unexpected error on idle PostgreSQL client", err);
-    });
 })
 
+// -------------------- REVIEW ANSWERS WORK --------------------------- 
+app.get("/review/:code/:student", async (req, res) => {
+  try {
+    //obtain code and student name
+    const {code, student} = req.params;
+
+    const query = `
+    SELECT fld_code_game_pk, fld_student_ans, fld_correct_ans, fld_correctness, fld_question, fld_question_number
+    FROM room_students.tbl_code_game_ans
+    WHERE fld_code = $1 AND fld_student = $2;
+    `
+    //executing the query to obtain the review material
+    const reviewQuery = await pool.query(query, [code, student]);
+
+    //error handling if data exists or not
+    if (reviewQuery.rows.length < 1) {
+      console.log("review materials were not found.");
+      res.status(404).json({message: "Data Not Found."});
+    }
+    else {
+      console.log("review materials found!");
+      res.status(200).json(reviewQuery.rows);
+    }
+  }
+  catch (error) {
+    console.log("error for /review:", error);
+  }
+})
 
 
 
@@ -835,7 +860,17 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
       const studentLeftQuery = `DELETE FROM room_students.tbl_room
       WHERE fld_room_code = $1 and type = 'student';`;
       const removeStudent = await pool.query(studentLeftQuery, [leavingRoomCode]);
+
+      //delete student answer data from database
+      const studentDeleteAns = `
+      DELETE FROM room_students.tbl_code_game_ans
+      WHERE fld_code = $1 AND fld_student = $2;
+      `;
+
+      await pool.query(studentDeleteAns, [leavingRoomCode, studentName]);
+
       console.log("Student successfully deleted from database");
+
     } catch (error) {
       console.log("There was an error when removing the student from database", error);
     }
@@ -949,6 +984,8 @@ app.ws('/join', function(ws, req) {
         const currentQuestion = userMessage.currentQuestion;
         const correctness = userMessage.correctness;
         const questionNum = userMessage.questionNum;
+        const correctAnswer = userMessage.correctAnswer;
+        const code = userMessage.code;
 
         gameState.currentQuestion = currentQuestion;
         console.log("current question: ", gameState.currentQuestion);
@@ -960,8 +997,22 @@ app.ws('/join', function(ws, req) {
           studentClicks,
           correctness,
           questionNum,
+          correctAnswer,
           currentQuestion,  //adding this here so backend can send allStudentsAnsweredQuestion when all students answered -> should we change this? its redundant
         });
+
+        //for database query so that it can hopefully run and catch errors successfully
+        try {
+        //making database query for all stuff here
+        const query = `
+        INSERT INTO room_students.tbl_code_game_ans(fld_code, fld_student, fld_student_ans, fld_correct_ans, fld_correctness, fld_question, fld_student_clicks, fld_question_number)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
+
+        const ansQuery = await pool.query(query, [code, studentName, studentAnswer, correctAnswer, correctness, currentQuestion, studentClicks, questionNum]);
+        }
+        catch(error) {
+          console.log("error:", error);
+        }
 
         console.log("student sent in the following game data: ", gameState.answers[gameState.answers.length - 1]);
 
@@ -1094,7 +1145,7 @@ app.ws('/join', function(ws, req) {
       if (userMessage.type === "gameEnded"){
         handleRemoveAll(studentName, type, leavingRoomCode);
         const endSocketGame = websockets.find(user => user.userName === userMessage.name);
-        if (endSocketGame){
+        if (endSocketGame) {
           endSocketGame.socket.send(JSON.stringify({
             type: "gameHasEnded"
           }))
