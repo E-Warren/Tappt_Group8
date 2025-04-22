@@ -5,6 +5,8 @@ import { router } from "expo-router";
 import { useNavigation } from "@react-navigation/native"; // or "expo-router" if using Expo Router
 import { WebSocketService } from "./webSocketService";
 import Config from './config';
+import timerSound from "../assets/sound/timer-with-chime-101253.mp3";
+import { Audio } from "expo-av"; 
 
 interface QuestionWithTimerScreenProps {
   question?: string;
@@ -99,6 +101,29 @@ useEffect(() => {
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
+  }, []);
+
+  //sound
+  useEffect(() => {
+    let sound: Audio.Sound | null = null;
+    const timer = setTimeout(async () => {
+      try {
+        const { sound: loadedSound } = await Audio.Sound.createAsync(timerSound);
+        sound = loadedSound;
+        await sound.playAsync();
+        console.log("Music started after 18 seconds");
+      } catch (error) {
+        console.log("Failed to play sound:", error);
+      }
+    }, 17800);
+  
+    return () => {
+      clearTimeout(timer);
+      if (sound) {
+        sound.unloadAsync();
+        console.log("Music stopped because screen unmounted");
+      }
+    };
   }, []);
 
 
