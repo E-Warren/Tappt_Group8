@@ -98,6 +98,13 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   useEffect(() => {
     readStepRef.current = 0;
+  
+    return () => {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        console.log("cleanup on currQuestionNum change or unmount");
+      }
+    };
   }, [currQuestionNum]);
 
   //if for some reason, nextQuestion is set to true prematurely, set it to false
