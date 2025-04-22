@@ -14,7 +14,7 @@ const PlayScreen = () => {
       <Text style={styles.header}> ◇ Tappt</Text>
 
       {/* Main title */}
-      <Text style={styles.title}> How would you like to start playing? </Text>
+      <Text style={styles.title}> How would you like to play? </Text>
 
       {/* Button row */}
       <View style={styles.buttonRow}>
@@ -39,7 +39,7 @@ const PlayScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fa2c00",
+    backgroundColor: "#5a60ea",
     paddingTop: 40,
     paddingHorizontal: 20,
   },
