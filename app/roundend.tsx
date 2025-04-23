@@ -1,36 +1,70 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Animated, StyleSheet, Pressable } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useStudentStore } from './useWebSocketStore';
 import { WebSocketService } from './webSocketService';
+import { useIsFocused } from '@react-navigation/native';
 
 const ResultsScreen = ({
-  data = [5, 2, 7, 4], // In order of up, left, down, right
-  blackedOut = [true, true, true, false],
-  correctAnswerCount = 7,
-  totalPlayers = 17,
 }) => {
+  const cIndex = useStudentStore((state) => state.correctIndex);
+  const deckID = useStudentStore((state) => state.deckID);
+  const isFocused = useIsFocused();
+  const data = useStudentStore((state) => state.answerDist);
+  const players = useStudentStore((state) => state.students);
+  const totalPlayers = players.length;
   const currentNumber = useStudentStore((state) => state.currQuestionNum);
   const totalNumQuestions = useStudentStore((state) => state.totalQuestions);
-  const diamondData = ['2001', '1773', '1492', '1912'];
+  const diamondData = useStudentStore((state) => state.answerChoices);
+  const [blackedOut, setBlackedOut] = useState<boolean[]>([]);
+  const [animatedValues, setAnimatedValues] = useState<Animated.Value[]>([]);
   const diamondColors = [
     { original: styles.diamondPurple, grey: styles.diamondPurpleGrey },
     { original: styles.diamondOrange, grey: styles.diamondOrangeGrey },
     { original: styles.diamondBlue, grey: styles.diamondBlueGrey },
     { original: styles.diamondPink, grey: styles.diamondPinkGrey },
   ];
-  const animatedValues = useRef(data.map(() => new Animated.Value(0))).current;
 
   useEffect(() => {
-    const animations = data.map((val, i) =>
-      Animated.timing(animatedValues[i], {
-        toValue: val,
-        duration: 800,
-        useNativeDriver: false,
-      })
-    );
-    Animated.parallel(animations).start();
-  }, [data, animatedValues]);
+    if (isFocused){
+      WebSocketService.sendMessage(JSON.stringify({
+            type: "sendAnswerDist",
+      }))
+    }
+  }, [])
+
+  useEffect(() => {
+    if (data.length > 0 && isFocused){
+      const setBlackOut = new Array(4).fill(true);
+      setBlackOut[cIndex] = false;
+      setBlackedOut(setBlackOut);
+      console.log("Blacked out is now: ", blackedOut);
+    }
+  }, [animatedValues])
+
+  //const animatedValues = useRef(data.map(() => new Animated.Value(0))).current;
+  useEffect(() => {
+    if (data.length > 0 && isFocused){
+      const updatedVals = data.map(() => new Animated.Value(0));
+      setAnimatedValues(updatedVals);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    console.log("The current value of data distribution is: ", data);
+    if (data.length > 0 && isFocused){
+      const animations = data.map((val, i) =>
+        Animated.timing(animatedValues[i], {
+          toValue: val,
+          duration: 800,
+          useNativeDriver: false,
+        })
+      );
+      Animated.parallel(animations).start();
+    }
+  }, [animatedValues]);
+
+  
 
   const maxVal = Math.max(...data, 1);
   const barHeights = animatedValues.map(animVal =>
@@ -41,12 +75,9 @@ const ResultsScreen = ({
     })
   );
 
-  useEffect(() => {
-    //useStudentStore.setState({ currentTime: 30 });
-  }, [])
-
   const handlePress = () => {
     console.log("Current question is: ", currentNumber, " total questions is: ", totalNumQuestions);
+    setAnimatedValues([]);
      if ((currentNumber + 1) !== totalNumQuestions){
        router.replace('/roundScorers');
      } else {
@@ -101,7 +132,7 @@ const ResultsScreen = ({
             </View>
           </View>
           <Text style={styles.resultText}>
-            {correctAnswerCount} people chose the correct answer. Woohoo!
+            {data[cIndex]} people chose the correct answer. Woohoo!
           </Text>
         </View>
         <View style={styles.diamondContainer}>

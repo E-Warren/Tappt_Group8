@@ -741,6 +741,9 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
     //deleted EVERYTHING if host leaves
     resetGameState();
     //handle when teacher leaves
+
+    //TODO: When I have new game state, remove the teacher connection
+
     websockets.forEach((websocket) => {
       websocket.socket.send(JSON.stringify({
         type: "hostLeft",
@@ -793,6 +796,7 @@ app.ws('/join', function(ws, req) {
 
       if (userMessage.type === "host"){ //called when the teacher hits host deck
         type = "teacher";
+        socketConnection.userName = "teacher";
         const returnedRoom = await hostRoom(); //will randomly generate a room code
         leavingRoomCode = returnedRoom;
         console.log("Teacher connected");
@@ -845,6 +849,7 @@ app.ws('/join', function(ws, req) {
         const currentQuestion = userMessage.currentQuestion;
         const correctness = userMessage.correctness;
         const questionNum = userMessage.questionNum;
+        const location = userMessage.location;
 
         gameState.currentQuestion = currentQuestion;
         console.log("current question: ", gameState.currentQuestion);
@@ -857,6 +862,7 @@ app.ws('/join', function(ws, req) {
           correctness,
           questionNum,
           currentQuestion,  //adding this here so backend can send allStudentsAnsweredQuestion when all students answered -> should we change this? its redundant
+          location,
         });
 
         console.log("student sent in the following game data: ", gameState.answers[gameState.answers.length - 1]);
@@ -980,14 +986,58 @@ app.ws('/join', function(ws, req) {
             type: "gameHasEnded"
           }))
         }
-        // websockets.forEach((websocket) => {
-        //   websocket.socket.send(JSON.stringify({
-        //     type: "gameHasEnded",
-        //     name: userMessage.name
-        //   }))
-        // })
       }
 
+      if (userMessage.type === "sendAnswerDist"){
+        let sendAnswers = [];
+
+        let currentAnswers = gameState.answers.filter(function (element) {
+          //return the students who have answered the current question
+          return element.currentQuestion === gameState.currentQuestion;
+        })
+
+        console.log("Going to check the following answers: ", currentAnswers);
+
+        let top = 0;
+        let left = 0;
+        let right = 0;
+        let bottom = 0;
+        let noAnswer = 0;
+        for (let i = 0; i < currentAnswers.length; i++){ //add something for the question num
+          let checkAnswer = currentAnswers[i].location;
+
+          if (checkAnswer === -1){ //that person did not answer so does not effect distribution
+            console.log("No answer recorded for data distribution");
+            noAnswer++;
+          } else if (checkAnswer === 0){ //means student picked the top choice
+            top++;
+          } else if (checkAnswer === 1){ //means student picked left
+            left++;
+          } else if (checkAnswer === 2){
+            right++;
+          } else {
+            bottom++;
+          }
+        }
+        if (noAnswer === currentAnswers.length){
+          console.log("There was no answer so sending distribution of 0");
+          sendAnswers.push(0,0,0,0);
+        } else {
+          sendAnswers.push(top, left, right, bottom);
+        }
+        const findTeacher = websockets.filter(teach => teach.userName === "teacher");
+        console.log("The teachers who will recieve the message are: ", findTeacher);
+        if (findTeacher){
+          console.log("Going to return the following array of numbers: ", sendAnswers);
+          findTeacher.forEach((websocket) => {
+            websocket.socket.send(JSON.stringify({
+              type: "returnAnswers",
+              data: sendAnswers,
+            }))
+          })
+
+        }
+      }
     });
 
     ws.on('close', async (code, reason) => {

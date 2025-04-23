@@ -63,6 +63,7 @@ export const WebSocketService = {
                         hasAnswered: false,
                         allStudentsAnswered: false,
                         ansCorrectness: "",
+                        answerDist: [],
                     }));
                 } 
                 else if (message.type === "gameHasEnded"){
@@ -79,10 +80,18 @@ export const WebSocketService = {
                         students: [],
                         deckID: -1,
                         roomCode: "",
+                        answerDist: [],
+                        answerChoices: [],
+                        correctIndex: -1;
                     }));
                 }
                 else if (message.type === "clickingOver") {
                     useStudentStore.setState({ completedReading: true});
+                } else if (message.type === "returnAnswers"){
+                    console.log("Recieved the answers: ", message.data);
+                    useStudentStore.setState({ 
+                        answerDist: message.data, 
+                    });
                 }
                 
                 console.log(message);

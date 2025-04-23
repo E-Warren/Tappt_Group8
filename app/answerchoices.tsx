@@ -125,7 +125,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   }, [letsgo])
 
   //save student answers by sending them to backend!
-  const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string) => {
+  const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string, location: number) => {
     console.log("saving answers to backend... ");
       WebSocketService.sendMessage(JSON.stringify({ 
         type: "studentAnswer", 
@@ -136,6 +136,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         correctness: correct,
         questionNum: currQuestionNum,
         clickCount: clickCount, //click count now added yayayyay
+        location: location, //will be used to find which diamond the user pressed
       }));
       console.log("click count -> ", clickCount)
       console.log("correctness ->", correct);
@@ -255,6 +256,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           correctness: "incorrect",
           questionNum: currQuestionNum,
           clickCount: clickCount, //updated: click counts stored
+          location: -1,
         }))
         console.log("Routing to the incorrect screen");
         router.replace('/incorrect'); //route student to "incorrect" screen
@@ -284,6 +286,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
+            location: 0,
           }))
           setletsgo(true); //let students continue to waiting page
         }
@@ -306,6 +309,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
+            location: 3,
           }))
           setletsgo(true);
         }
@@ -327,6 +331,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
+            location: 1,
           }))
           setletsgo(true);
         }
@@ -348,6 +353,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
+            location: 2
           }))
           setletsgo(true);
         }
@@ -392,7 +398,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
               key={index}
               style={[styles.choiceButton, backgroundStyle, positionStyle]}
               //questions[currQuestionNum]?.questionID?? -1 is the fallback number if, somehow, questionID is undefined :')
-              onPress={() => onAnswerPress(choice.value, choice.correct, questions[currQuestionNum]?.questionID?? -1, questions[currQuestionNum]?.question?? "")}
+              onPress={() => onAnswerPress(choice.value, choice.correct, questions[currQuestionNum]?.questionID?? -1, questions[currQuestionNum]?.question?? "", index)}
             >
               <View style={styles.choiceContent}>
                 <Text style={styles.arrow}>{arrowIcons[index]}</Text>
