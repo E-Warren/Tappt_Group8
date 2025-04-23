@@ -395,7 +395,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
       <View style={styles.content}>
         <View style={styles.leftPanel}>
-        <Text style={styles.header}> ◇ Tappt</Text>
+        <Text style={styles.header}> Tappt</Text>
         <Text style={styles.timer}>{timer}</Text>
           <Text style={styles.question}>
             {questions[currQuestionNum]?.question || "questions are done. will need appropriate routing for this."}
@@ -472,8 +472,8 @@ const styles = StyleSheet.create({
   header: {
     position: "absolute",
     top: 10,
-    left: 15,
-    fontSize: 30,
+    left: 9,
+    fontSize: 40,
     color: "white",
   },
   username: {
@@ -491,24 +491,19 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   diamondLayout: {
-    width: '70%',
+    width: '75%',
     aspectRatio: 1,
     position: "relative",
-    marginBottom: 40,
+    marginBottom: 0,
   },
   choiceButton: {
-    width: "44%",
-    height: "44%",
+    width: "37%",
+    height: "37%",
     borderRadius: 10,
     position: "absolute",
     justifyContent: "center",
     alignItems: "center",
     transform: [{ rotate: "45deg" }],
-    shadowColor: "#000",
-    shadowOffset: { width: 2, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
   },
   top: {
     top: 0,
@@ -519,12 +514,13 @@ const styles = StyleSheet.create({
     left: 0,
   },
   right: {
-    top: "28%",
-    right: 0,
+    bottom: "35%",
+    right: "7%",
+    
   },
   bottom: {
-    bottom: 0,
-    left: "28%",
+    bottom: "7%",
+    right: "35%",
   },
   choiceContent: {
     transform: [{ rotate: "-45deg" }],
@@ -540,10 +536,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  choice0: { backgroundColor: "#8e44ad" },
-  choice1: { backgroundColor: "#f39c12" },
-  choice2: { backgroundColor: "#3498db" },
-  choice3: { backgroundColor: "#e74c3c" },
+  choice0: { backgroundColor: "#7E51F3" },
+  choice1: { backgroundColor: "#F28C28" },
+  choice2: { backgroundColor: "#3079f0" },
+  choice3: { backgroundColor: "#FB6FB6" },
   timer: {
     position: "absolute",
     bottom: 20,

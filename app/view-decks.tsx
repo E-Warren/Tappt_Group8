@@ -3,8 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native
 import { Link, router } from "expo-router";
 import { WebSocketService } from "./webSocketService";
 import { useStudentStore } from "./useWebSocketStore";
-import Config from './config';
-
+import Config from "./config";
 
 interface Deck {
   id: string;
@@ -12,145 +11,132 @@ interface Deck {
   questions: number;
 }
 
-
-const deleteDeckFromBackend = async (deckId: string, token: string): Promise<boolean> => {
+const deleteDeckFromBackend = async (
+  deckId: string,
+  token: string
+): Promise<boolean> => {
   try {
-        const response = await fetch(`${Config.BE_HOST}/view-decks`, {
-          method: 'DELETE',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-          },
-          credentials: 'include', // Ensure cookies/sessions are sent
+    const response = await fetch(`${Config.BE_HOST}/view-decks`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify({ deckID: deckId.trim() }),
+    });
 
-          //just need deckID -> table for card decks deletes children (questions & answers)
-          //when deletion of table for card_decks is called
-          body: JSON.stringify({
-            deckID: deckId.trim()
-          }),
-        });
-
-    //if response is not 204 (successful deletion)
     if (!response.ok) {
       throw new Error("Failed to delete deck.");
     }
-
     return true;
-  } 
-  catch (error) {
+  } catch (error) {
     alert(error);
     return false;
   }
 };
 
 export default function DecksScreen() {
-  const resetStudents = useStudentStore(state => state.resetStudents);
-  //set empty state
+  const resetStudents = useStudentStore((state) => state.resetStudents);
   const [decks, setDecks] = useState<Deck[]>([]);
 
-  //useEffects limits the constant querying of the database
   useEffect(() => {
     const getDeck = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
         alert("Missing token. Please log in.");
-        setTimeout(() => {
-            router.push("/login");
-        }, 0);
+        router.push("/login");
         return;
       }
 
-      //get decks from backend
       try {
         const response = await fetch(`${Config.BE_HOST}/view-decks`, {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-          credentials: 'include',
+          credentials: "include",
         });
-
-        const data = await response.json();
 
         if (!response.ok) {
           alert("Access denied: please log in and try again.");
           return;
         }
 
-        //set up deck data from backend to be inserted into decks array
+        const data = await response.json();
         const insertDecks: Deck[] = data.map((deck: any) => ({
           id: deck.fld_deck_id_pk,
           title: deck.fld_deck_name,
-          questions: deck.questioncount
+          questions: deck.questioncount,
         }));
-
-        //set our decks into our Deck array
         setDecks(insertDecks);
-
       } catch (error) {
         console.log("Error during deck fetch:", (error as Error).message);
         alert("Server error, please try again later.");
       }
     };
 
-    //run function now
     getDeck();
   }, []);
 
   const handleRemoveDeck = async (deckId: string) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
       alert("Missing token. Please log in.");
       return;
     }
-
-    const confirmed = confirm("Are you sure you want to delete this deck?");
-    if (!confirmed) return;
+    if (!confirm("Are you sure you want to delete this deck?")) return;
 
     const success = await deleteDeckFromBackend(deckId, token);
     if (success) {
-      setDecks(prevDecks => prevDecks.filter(deck => deck.id !== deckId));
+      setDecks((prev) => prev.filter((d) => d.id !== deckId));
       alert("Deck removed successfully.");
-    } 
-    else {
+    } else {
       alert("Failed to remove deck. Please try again.");
     }
   };
 
-  const renderDeck = ({ item }: { item: Deck }) => (
+  const handleLogout = () => { /*
+    localStorage.removeItem("token");
+    router.push("/login");
+    console.log("Logged out!") */
     
+  };
 
+  const renderDeck = ({ item }: { item: Deck }) => (
     <View style={styles.deckCard}>
       <Text style={styles.deckTitle}>{item.title}</Text>
       <Text style={styles.deckDetails}>{item.questions} Questions</Text>
 
       <View style={styles.buttonContainer}>
-        <Link href={`/createdecks/${item.id}`} style={[styles.deckButton, styles.editButton]}>
-          <Text style={{ color: "#fff" }}>Edit Deck</Text>
-        </Link>
+        {/* Edit Deck */}
+        <TouchableOpacity
+          style={[styles.deckButton, styles.editButton]}
+          onPress={() => router.push(`/createdecks/${item.id}`)}
+        >
+          <Text style={styles.buttonText}>Edit Deck</Text>
+        </TouchableOpacity>
 
-        <Link
-          href="/teacherwaiting"
-          onPress={async (e) => {
-            //make deckID into base 10 int and store it into zustand
+        {/* Host Deck */}
+        <TouchableOpacity
+          style={[styles.deckButton, styles.hostButton]}
+          onPress={() => {
             useStudentStore.getState().setDeckID(parseInt(item.id, 10));
-
-            e.preventDefault();
-            //send type and deckID into backend
-
-            WebSocketService.sendMessage(JSON.stringify({ type: "host", deck: item.id }));
+            WebSocketService.sendMessage(
+              JSON.stringify({ type: "host", deck: item.id })
+            );
             resetStudents();
             router.push("/teacherwaiting");
           }}
-          style={[styles.deckButton, styles.hostButton]}
         >
           <Text style={styles.buttonText}>Host Deck</Text>
-        </Link>
+        </TouchableOpacity>
 
+        {/* Remove Deck */}
         <TouchableOpacity
-          onPress={() => handleRemoveDeck(item.id)}
           style={[styles.deckButton, styles.removeButton]}
+          onPress={() => handleRemoveDeck(item.id)}
         >
           <Text style={styles.buttonText}>Remove</Text>
         </TouchableOpacity>
@@ -176,34 +162,39 @@ export default function DecksScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
       />
+
+      {/* Floating Logout Button */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.buttonText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
-// STYLES (unchanged from your code)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#7F55E0FF",
-    paddingTop: 50,
+    paddingTop: 20,
+    position: "relative",
   },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: 30,
+    marginBottom: 50,
   },
   backButton: {
-    fontSize: 18,
+    fontSize: 25,
     color: "#fff",
   },
   newDeckButton: {
-    fontSize: 18,
+    fontSize: 25,
     color: "#fff",
   },
   header: {
-    fontSize: 24,
+    fontSize: 35,
     fontWeight: "bold",
     color: "#fff",
   },
@@ -248,7 +239,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   editButton: {
-    backgroundColor: "#FFA500",
+    backgroundColor: "#f06292",
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 6,
@@ -268,6 +259,15 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
+    textAlign: "center",
+    width: "100%",
+  },
+  logoutButton: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    backgroundColor: '#FF4B4B',
+    padding: 10,
+    borderRadius: 6,
   },
 });
-

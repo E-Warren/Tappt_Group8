@@ -197,12 +197,12 @@ const styles = StyleSheet.create({
   },
 
   topBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#2364AA',
-    paddingHorizontal: 20,
-    paddingVertical: 10
+    position: "absolute",
+    top: 10,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   logoText: {
     fontSize: 40,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 80,
     fontWeight: '700',
-    marginTop: 20,
+    marginTop: 70,
     marginBottom: 8,
     color: '#FFF',
     textAlign: 'center'

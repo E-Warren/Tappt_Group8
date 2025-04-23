@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "row",
-    backgroundColor: "blue",
+    backgroundColor: "#5a60ea",
     paddingTop: 40,
     paddingHorizontal: 20,
   },

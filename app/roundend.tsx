@@ -6,7 +6,7 @@ import { WebSocketService } from './webSocketService';
 
 const ResultsScreen = ({
   data = [5, 2, 7, 4], // In order of up, left, down, right
-  blackedOut = [true, true, true, false],
+  blackedOut = [false, false, false, false],
   correctAnswerCount = 7,
   totalPlayers = 17,
 }) => {
@@ -91,7 +91,7 @@ const ResultsScreen = ({
                             ? '#F28C28'
                             : index === 2
                             ? '#FB6FB6'
-                            : '#30C6F0',
+                            : '#3079f0',
                         height: barHeights[index],
                       },
                     ]}
@@ -167,12 +167,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#2EC4B6',
   },
   header: {
-    position: 'absolute',
-    top: '2%',
-    left: '4%',
-    right: '4%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    position: "absolute",
+    top: 10,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   headerText: {
     color: '#fff',
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F28C28',
   },
   diamondBlue: {
-    backgroundColor: '#30C6F0',
+    backgroundColor: '#3079f0',
   },
   diamondPink: {
     backgroundColor: '#FB6FB6',
