@@ -152,13 +152,13 @@ const ResultsScreen = ({
             data={diamondData[2]}
             blackedOut={blackedOut[2]}
             containerStyle={[styles.diamondPosition, styles.rightDiamond]}
-            diamondColorStyle={diamondColors[2]}
+            diamondColorStyle={diamondColors[3]}
           />
           <Diamond
             data={diamondData[3]}
             blackedOut={blackedOut[3]}
             containerStyle={[styles.diamondPosition, styles.bottomDiamond]}
-            diamondColorStyle={diamondColors[3]}
+            diamondColorStyle={diamondColors[2]}
           />
         </View>
       </View>

@@ -83,7 +83,7 @@ export const WebSocketService = {
                         roomCode: "",
                         answerDist: [],
                         answerChoices: [],
-                        correctIndex: -1;
+                        correctIndex: -1,
                         bonus: "",
                         completedReading: false,
                     }));
