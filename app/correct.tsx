@@ -28,6 +28,21 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
   const nextQ = useStudentStore(state => state.nextQuestion);
   const setNextQuestion = useStudentStore(state => state.setNextQuestion);
 
+  //bonus variable
+  //will indicate (in text) what kind of bonus it is
+  const bonus = useStudentStore(state => state.bonus);
+
+  //for handling the bonuses
+  useEffect(() => {
+    if (bonus === "") {
+      WebSocketService.sendMessage(JSON.stringify({
+        type: "sendBonus",
+        name: playername,
+        qNum: questionNumber,
+      }));
+    }
+  }, [bonus])
+
 
   const handleBonusSelect = (bonus: string) => {
     setSelectedBonus(bonus);
@@ -89,6 +104,10 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
             useStudentStore.setState({ currQuestionNum: questionNumber + 1}) //update the current question number (student side)
             useStudentStore.setState({ nextQuestion: false });
             useStudentStore.setState({ currQuestionNum: questionNumber + 1})
+
+            //bonus resetting
+            useStudentStore.setState({ bonus: ""});
+
             console.log("go to next question is set to: ", useStudentStore.getState().nextQuestion);
             console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
             console.log("resetting correctness... rerouting to /answerchoices");
@@ -115,7 +134,7 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
 
       
         <Text style={styles.bonusMessage}>
-          You get !! {/* implement bonus message here */}
+          You get {bonus}!!
         </Text>
      
 

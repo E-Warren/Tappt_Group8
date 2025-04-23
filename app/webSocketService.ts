@@ -1,4 +1,5 @@
 import { useStudentStore } from "./useWebSocketStore";
+import Config from './config';
 
 //this file is the websocketservice, it handles all of the messages from the backend and updates zustand store
 
@@ -7,7 +8,7 @@ let webSocket: null | WebSocket = null;
 export const WebSocketService = {
     createWebSocket: async () => {
         await new Promise<void>((resolve, reject) => {
-            webSocket = new WebSocket('ws://localhost:5000/join'); //creates a new websocket
+            webSocket = new WebSocket(`${Config.WS_HOST}/join`); //creates a new websocket
             webSocket.onopen = () => { //websocket was created fine
                 console.log("Successfull!")
                 resolve();
@@ -83,6 +84,8 @@ export const WebSocketService = {
                         answerDist: [],
                         answerChoices: [],
                         correctIndex: -1;
+                        bonus: "",
+                        completedReading: false,
                     }));
                 }
                 else if (message.type === "clickingOver") {
@@ -92,6 +95,9 @@ export const WebSocketService = {
                     useStudentStore.setState({ 
                         answerDist: message.data, 
                     });
+                }
+                else if (message.type === "sentBonus") {
+                    useStudentStore.setState({bonus: message.bonus})
                 }
                 
                 console.log(message);

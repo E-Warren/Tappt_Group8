@@ -4,6 +4,7 @@ import { Text, View, StyleSheet, Button, TouchableOpacity, TextInput, ImageBackg
 import Checkbox from 'expo-checkbox';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {useRouter} from 'expo-router'
+import Config from './config';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function LoginScreen() {
     }
 
     try {
-        const response = await fetch('http://localhost:5000/signUp', {
+        const response = await fetch(`${Config.BE_HOST}/signUp`, {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',

@@ -12,6 +12,8 @@ import { WebSocketService } from "./webSocketService";
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
+import Config from './config';
+
 
 interface AnswerChoiceScreenProps {
   questionID?: number;
@@ -62,7 +64,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   //click count!!!!!!!!
   const clickCount = useStudentStore(state => state.clickCount);
   
-  //console.log("current question # ->", currQuestionNum);
+  //room code
+  const roomCode = useStudentStore(state => state.roomCode);
 
   //for avoiding error about this file affecting the rendering ability of /teacherwaiting
   const [letsgo, setletsgo] = useState(false);
@@ -95,6 +98,13 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   useEffect(() => {
     readStepRef.current = 0;
+  
+    return () => {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        console.log("cleanup on currQuestionNum change or unmount");
+      }
+    };
   }, [currQuestionNum]);
 
   //if for some reason, nextQuestion is set to true prematurely, set it to false
@@ -125,7 +135,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   }, [letsgo])
 
   //save student answers by sending them to backend!
-  const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string, location: number) => {
+  const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string, correctAnswer: string, location: number) => {
     console.log("saving answers to backend... ");
       WebSocketService.sendMessage(JSON.stringify({ 
         type: "studentAnswer", 
@@ -137,6 +147,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         questionNum: currQuestionNum,
         clickCount: clickCount, //click count now added yayayyay
         location: location, //will be used to find which diamond the user pressed
+        correctAnswer: correctAnswer,
+        code: roomCode,
       }));
       console.log("click count -> ", clickCount)
       console.log("correctness ->", correct);
@@ -157,7 +169,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
       //because I cant have request body for GET requests -> send deckID through parameters (yayy)
       try {
-        const response = await fetch(`http://localhost:5000/answerchoices/${deckID}`, {
+        const response = await fetch(`${Config.BE_HOST}/answerchoices/${deckID}`, {
           method: 'GET',
           headers: {
               'Content-Type': 'application/json'
@@ -253,10 +265,12 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           answer: "No answer",
           questionID: questions[currQuestionNum]?.questionID?? -1,
           currentQuestion: questions[currQuestionNum]?.question?? "",
-          correctness: "incorrect",
+          correctness: false, //changed this -> make sure this works
           questionNum: currQuestionNum,
           clickCount: clickCount, //updated: click counts stored
           location: -1,
+          correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
+          code: roomCode,
         }))
         console.log("Routing to the incorrect screen");
         router.replace('/incorrect'); //route student to "incorrect" screen
@@ -287,6 +301,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
             location: 0,
+            correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
+            code: roomCode,
           }))
           setletsgo(true); //let students continue to waiting page
         }
@@ -310,6 +326,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
             location: 3,
+            correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
+            code: roomCode,
           }))
           setletsgo(true);
         }
@@ -332,6 +350,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
             location: 1,
+            correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
+            code: roomCode,
           }))
           setletsgo(true);
         }
@@ -353,7 +373,9 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
-            location: 2
+            location: 2,
+            correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
+            code: roomCode,
           }))
           setletsgo(true);
         }
@@ -398,7 +420,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
               key={index}
               style={[styles.choiceButton, backgroundStyle, positionStyle]}
               //questions[currQuestionNum]?.questionID?? -1 is the fallback number if, somehow, questionID is undefined :')
-              onPress={() => onAnswerPress(choice.value, choice.correct, questions[currQuestionNum]?.questionID?? -1, questions[currQuestionNum]?.question?? "", index)}
+              onPress={() => onAnswerPress(choice.value, choice.correct, questions[currQuestionNum]?.questionID?? -1, questions[currQuestionNum]?.question?? "", questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "", index)}
             >
               <View style={styles.choiceContent}>
                 <Text style={styles.arrow}>{arrowIcons[index]}</Text>

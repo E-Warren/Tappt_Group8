@@ -3,12 +3,25 @@ import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native
 import { Link } from 'expo-router';
 import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
+import { Audio } from 'expo-av';
+import tadaSound from '../assets/sound/tada-fanfare-a-6313.mp3';
 
 const TopScorersScreen = () => {
 
   const firstPlaceAnim = useRef(new Animated.Value(0)).current;
   const secondPlaceAnim = useRef(new Animated.Value(0)).current;
   const thirdPlaceAnim = useRef(new Animated.Value(0)).current;
+
+  // sound for the 1st place animation
+  async function playSound() {
+    const { sound } = await Audio.Sound.createAsync(tadaSound);
+    await sound.playAsync();
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) {
+        sound.unloadAsync();
+      }
+    });
+  }
 
   useEffect(() => {
     Animated.sequence([
@@ -42,6 +55,9 @@ const TopScorersScreen = () => {
         useNativeDriver: true
       })
     ]).start();
+    setTimeout(() => {
+      playSound();
+    }, 3300); 
   }, []);
 
   const getAnimatedStyle = (animValue: Animated.Value) => ({
@@ -232,4 +248,3 @@ const styles = StyleSheet.create({
     color: '#FFFFFF'
   }
 });
-

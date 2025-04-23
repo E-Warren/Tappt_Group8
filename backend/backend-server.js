@@ -30,14 +30,44 @@ const cors = require("cors");
 //bring email from temp for google login
 const bodyParser = require("body-parser");
 
-app.use(
-  cors({
-    origin: "http://localhost:8081",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+
+//determine source of incoming request depending on localhost vs deployed env
+//use this to avoid mixed-content warning
+if(process.env.IS_LOCALHOST != 1){
+  console.log("NOT local host");
+  const allowedOrigins = process.env.REACT_APP_ORIGINS?.split(",") || [];
+
+  console.log(`Allowed origins are: ${allowedOrigins}`);
+
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+          console.log(`listening at ${allowedOrigins[0]}`);
+          console.log(`listening at ${allowedOrigins[1]}`);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
+    })
+  );
+}
+else{  //developing on localhost, indicated by env var
+  
+  console.log("LOCAL HOST");
+  app.use(
+    cors({
+      origin: "http://localhost:8081",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
+    })
+  );  
+}
 
 //interacts with the sign in button at /login
 //sends 200 status and success JSON file when sign in button is pressed
@@ -356,8 +386,6 @@ app.get("/view-decks", authenticateToken, async (req, res) => {
         //wait for query to finalize
         const decks = await pool.query(query, [req.userID.trim()])
 
-        console.log(decks)
-
         //send an 201 (OK) status as for success
         //return query in JSON format
         res.status(201).json(decks.rows)
@@ -387,8 +415,6 @@ app.get("/createdecks/:id", authenticateToken, async (req, res) => {
 
         //wait for query to finalize
         const decks = await pool.query(query, [id])
-
-        console.log(decks.rows)
 
         //if deck key doesn't exist -> only happens if you messed with the URL
         //return 404 error
@@ -546,6 +572,34 @@ app.get("/answerchoices/:deckID", async (req, res) => {
     }
 })
 
+// -------------------- REVIEW ANSWERS WORK --------------------------- 
+app.get("/review/:code/:student", async (req, res) => {
+  try {
+    //obtain code and student name
+    const {code, student} = req.params;
+
+    const query = `
+    SELECT fld_code_game_pk, fld_student_ans, fld_correct_ans, fld_correctness, fld_question, fld_question_number
+    FROM room_students.tbl_code_game_ans
+    WHERE fld_code = $1 AND fld_student = $2;
+    `
+    //executing the query to obtain the review material
+    const reviewQuery = await pool.query(query, [code, student]);
+
+    //error handling if data exists or not
+    if (reviewQuery.rows.length < 1) {
+      console.log("review materials were not found.");
+      res.status(404).json({message: "Data Not Found."});
+    }
+    else {
+      console.log("review materials found!");
+      res.status(200).json(reviewQuery.rows);
+    }
+  }
+  catch (error) {
+    console.log("error for /review:", error);
+  }
+})
 
 
 
@@ -712,6 +766,81 @@ const resetGameState = async () => {
   gameState.hasStarted = false;
 }
 
+//for generating bonus probability
+const getProbabilityInt = async () => {
+  //generate a number between 1 and 100 inclusively
+  return Math.floor(Math.random() * 100) + 1;
+}
+
+const bonusDecider = async (name, qNum) => {
+  //finding the first place person -> first find max clicks
+  const topClicks = Math.max(...gameState.answers.map(max => max.studentClicks));
+
+  //comparing max clicks person to websocket person name
+  const firstPlace = gameState.answers.filter(person => person.studentClicks === topClicks && person.questionNum === qNum);
+
+  //ya bonus probability
+  const bonusProb = await getProbabilityInt();
+  let yourBonus = "";
+  console.log("bonus probability: ", bonusProb);
+
+  //doing bonus selection based on if person is first place or not
+  //if failed to find the first place
+  if (firstPlace.length === 0) {
+    yourBonus = "failed";
+  }
+  else if (name === firstPlace[0].studentName) { //if first place
+    //colors
+    console.log(name, "is first place with", topClicks, "clicks")
+    if (bonusProb <= 25) {
+      yourBonus = "10% Bonus";
+    }
+    else if (bonusProb > 25 && bonusProb <= 45) {
+      yourBonus = "15% Bonus";
+    }
+    else if (bonusProb > 45 && bonusProb <= 60) {
+      yourBonus = "20% Bonus";
+    }
+    else if (bonusProb > 60 && bonusProb <= 85) {
+      yourBonus = "1.5x Multiplier";
+    }
+    else if (bonusProb > 85) {
+      yourBonus = "2x Multiplier";
+    }
+    else {
+      yourBonus = "failed";
+    }
+  }
+  else {  //if not first place
+    if (bonusProb <= 20) {
+      yourBonus = "10% Bonus";
+    }
+    else if (bonusProb > 20 && bonusProb <= 35) {
+      yourBonus = "15% Bonus";
+    }
+    else if (bonusProb > 35 && bonusProb <= 45) {
+      yourBonus = "20% Bonus";
+    }
+    else if (bonusProb > 45 && bonusProb <= 65) {
+      yourBonus = "1.5x Multiplier";
+    }
+    else if (bonusProb > 65 && bonusProb <= 75) {
+      yourBonus = "2x Multiplier";
+    }
+    else if (bonusProb > 75 && bonusProb <= 90) {
+      yourBonus = "5% Steal";
+    }
+    else if (bonusProb > 90) {
+      yourBonus = "10% Steal";
+    }
+    else {
+      yourBonus = "failed";
+    }
+  }
+
+  return yourBonus;
+}
+
 const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
   console.log("Removing websocket connection");
 
@@ -731,7 +860,17 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
       const studentLeftQuery = `DELETE FROM room_students.tbl_room
       WHERE fld_room_code = $1 and type = 'student';`;
       const removeStudent = await pool.query(studentLeftQuery, [leavingRoomCode]);
+
+      //delete student answer data from database
+      const studentDeleteAns = `
+      DELETE FROM room_students.tbl_code_game_ans
+      WHERE fld_code = $1 AND fld_student = $2;
+      `;
+
+      await pool.query(studentDeleteAns, [leavingRoomCode, studentName]);
+
       console.log("Student successfully deleted from database");
+
     } catch (error) {
       console.log("There was an error when removing the student from database", error);
     }
@@ -850,6 +989,8 @@ app.ws('/join', function(ws, req) {
         const correctness = userMessage.correctness;
         const questionNum = userMessage.questionNum;
         const location = userMessage.location;
+        const correctAnswer = userMessage.correctAnswer;
+        const code = userMessage.code;
 
         gameState.currentQuestion = currentQuestion;
         console.log("current question: ", gameState.currentQuestion);
@@ -861,9 +1002,23 @@ app.ws('/join', function(ws, req) {
           studentClicks,
           correctness,
           questionNum,
+          correctAnswer,
           currentQuestion,  //adding this here so backend can send allStudentsAnsweredQuestion when all students answered -> should we change this? its redundant
           location,
         });
+
+        //for database query so that it can hopefully run and catch errors successfully
+        try {
+        //making database query for all stuff here
+        const query = `
+        INSERT INTO room_students.tbl_code_game_ans(fld_code, fld_student, fld_student_ans, fld_correct_ans, fld_correctness, fld_question, fld_student_clicks, fld_question_number)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
+
+        const ansQuery = await pool.query(query, [code, studentName, studentAnswer, correctAnswer, correctness, currentQuestion, studentClicks, questionNum]);
+        }
+        catch(error) {
+          console.log("error:", error);
+        }
 
         console.log("student sent in the following game data: ", gameState.answers[gameState.answers.length - 1]);
 
@@ -882,7 +1037,6 @@ app.ws('/join', function(ws, req) {
           console.log("Going to stop the timer now!")
           clearInterval(intervals); //stop the interval cause all students answered
           websockets.forEach((websocket) => {
-            console.log("sent allstudentsansweredquestion");
             websocket.socket.send(JSON.stringify({
               type: "allStudentsAnsweredQuestion",
             }))
@@ -904,7 +1058,6 @@ app.ws('/join', function(ws, req) {
             console.log("found student!");
             return true;
           }
-          console.log("did not find student...", "question:", element.questionNum, "student:", element.studentName, "correctness:", element.correctness)
           return false
         })
 
@@ -916,7 +1069,6 @@ app.ws('/join', function(ws, req) {
           determinator = "failed found";
         }
         else {
-          console.log("found ->", found, "; found[0].correctness ->", found[0].correctness);
           if (found[0].correctness === true){
             determinator = "correct";
           }
@@ -960,12 +1112,30 @@ app.ws('/join', function(ws, req) {
           }
         }
       }
+
+      //send to next question
       if (userMessage.type === "sendToNextQuestion"){
         websockets.forEach((websocket) => {
           websocket.socket.send(JSON.stringify({
             type: "sendToNextAnswer"
           }))
         })
+      }
+
+      //bonus probability handler
+      //sends bonus after bonus is calculated
+      if (userMessage.type === "sendBonus") {
+        const yourBonus = await bonusDecider(userMessage.name, userMessage.qNum);
+
+        //colored yellow console.log
+        console.log(userMessage.name, "got bonus:", yourBonus);
+
+        //send bonus
+        ws.send(JSON.stringify({
+          type: "sentBonus",
+          bonus: yourBonus,
+        }))
+
       }
 
       //when reading is done -> help route to answerchoices because clicking done
@@ -981,7 +1151,7 @@ app.ws('/join', function(ws, req) {
       if (userMessage.type === "gameEnded"){
         handleRemoveAll(studentName, type, leavingRoomCode);
         const endSocketGame = websockets.find(user => user.userName === userMessage.name);
-        if (endSocketGame){
+        if (endSocketGame) {
           endSocketGame.socket.send(JSON.stringify({
             type: "gameHasEnded"
           }))
