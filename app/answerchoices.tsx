@@ -15,6 +15,7 @@ import { useIsFocused } from "@react-navigation/native";
 import Config from './config';
 
 
+
 interface AnswerChoiceScreenProps {
   questionID?: number;
   question?: string;
@@ -390,42 +391,56 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Tappt</Text>
       <Text style={styles.username}>{playername}</Text>
 
-      <Text style={styles.question}>{questions[currQuestionNum]?.question || "questions are done. will need appriopriate routing for this."}</Text>
+      <View style={styles.content}>
+        <View style={styles.leftPanel}>
+        <Text style={styles.header}> ◇ Tappt</Text>
+        <Text style={styles.timer}>{timer}</Text>
+          <Text style={styles.question}>
+            {questions[currQuestionNum]?.question || "questions are done. will need appropriate routing for this."}
+          </Text>
+        </View>
+        <View style={styles.rightPanel}>
+          <View style={styles.diamondLayout}>
+            {questions[currQuestionNum]?.choices?.map((choice, index) => {
+              const positionStyle =
+                index === 0
+                  ? styles.top
+                  : index === 1
+                  ? styles.left
+                  : index === 2
+                  ? styles.right
+                  : styles.bottom;
 
-      <View style={styles.diamondLayout}>
-        {questions[currQuestionNum]?.choices?.map((choice, index) => {
-          const positionStyle =
-            index === 0
-              ? styles.top
-              : index === 1
-              ? styles.left
-              : index === 2
-              ? styles.right
-              : styles.bottom;
+              const backgroundStyle =
+                styles[`choice${index}` as keyof typeof styles] as ViewStyle;
 
-          const backgroundStyle =
-            styles[`choice${index}` as keyof typeof styles] as ViewStyle;
-
-          return (
-            <TouchableOpacity
-              key={index}
-              style={[styles.choiceButton, backgroundStyle, positionStyle]}
-              //questions[currQuestionNum]?.questionID?? -1 is the fallback number if, somehow, questionID is undefined :')
-              onPress={() => onAnswerPress(choice.value, choice.correct, questions[currQuestionNum]?.questionID?? -1, questions[currQuestionNum]?.question?? "", questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",)}
-            >
-              <View style={styles.choiceContent}>
-                <Text style={styles.arrow}>{arrowIcons[index]}</Text>
-                <Text style={styles.choiceText}>{choice.value}</Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[styles.choiceButton, backgroundStyle, positionStyle]}
+                  onPress={() =>
+                    onAnswerPress(
+                      choice.value,
+                      choice.correct,
+                      questions[currQuestionNum]?.questionID ?? -1,
+                      questions[currQuestionNum]?.question ?? "",
+                      questions[currQuestionNum]?.choices?.find(c => c.correct)?.value ?? ""
+                    )
+                  }
+                >
+                  <View style={styles.choiceContent}>
+                    <Text style={styles.arrow}>{arrowIcons[index]}</Text>
+                    <Text style={styles.choiceText}>{choice.value}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
       </View>
 
-      <Text style={styles.timer}>{timer}</Text>
       <Text style={styles.questionCounter}>
         Question {currQuestionNum + 1} / {totalQuestions}
       </Text>
@@ -437,9 +452,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#19d3a2",
-    alignItems: "center",
+  },
+  content: {
+    flex: 1,
+    flexDirection: "row",
+    width: "100%",
+  },
+  leftPanel: {
+    flex: 1,
+    backgroundColor: "#14665c", // darker green
     justifyContent: "center",
-    padding: 20,
+    alignItems: "center",
+  },
+  rightPanel: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     position: "absolute",
@@ -460,17 +488,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
     textAlign: "center",
-    marginBottom: 40,
+    flexShrink: 1,
   },
   diamondLayout: {
-    width: 300,
-    height: 300,
+    width: '70%',
+    aspectRatio: 1,
     position: "relative",
     marginBottom: 40,
   },
   choiceButton: {
-    width: 110,
-    height: 110,
+    width: "44%",
+    height: "44%",
     borderRadius: 10,
     position: "absolute",
     justifyContent: "center",
@@ -481,6 +509,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 5,
+  },
+  top: {
+    top: 0,
+    left: "28%",
+  },
+  left: {
+    top: "28%",
+    left: 0,
+  },
+  right: {
+    top: "28%",
+    right: 0,
+  },
+  bottom: {
+    bottom: 0,
+    left: "28%",
   },
   choiceContent: {
     transform: [{ rotate: "-45deg" }],
@@ -495,22 +539,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "white",
     fontWeight: "bold",
-  },
-  top: {
-    top: 0,
-    left: 100,
-  },
-  left: {
-    top: 100,
-    left: 0,
-  },
-  right: {
-    top: 100,
-    left: 200,
-  },
-  bottom: {
-    top: 200,
-    left: 100,
   },
   choice0: { backgroundColor: "#8e44ad" },
   choice1: { backgroundColor: "#f39c12" },
@@ -547,3 +575,5 @@ const styles = StyleSheet.create({
 });
 
 export default AnswerChoiceScreen;
+
+
