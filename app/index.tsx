@@ -2,8 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router"; // Import for navigation
 
-// ✅ Correct export for Expo Router (no white header)
-
 
 const PlayScreen = () => {
   const router = useRouter(); // Router for navigation
