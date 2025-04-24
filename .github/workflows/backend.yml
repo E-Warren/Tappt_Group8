@@ -32,15 +32,20 @@ jobs:
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
             \. "$HOME/.nvm/nvm.sh"
             nvm install 22
-            npm install
 
+            //install pm2 and dependencies
+            npm install -g pm2
+            npm install
+            
             # Replace old code
+              . "$HOME/.nvm/nvm.sh"
             pm2 stop backend-server || true
             rm -rf ~/backend
             mv ~/backend-temp ~/backend
 
             cd ~/backend
             echo "${{ secrets.ENV }}" > .env
+              . "$HOME/.nvm/nvm.sh"
             pm2 start backend-server.js --name backend-server
             pm2 save
           EOF
