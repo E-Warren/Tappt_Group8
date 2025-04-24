@@ -100,13 +100,13 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   buttonYellow: {
-    backgroundColor: "#1F702F",
+    backgroundColor: "#207466",
     padding: 20,
     borderRadius: 10,
     marginHorizontal: 10,
   },
   buttonOrange: {
-    backgroundColor: "#BA3C1C",
+    backgroundColor: "#A45A41",
     padding: 20,
     borderRadius: 10,
     marginHorizontal: 10,
