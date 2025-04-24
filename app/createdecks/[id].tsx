@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingTop: 27,
-    backgroundColor: "#7F55E0FF",
+    backgroundColor: "#7F55E0",
   },
   header: {
     fontSize: 28,
