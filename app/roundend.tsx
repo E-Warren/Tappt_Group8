@@ -86,12 +86,12 @@ const ResultsScreen = ({
                       {
                         backgroundColor:
                           index === 0
-                            ? '#7E51F3'
+                            ? '#7340F2'
                             : index === 1
-                            ? '#F28C28'
+                            ? '#C62F2F'
                             : index === 2
-                            ? '#FB6FB6'
-                            : '#3079f0',
+                            ? '#105EDA'
+                            : '#CD3280',
                         height: barHeights[index],
                       },
                     ]}
@@ -271,16 +271,16 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-45deg' }],
   },
   diamondPurple: {
-    backgroundColor: '#7E51F3',
+    backgroundColor: '#7340F2',
   },
   diamondOrange: {
-    backgroundColor: '#F28C28',
+    backgroundColor: '#C62F2F',
   },
   diamondBlue: {
-    backgroundColor: '#3079f0',
+    backgroundColor: '#105EDA',
   },
   diamondPink: {
-    backgroundColor: '#FB6FB6',
+    backgroundColor: '#CD3280',
   },
   diamondPurpleGrey: {
     backgroundColor: '#717171',

@@ -247,7 +247,7 @@ if (isReadingComplete) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1ed5c1",
+    backgroundColor: "#125E4B",
     alignItems: "center",
     justifyContent: "center",
     padding: 20,

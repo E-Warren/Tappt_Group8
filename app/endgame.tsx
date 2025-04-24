@@ -26,7 +26,9 @@ const GameSummaryScreen = () => {
     WebSocketService.sendMessage(JSON.stringify({
       type: "gameEnded",
       name: playerName,
+      
     }));
+    router.push("/login");
   };
 
   return (
@@ -59,7 +61,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#6C63FF",
+    backgroundColor: "#5E5D98",
     padding: 20,
   },
   header: {
@@ -98,13 +100,13 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   buttonYellow: {
-    backgroundColor: "#f4a261",
+    backgroundColor: "#1F702F",
     padding: 20,
     borderRadius: 10,
     marginHorizontal: 10,
   },
   buttonOrange: {
-    backgroundColor: "#e76f51",
+    backgroundColor: "#BA3C1C",
     padding: 20,
     borderRadius: 10,
     marginHorizontal: 10,

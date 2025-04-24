@@ -104,6 +104,7 @@ const ReviewScreen = () => {
       type: "gameEnded",
       name: playerName,
     }));
+    router.push("/slogin");
   };
 
   return (
@@ -197,12 +198,12 @@ const styles = StyleSheet.create({
   },
 
   topBar: {
-    position: "absolute",
-    top: 10,
-    left: 20,
-    right: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#2364AA',
+    paddingHorizontal: 20,
+    paddingVertical: 6
   },
   logoText: {
     fontSize: 40,
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 80,
     fontWeight: '700',
-    marginTop: 70,
+    marginTop: 20,
     marginBottom: 8,
     color: '#FFF',
     textAlign: 'center'
