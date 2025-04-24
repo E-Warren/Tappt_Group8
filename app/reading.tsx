@@ -180,7 +180,7 @@ useEffect(() => {
     console.log("Total questions being asked is now: ", questions.length);
     navigation.setOptions({ headerShown: false }); // <- Hides back arrow + screen title
 
-    //{questions[currQuestionNum]?.question || "questions are done. will need appriopriate routing for this."}
+    
 
     const speechTimer = setTimeout(() => {
       const questionAsked = questions[currQuestionNum];
@@ -259,7 +259,7 @@ if (isReadingComplete) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>◇ Tappt</Text>
+      <Text style={styles.header}>Tappt</Text>
       <Text style={styles.players}>{playerCount} players</Text>
       <Text style={styles.readingText}>Reading...</Text>
     </View>
@@ -269,23 +269,25 @@ if (isReadingComplete) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1ed5c1",
+    backgroundColor: "#125E4B",
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
+    paddingTop: 0,
+    
   },
   header: {
     position: "absolute",
-    top: 15,
-    left: 15,
-    fontSize: 24,
+    top: 10,
+    left: 20,
+    fontSize: 40,
     color: "white",
   },
   players: {
     position: "absolute",
-    top: 15,
-    right: 15,
-    fontSize: 20,
+    top: 10,
+    right: 20,
+    fontSize: 40,
     color: "white",
   },
   readingText: {

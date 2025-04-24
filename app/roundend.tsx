@@ -137,12 +137,12 @@ const ResultsScreen = ({
                       {
                         backgroundColor:
                           index === 0
-                            ? '#7E51F3'
+                            ? '#7340F2'
                             : index === 1
-                            ? '#F28C28'
+                            ? '#C62F2F'
                             : index === 2
-                            ? '#FB6FB6'
-                            : '#30C6F0',
+                            ? '#105EDA'
+                            : '#CD3280',
                         height: barHeights[index],
                       },
                     ]}
@@ -172,13 +172,13 @@ const ResultsScreen = ({
             data={diamondData[2]}
             blackedOut={blackedOut[2]}
             containerStyle={[styles.diamondPosition, styles.rightDiamond]}
-            diamondColorStyle={diamondColors[3]}
+            diamondColorStyle={diamondColors[2]}
           />
           <Diamond
             data={diamondData[3]}
             blackedOut={blackedOut[3]}
             containerStyle={[styles.diamondPosition, styles.bottomDiamond]}
-            diamondColorStyle={diamondColors[2]}
+            diamondColorStyle={diamondColors[3]}
           />
         </View>
       </View>
@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#2EC4B6',
   },
   header: {
-    position: 'absolute',
-    top: '2%',
-    left: '4%',
-    right: '4%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    position: "absolute",
+    top: 10,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   headerText: {
     color: '#fff',
@@ -322,16 +322,16 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '-45deg' }],
   },
   diamondPurple: {
-    backgroundColor: '#7E51F3',
+    backgroundColor: '#7340F2',
   },
   diamondOrange: {
-    backgroundColor: '#F28C28',
+    backgroundColor: '#C62F2F',
   },
   diamondBlue: {
-    backgroundColor: '#30C6F0',
+    backgroundColor: '#105EDA',
   },
   diamondPink: {
-    backgroundColor: '#FB6FB6',
+    backgroundColor: '#CD3280',
   },
   diamondPurpleGrey: {
     backgroundColor: '#717171',

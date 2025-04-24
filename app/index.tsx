@@ -2,8 +2,6 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router"; // Import for navigation
 
-// ✅ Correct export for Expo Router (no white header)
-
 
 const PlayScreen = () => {
   const router = useRouter(); // Router for navigation
@@ -11,7 +9,7 @@ const PlayScreen = () => {
   return (
     <View style={styles.container}>
       {/* Top-left branding */}
-      <Text style={styles.header}> ◇ Tappt</Text>
+      <Text style={styles.header}>Tappt</Text>
 
       {/* Main title */}
       <Text style={styles.title}> How would you like to play? </Text>
@@ -44,10 +42,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   header: {
-    fontSize: 28,
+    position: "absolute",
+    top: 10,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
     color: "white",
-    fontWeight: "500",
-    marginBottom: 40,
+    fontSize: 40,
   },
   title: {
     fontSize: 40,
@@ -71,7 +73,7 @@ const styles = StyleSheet.create({
   },
   hostButton: {
     flex: 1,
-    backgroundColor: "#f4a623",
+    backgroundColor: "#F28C28",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
