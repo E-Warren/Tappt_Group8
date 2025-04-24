@@ -845,7 +845,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
   console.log("Removing websocket connection");
 
   if (type === "student"){
-    gameState.studentsInRoom = gameState.studentsInRoom.filter(name => name != studentName);
+    gameState.studentsInRoom = gameState.studentsInRoom.filter(student => student.name !== studentName);
     websockets.forEach((websocket) => {
       websocket.socket.send(JSON.stringify({
         type: "studentLeft",
@@ -853,7 +853,7 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
       }))
     })
 
-    gameState.studentsInRoom = gameState.studentsInRoom.filter(name => name !== studentName);
+    gameState.studentsInRoom = gameState.studentsInRoom.filter(student => student.name !== studentName);
     console.log("Students when one person leaves", gameState.studentsInRoom);
 
     try {
@@ -922,7 +922,7 @@ app.ws('/join', function(ws, req) {
         socketConnection.userName = returnedName;
         type = "student";
         leavingRoomCode = userMessage.data.code;
-        gameState.studentsInRoom.push(returnedName);
+        gameState.studentsInRoom.push({ name: returnedName, clickCount: 0 });
         ws.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
         const listOfStudents = gameState.studentsInRoom; //stores the list of students in the game
 
@@ -1207,9 +1207,24 @@ app.ws('/join', function(ws, req) {
               data: sendAnswers,
             }))
           })
-
         }
       }
+
+      if (userMessage.type === "scoreUpdate") {
+        const { playername, clickCount } = userMessage.data;
+      
+        // Send update to all connected clients
+        websockets.forEach((websocket) => {
+          websocket.socket.send(JSON.stringify({
+            type: "updateAllScores", // this is what frontend clients will receive
+            data: {
+              playername,
+              clickCount
+            }
+          }));
+        });
+      }
+      
     });
 
     ws.on('close', async (code, reason) => {
