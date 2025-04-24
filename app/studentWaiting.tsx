@@ -65,16 +65,16 @@ const styles = StyleSheet.create({
       backgroundColor: "#EA916EFF",
     },
     top: {
+        position: "absolute",
+        top: 10,
+        left: 20,
+        right: 20,
         flexDirection: "row",
         justifyContent: "space-between",
-        width: "100%",
-        paddingHorizontal: 50,
-        paddingTop: 30,
     },
     text: {
         color: "#fff",
-        fontSize: 25,
-        fontWeight: "300",
+        fontSize: 40,
     },
     middle: {
         flex: 1,

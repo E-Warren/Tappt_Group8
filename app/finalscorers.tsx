@@ -128,21 +128,22 @@ const TopScorersScreen = () => {
       </Animated.View>
 
       <View style={styles.buttonsContainer}>
-        <Link href="/" style={styles.link}>
+        <Link href="/view-decks" style={styles.link}>
           <TouchableOpacity style={[styles.button, styles.missedButton]}>
             <Text style={[styles.buttonText, styles.missedButtonText]}>
-              Most missed questions
+              New Game!
             </Text>
           </TouchableOpacity>
         </Link>
-        <Link href="/" style={styles.link}>
+        </View>
+        {/*<Link href="/" style={styles.link}>
           <TouchableOpacity style={[styles.button, styles.allScoresButton]}>
             <Text style={[styles.buttonText, styles.allScoresButtonText]}>
               See all scores
             </Text>
           </TouchableOpacity>
         </Link>
-      </View>
+      </View> {/*commented out until further notice - Alec*/}
     </View>
   );
 };

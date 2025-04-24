@@ -177,14 +177,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
-    left: 20,
+    top: 22,
+    left: 25,
     zIndex: 20,
-    padding: 10,
+    padding: 5,
     borderRadius: 5,
   },
   backButtonText: {
-    fontSize: 20,
+    fontSize: 25,
     color: "#FFF",
   },
   roomCodeBox: {

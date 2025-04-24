@@ -130,7 +130,7 @@ useEffect(() => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>◇ Tappt</Text>
+      <Text style={styles.header}>Tappt</Text>
       <Text style={styles.players}>{playerCount} players</Text>
 
       <Text style={styles.timer}>{timer}</Text>
@@ -149,16 +149,16 @@ const styles = StyleSheet.create({
   },
   header: {
     position: "absolute",
-    top: 15,
-    left: 15,
-    fontSize: 24,
+    top: 10,
+    left: 20,
+    fontSize: 40,
     color: "white",
   },
   players: {
     position: "absolute",
-    top: 15,
-    right: 15,
-    fontSize: 18,
+    top: 10,
+    right: 20,
+    fontSize: 40,
     color: "white",
   },
   timer: {

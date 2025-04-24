@@ -104,6 +104,7 @@ const ReviewScreen = () => {
       type: "gameEnded",
       name: playerName,
     }));
+    router.push("/slogin");
   };
 
   return (
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#2364AA',
     paddingHorizontal: 20,
-    paddingVertical: 10
+    paddingVertical: 6
   },
   logoText: {
     fontSize: 40,

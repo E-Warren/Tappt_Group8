@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   header: {
     position: "absolute",
     top: 10,
-    left: 15,
+    left: 20,
     fontSize: 40,
     color: "white",
   },
