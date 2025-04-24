@@ -70,7 +70,7 @@ export default function WaitingRoom() {
   useEffect(() => {
     if (players.length > previousPlayersRef.current.length) {
       const newStudent = players[players.length - 1];
-      setLastAddedId(newStudent);
+      setLastAddedId(newStudent.name);
       setTimeout(() => {
         setLastAddedId(null);
       }, 600);
@@ -114,12 +114,12 @@ export default function WaitingRoom() {
       <FlatList
         data={players}
         // Use a unique and stable key (assuming each name is unique).
-        keyExtractor={(item) => item}
+        keyExtractor={(item) => item.name}
         numColumns={NUM_COLUMNS}
         renderItem={({ item }) => {
           // Only the student that matches lastAddedId is marked as new.
-          const isNew = item === lastAddedId;
-          return <AnimatedPlayer name={item} isNew={isNew} />;
+          const isNew = item.name === lastAddedId;
+          return <AnimatedPlayer name={item.name} isNew={isNew} />;
         }}
         contentContainerStyle={styles.playersContainer}
         style={styles.playersList}

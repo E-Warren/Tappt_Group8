@@ -9,7 +9,7 @@ export default function GamePinScreen() { // Function used to get pin from User
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false); 
   const {name} = useStudentStore(state => state); //get the saved name from zustand
-  console.log("Entered student login!!");
+  //console.log("Entered student login!!");
 
   //reset gameEnded
   const gameEnded = useStudentStore((state) => state.gameEnded);

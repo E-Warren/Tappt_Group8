@@ -282,12 +282,12 @@ const [password, onChangePassword] = useState('');
       <Link href="/slogin" style={styles.studentLink}>
               Are you a student? Join a game here!
             </Link>
-      {/* Logout button at the bottom right */}
+      {/*Logout button at the bottom right */}
       <TouchableOpacity
       style={styles.logoutButton}
       onPress={handleLogout}>
-  <Text style={styles.logoutButtonText}>Logout</Text>
-</TouchableOpacity>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 }
