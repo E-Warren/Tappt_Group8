@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { View, Text, Animated, StyleSheet, Pressable } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useStudentStore } from './useWebSocketStore';
 import { WebSocketService } from './webSocketService';
 import { useIsFocused } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const ResultsScreen = ({
 }) => {
@@ -25,6 +27,37 @@ const ResultsScreen = ({
     { original: styles.diamondPink, grey: styles.diamondPinkGrey },
   ];
   const numberCorrect = useRef(0);
+
+//get leaderboard
+const students = useStudentStore(state => state.students);
+
+console.log("all students are: ", students);
+
+const topStudents = useMemo(() => {
+  return [...students]
+    .sort((a, b) => {
+      if (b.clickCount !== a.clickCount) {
+        return b.clickCount - a.clickCount;
+      }
+      return a.name.localeCompare(b.name);
+    })
+    .slice(0, 4);
+}, [students]);
+console.log("TOP STUDENTS ARE: ", topStudents);
+
+//save leaderboard
+useEffect(() => {
+const saveLeaderboard = async (topStudents: {name:string, clickCount:number}[]) => {
+  try {
+    await AsyncStorage.setItem('topStudents', JSON.stringify(topStudents));
+  } catch (e) {
+    console.error("Failed to save leaderboard", e);
+  }
+};
+saveLeaderboard(topStudents);
+
+console.log("SAVED LEADERBOARD TOP 4");
+});
 
   useEffect(() => {
     if (isFocused){
@@ -95,7 +128,7 @@ const ResultsScreen = ({
   );
 
   const handlePress = () => {
-    console.log("Current question is: ", currentNumber, " total questions is: ", totalNumQuestions);
+    console.log("Current question is: ", currentNumber+1, " total questions is: ", totalNumQuestions);
     setAnimatedValues([]);
      if ((currentNumber + 1) !== totalNumQuestions){
        router.replace('/roundScorers');

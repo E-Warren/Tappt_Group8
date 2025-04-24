@@ -45,10 +45,10 @@ const GameSummaryScreen = () => {
         answered <Text style={styles.boldText}>12</Text> out of <Text style={styles.boldText}>13</Text> questions correctly.
       </Text>
       <View style={styles.buttonContainer}>
-        <Pressable onPress={reviewPress} style={styles.buttonYellow}>
+        <Pressable onPress={reviewPress} style={styles.buttonBlue}>
           <Text style={styles.buttonText}>See what I missed</Text>
         </Pressable>
-        <Pressable onPress={handlePress} style={styles.buttonOrange}>
+        <Pressable onPress={handlePress} style={styles.buttonPink}>
           <Text style={styles.buttonText}>Join a new game</Text>
         </Pressable>
       </View>
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#5E5D98",
+    backgroundColor: "#14665c",
     padding: 20,
   },
   header: {
@@ -93,20 +93,20 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontWeight: "bold",
-    color: "#12ffb0",
+    color: "#f8a43c",
   },
   buttonContainer: {
     flexDirection: "row",
     marginTop: 30,
   },
-  buttonYellow: {
-    backgroundColor: "#207466",
+  buttonBlue: {
+    backgroundColor: "#5084ec",
     padding: 20,
     borderRadius: 10,
     marginHorizontal: 10,
   },
-  buttonOrange: {
-    backgroundColor: "#A45A41",
+  buttonPink: {
+    backgroundColor: "#ff5c64",
     padding: 20,
     borderRadius: 10,
     marginHorizontal: 10,

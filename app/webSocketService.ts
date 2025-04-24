@@ -100,6 +100,10 @@ export const WebSocketService = {
                 else if (message.type === "sentBonus") {
                     useStudentStore.setState({bonus: message.bonus})
                 }
+                else if (message.type === "updateAllScores") {
+                    const { playername, clickCount } = message.data;
+                    useStudentStore.getState().updateStudentScore(playername, clickCount);
+                }
                 
                 console.log(message);
             }

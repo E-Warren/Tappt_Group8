@@ -64,7 +64,20 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
 
   //click count!!!!!!!!
   const clickCount = useStudentStore(state => state.clickCount);
+  useEffect(() => {
+    console.log("UPDATING STUDENT SCORE");
+    console.log("student with name ", playername, " has click count of ", clickCount);
   
+    WebSocketService.sendMessage(JSON.stringify({
+      type: "scoreUpdate", 
+      data: {
+        playername: playername,
+        clickCount: clickCount,
+      }
+    }));
+  }, []); 
+
+
   //room code
   const roomCode = useStudentStore(state => state.roomCode);
 
@@ -112,7 +125,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   //should solve multiple games problem
   const nextQuestion = useStudentStore(state => state.nextQuestion);
     //testing
-    console.log("next question =", nextQuestion);
+    //console.log("next question =", nextQuestion);
 
   useEffect(() => {
     if (nextQuestion) {

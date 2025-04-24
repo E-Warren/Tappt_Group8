@@ -1,16 +1,36 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
 import { Audio } from 'expo-av';
 import tadaSound from '../assets/sound/tada-fanfare-a-6313.mp3';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TopScorersScreen = () => {
 
   const firstPlaceAnim = useRef(new Animated.Value(0)).current;
   const secondPlaceAnim = useRef(new Animated.Value(0)).current;
   const thirdPlaceAnim = useRef(new Animated.Value(0)).current;
+
+  //load leaderboard
+  const [topStudents, setTopStudents] = useState<{name:string, clickCount:number}[]>([]);
+  useEffect(() => {
+    const getLeaderboard = async () => {
+      try {
+        const value = await AsyncStorage.getItem('topStudents');
+        if (value !== null) {
+          setTopStudents(JSON.parse(value));
+          await AsyncStorage.removeItem('topStudents'); // cleanup here
+          console.log("DELETED LEADERBOARD AFTER USE --> LEADERBOARD: ", getLeaderboard());
+        }
+      } catch (e) {
+        console.error("Failed to load leaderboard", e);
+      }
+    };
+  
+    getLeaderboard();
+  }, []);
 
   // sound for the 1st place animation
   async function playSound() {
@@ -55,10 +75,16 @@ const TopScorersScreen = () => {
         useNativeDriver: true
       })
     ]).start();
+
+
     setTimeout(() => {
-      playSound();
-    }, 3300); 
-  }, []);
+      if (topStudents.length > 0) {
+        playSound();
+      }
+    }, 3300);
+
+
+  }, [topStudents]);
 
   const getAnimatedStyle = (animValue: Animated.Value) => ({
     opacity: animValue,
@@ -94,44 +120,44 @@ const TopScorersScreen = () => {
         </View>
       </View>
 
-      <Animated.View
+      {topStudents[0] && (<Animated.View
         style={[
           styles.scoreRow,
           styles.firstPlaceRow,
           getAnimatedStyle(firstPlaceAnim)
         ]}
       >
-        <Text style={styles.scoreText}>1  Pink Goose</Text>
-        <Text style={styles.scoreText}>4,983 clicks</Text>
-      </Animated.View>
+        <Text style={styles.scoreText}>1  {topStudents[0].name}</Text>
+        <Text style={styles.scoreText}>{topStudents[0].clickCount} clicks</Text>
+      </Animated.View>)}
 
-      <Animated.View
+      {topStudents[1] && (<Animated.View
         style={[
           styles.scoreRow,
           styles.secondPlaceRow,
           getAnimatedStyle(secondPlaceAnim)
         ]}
       >
-        <Text style={styles.scoreText}>2  Silly Elephant</Text>
-        <Text style={styles.scoreText}>4,642 clicks</Text>
-      </Animated.View>
+        <Text style={styles.scoreText}>2  {topStudents[1].name}</Text>
+        <Text style={styles.scoreText}>{topStudents[1].clickCount} clicks</Text>
+      </Animated.View>)}
 
-      <Animated.View
+      {topStudents[2] && (<Animated.View
         style={[
           styles.scoreRow,
           styles.thirdPlaceRow,
           getAnimatedStyle(thirdPlaceAnim)
         ]}
       >
-        <Text style={styles.scoreText}>3  Loud Panda</Text>
-        <Text style={styles.scoreText}>4,001 clicks</Text>
-      </Animated.View>
+        <Text style={styles.scoreText}>3  {topStudents[2].name}</Text>
+        <Text style={styles.scoreText}>{topStudents[2].clickCount} clicks</Text>
+      </Animated.View>)}
 
       <View style={styles.buttonsContainer}>
         <Link href="/view-decks" style={styles.link}>
           <TouchableOpacity style={[styles.button, styles.missedButton]}>
             <Text style={[styles.buttonText, styles.missedButtonText]}>
-              New Game!
+              Back to my decks
             </Text>
           </TouchableOpacity>
         </Link>

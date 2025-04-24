@@ -18,7 +18,7 @@ export default function studentClicksScreen() {
 
   //testing
   const nextQuestion = useStudentStore(state => state.nextQuestion);
-  console.log("next question =", nextQuestion);
+  //console.log("next question =", nextQuestion);
 
   useEffect(() => {
     //time out for a little bit to ignore routing "click"
@@ -34,7 +34,7 @@ export default function studentClicksScreen() {
     useEffect(() => {
 
       if(isClickable){
-        console.log("Is clickable!");
+        //console.log("Is clickable!");
         const handleClick = () => {
           clickIncrement(1);
         };
