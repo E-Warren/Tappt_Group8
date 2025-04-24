@@ -994,6 +994,7 @@ app.ws('/join', function(ws, req) {
         const code = userMessage.code;
 
         gameState.currentQuestion = currentQuestion;
+        gameState.questionID = questionID;
         console.log("current question: ", gameState.currentQuestion);
 
         gameState.answers.push({
@@ -1027,7 +1028,7 @@ app.ws('/join', function(ws, req) {
         //To find if all students have answered:
         let numStudentsWhoAnswered = gameState.answers.filter(function (element) {
           //return the students who have answered the current question
-          return element.currentQuestion === gameState.currentQuestion;
+          return (element.currentQuestion === gameState.currentQuestion && element.questionID === gameState.questionID);
         })
 
         console.log("students who have answered: ", numStudentsWhoAnswered.length)
@@ -1087,7 +1088,7 @@ app.ws('/join', function(ws, req) {
         ws.send(JSON.stringify({
           type: "sentAnswerCorrectness",
           data: determinator,
-        }))
+        })) 
       }
 
       if (userMessage.type === "countdownStarted"){ //sent when the timer starts on frontend
@@ -1164,7 +1165,7 @@ app.ws('/join', function(ws, req) {
 
         let currentAnswers = gameState.answers.filter(function (element) {
           //return the students who have answered the current question
-          return element.currentQuestion === gameState.currentQuestion;
+          return (element.currentQuestion === gameState.currentQuestion && element.questionID === gameState.questionID);
         })
 
         console.log("Going to check the following answers: ", currentAnswers);

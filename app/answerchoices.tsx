@@ -138,6 +138,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   //save student answers by sending them to backend!
   const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string, correctAnswer: string, location: number) => {
     console.log("saving answers to backend... ");
+    if (isFocused){
       WebSocketService.sendMessage(JSON.stringify({ 
         type: "studentAnswer", 
         name: playername, 
@@ -155,6 +156,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       console.log("correctness ->", correct);
 
       setletsgo(true);
+    }
   }
 
   //for obtaining questions & answers for answer diamond display

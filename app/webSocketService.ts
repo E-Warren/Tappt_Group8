@@ -65,6 +65,7 @@ export const WebSocketService = {
                         allStudentsAnswered: false,
                         ansCorrectness: "",
                         answerDist: [],
+                        correctIndex: [],
                     }));
                 } 
                 else if (message.type === "gameHasEnded"){
