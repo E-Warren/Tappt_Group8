@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useStudentStore } from "./useWebSocketStore";
 import { router } from "expo-router";
@@ -23,10 +23,12 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
 
   useEffect(() => {
     //if the timer is up or all the students have answered, route teacher to roundend screen
-    if (timerIsUp || haveAllStudentsAnswered){
+    if ((timerIsUp || haveAllStudentsAnswered)){
       router.replace('/roundend');
+
     }
   }, [timerIsUp, haveAllStudentsAnswered])
+
 
 const [questions, setQuestions] = useState<QuestionWithTimerScreenProps[]>([]);
 const deckID = useStudentStore(state => state.deckID);

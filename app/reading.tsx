@@ -71,7 +71,7 @@ useEffect(() => {
         throw new Error("Failed to get deck.");
       }
   
-      const qArr = [];
+      const qArr: React.SetStateAction<ReadingScreenProps[]> = [];
       const qMap = new Map();
   
       //mapping each question, questionID, and answer to a map
@@ -144,6 +144,28 @@ useEffect(() => {
   
     return () => clearTimeout(soundTimer);
   }, [currQuestionNum]);  
+
+
+  useEffect(() => {
+    let aChoices: string[] = [];
+    let currQuestion = questions[currQuestionNum];
+    let correctOptions: number[] = [];
+    let index = 0;
+    if (currQuestion){
+      currQuestion.choices?.forEach(choice => {
+        console.log("the value of index is: ", index);
+        aChoices.push(choice.value);
+        if (choice.correct){
+          console.log("Setting the correctindex to: ", index);
+          correctOptions.push(index);
+        }
+        index++;
+      });
+      console.log("Going to set the correct array to: ", correctOptions );
+      useStudentStore.setState({ correctIndex: correctOptions});
+    }
+    useStudentStore.setState({ answerChoices: aChoices });
+  }, [questions])
 
 
   useEffect(() => {

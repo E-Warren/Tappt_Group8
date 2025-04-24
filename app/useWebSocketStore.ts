@@ -22,6 +22,9 @@ interface StudentState {
     nextQuestion: boolean;
     gameEnded: boolean;
     completedReading: boolean;
+    answerDist: number[];
+    correctIndex: number[];
+    answerChoices: string[];
     bonus: string;
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
@@ -62,6 +65,9 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     nextQuestion: false,
     gameEnded: false,
     completedReading: false,
+    answerDist: [],
+    correctIndex: [],
+    answerChoices: [],
     bonus: "",
     setName: (name) => {
         console.log("Name: ", name);

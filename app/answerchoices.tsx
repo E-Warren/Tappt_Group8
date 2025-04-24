@@ -136,8 +136,9 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   }, [letsgo])
 
   //save student answers by sending them to backend!
-  const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string, correctAnswer: string) => {
+  const onAnswerPress = (answer: string, correct: boolean, questionID: number, currentQuestion: string, correctAnswer: string, location: number) => {
     console.log("saving answers to backend... ");
+    if (isFocused){
       WebSocketService.sendMessage(JSON.stringify({ 
         type: "studentAnswer", 
         name: playername, 
@@ -147,6 +148,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
         correctness: correct,
         questionNum: currQuestionNum,
         clickCount: clickCount, //click count now added yayayyay
+        location: location, //will be used to find which diamond the user pressed
         correctAnswer: correctAnswer,
         code: roomCode,
       }));
@@ -154,6 +156,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
       console.log("correctness ->", correct);
 
       setletsgo(true);
+    }
   }
 
   //for obtaining questions & answers for answer diamond display
@@ -268,6 +271,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
           correctness: false, //changed this -> make sure this works
           questionNum: currQuestionNum,
           clickCount: clickCount, //updated: click counts stored
+          location: -1,
           correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
           code: roomCode,
         }))
@@ -299,6 +303,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
+            location: 0,
             correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
             code: roomCode,
           }))
@@ -323,6 +328,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
+            location: 3,
             correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
             code: roomCode,
           }))
@@ -346,6 +352,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
+            location: 1,
             correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
             code: roomCode,
           }))
@@ -369,6 +376,7 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
             correctness: choice.correct,
             questionNum: currQuestionNum,
             clickCount: clickCount, //updated: click counts stored
+            location: 2,
             correctAnswer: questions[currQuestionNum]?.choices?.find(c => c.correct)?.value?? "",
             code: roomCode,
           }))
@@ -426,7 +434,8 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
                       choice.correct,
                       questions[currQuestionNum]?.questionID ?? -1,
                       questions[currQuestionNum]?.question ?? "",
-                      questions[currQuestionNum]?.choices?.find(c => c.correct)?.value ?? ""
+                      questions[currQuestionNum]?.choices?.find(c => c.correct)?.value ?? "",
+                      index
                     )
                   }
                 >
