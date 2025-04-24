@@ -29,14 +29,6 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
     }
   }, [timerIsUp, haveAllStudentsAnswered])
 
-  // useEffect(() => {
-  //   if (haveAllStudentsAnswered){
-  //     getAnswerDist.current = true;
-  //     WebSocketService.sendMessage(JSON.stringify({
-  //           type: "sendAnswerDist",
-  //     }))
-  //   }
-  // }, [haveAllStudentsAnswered])
 
 const [questions, setQuestions] = useState<QuestionWithTimerScreenProps[]>([]);
 const deckID = useStudentStore(state => state.deckID);

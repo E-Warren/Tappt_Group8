@@ -23,7 +23,7 @@ interface StudentState {
     gameEnded: boolean;
     completedReading: boolean;
     answerDist: number[];
-    correctIndex: number;
+    correctIndex: number[];
     answerChoices: string[];
     bonus: string;
     setName: (name: string) => void;
@@ -66,7 +66,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     gameEnded: false,
     completedReading: false,
     answerDist: [],
-    correctIndex: -1,
+    correctIndex: [],
     answerChoices: [],
     bonus: "",
     setName: (name) => {

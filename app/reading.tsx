@@ -149,6 +149,7 @@ useEffect(() => {
   useEffect(() => {
     let aChoices: string[] = [];
     let currQuestion = questions[currQuestionNum];
+    let correctOptions: number[] = [];
     let index = 0;
     if (currQuestion){
       currQuestion.choices?.forEach(choice => {
@@ -156,10 +157,12 @@ useEffect(() => {
         aChoices.push(choice.value);
         if (choice.correct){
           console.log("Setting the correctindex to: ", index);
-          useStudentStore.setState({ correctIndex: index })
+          correctOptions.push(index);
         }
         index++;
       });
+      console.log("Going to set the correct array to: ", correctOptions );
+      useStudentStore.setState({ correctIndex: correctOptions});
     }
     useStudentStore.setState({ answerChoices: aChoices });
   }, [questions])

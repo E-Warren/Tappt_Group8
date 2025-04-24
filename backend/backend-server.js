@@ -909,6 +909,7 @@ app.ws('/join', function(ws, req) {
   let studentName; 
   let type;
   let leavingRoomCode;
+  //put UUID here
     ws.on('message', async function(msg) { //get the message
       console.log(msg);
       const userMessage = JSON.parse(msg);

@@ -24,6 +24,7 @@ const ResultsScreen = ({
     { original: styles.diamondBlue, grey: styles.diamondBlueGrey },
     { original: styles.diamondPink, grey: styles.diamondPinkGrey },
   ];
+  const numberCorrect = useRef(0);
 
   useEffect(() => {
     if (isFocused){
@@ -36,9 +37,13 @@ const ResultsScreen = ({
   useEffect(() => {
     if (data.length > 0 && isFocused){
       const setBlackOut = new Array(4).fill(true);
-      setBlackOut[cIndex] = false;
+      if (cIndex.length > 0){
+        for (const num of cIndex){
+          setBlackOut[num] = false;
+        }
+      }
       setBlackedOut(setBlackOut);
-      console.log("Blacked out is now: ", blackedOut);
+      console.log("Blacked out is now: ", setBlackOut);
     }
   }, [animatedValues])
 
@@ -63,6 +68,20 @@ const ResultsScreen = ({
       Animated.parallel(animations).start();
     }
   }, [animatedValues]);
+
+  useEffect (() => {
+    if (cIndex.length > 0 && data.length > 0 && isFocused){
+      console.log("The numbers being checked are: ", cIndex);
+      console.log("The data being checked is: ", data);
+      cIndex.forEach(value =>{
+        console.log("The number being checked is: ", value);
+        console.log("Going to add this amount to the number correct: ", data[value]);
+        numberCorrect.current += data[value];
+        console.log("Inside the for loop, the number correct is now: ", numberCorrect.current);
+      })
+    }
+    console.log('The total number of people who got it correct is: ', numberCorrect.current);
+  }, [data])
 
   
 
@@ -96,6 +115,7 @@ const ResultsScreen = ({
        router.replace('/finalscorers');
        useStudentStore.setState({ gameEnded: false });
      }
+     numberCorrect.current = 0;
    }
 
   return (
@@ -132,7 +152,7 @@ const ResultsScreen = ({
             </View>
           </View>
           <Text style={styles.resultText}>
-            {data[cIndex]} people chose the correct answer. Woohoo!
+            {numberCorrect.current} people chose the correct answer. Woohoo!
           </Text>
         </View>
         <View style={styles.diamondContainer}>
