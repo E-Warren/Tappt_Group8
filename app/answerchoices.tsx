@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 15,
-    fontSize: 30,
+    fontSize: 40,
     color: "white",
   },
   question: {

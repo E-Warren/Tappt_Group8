@@ -30,6 +30,10 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
   }, [timerIsUp, haveAllStudentsAnswered])
 
 
+  //player count for header
+  const players = useStudentStore((state) => state.students);
+  const totalPlayers = players.length;
+
 const [questions, setQuestions] = useState<QuestionWithTimerScreenProps[]>([]);
 const deckID = useStudentStore(state => state.deckID);
 const currQuestionNum = useStudentStore(state => state.currQuestionNum);
@@ -133,7 +137,7 @@ useEffect(() => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Tappt</Text>
-      <Text style={styles.players}>{playerCount} players</Text>
+      <Text style={styles.players}>{totalPlayers} players</Text>
 
       <Text style={styles.timer}>{timer}</Text>
       <Text style={styles.question}>{questions[currQuestionNum]?.question || "questions are done. will need appriopriate routing for this."}</Text>

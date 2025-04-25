@@ -16,6 +16,7 @@ interface StudentState {
     name: string; //stores the user's name
     userType?: "student" | "teacher"; //stores the user's type
     clickCount: number;
+    pointsPerClick: number;
 
 
     //game properties
@@ -47,7 +48,7 @@ interface StudentState {
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
     incClickCount: (by: number) => void;
-
+    setPointsPerClick: (pointsPerClick: number) => void;
     
     //sets - game properties
     setRoomCode: (roomCode: string) => void;
@@ -77,6 +78,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     name: "",
     userType: undefined,
     clickCount: 0,
+    pointsPerClick: 1,
 
     //game
     roomCode: "",
@@ -122,6 +124,11 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
             return { clickCount: newCount };
         });
     },
+    setPointsPerClick: (pointsPerClick) => {
+        console.log("new points per click: ", pointsPerClick);
+        set({ pointsPerClick })
+    },
+
 
 
     //game
@@ -152,6 +159,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
             students: [],
             currentTime: 30,
             clickCount: 0,
+            pointsPerClick: 1,
             isClickable: false,
             deckID: -1,
             startedGame: false,
