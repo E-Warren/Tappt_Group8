@@ -1,17 +1,32 @@
 import { create } from "zustand";
+import { WebSocketService } from "./webSocketService";
 
 // This file is used to store the clients information using zustand
 //allows the user's information to be accessed through other files
 
+//bundle student name and clickCount in one object (to be used in an array)
+interface Student {
+    name: string;
+    clickCount: number;
+}
+
 interface StudentState {
+
+    //student properties
     name: string; //stores the user's name
     userType?: "student" | "teacher"; //stores the user's type
-    roomCode: string;
-    students: string[];
-    currentTime: number;
     clickCount: number;
-    isClickable: boolean;
+
+
+    //game properties
+    roomCode: string;
+    students: Student[];
     deckID: number;
+
+
+    //status properties
+    currentTime: number;
+    isClickable: boolean;
     startedGame: boolean;
     allStudentsAnswered: boolean;
     currQuestionNum: number;
@@ -26,35 +41,51 @@ interface StudentState {
     correctIndex: number[];
     answerChoices: string[];
     bonus: string;
+
+
+    //sets - student properties
     setName: (name: string) => void;
     setUserType: (userType: "student" | "teacher") => void;
+    incClickCount: (by: number) => void;
+
+    
+    //sets - game properties
     setRoomCode: (roomCode: string) => void;
     resetStudents: Function;
     addStudent: (newStudent: string) => void;
-    incClickCount: (by: number) => void;
-    setIsClickable: (clickable: boolean) => void;
+    removeStudent: (studentName: string) => void;
     setDeckID: (deckID: number) => void;
+    resetGame: Function;
+    updateStudentScore: (name: string, newCount: number) => void;
+
+
+    //sets - status properties
+    setIsClickable: (clickable: boolean) => void;
     setStartedGame: (startedGame: boolean) => void;
     setAllStudentsAnswered: (allStudentsAnswered: boolean) => void;
-    removeStudent: (studentName: string) => void;
     setCurrQuestionNum: (currQuestionNum: number) => void;
     setAnsCorrectness: (ansCorrectness: string) => void;
     setTotalQuestions: (totalQuestions: number) => void;
-    resetGame: Function;
     setCompletedReading: (completedReading: boolean) => void;
     setNextQuestion: (nextQuestion: boolean) => void;
     setBonus: (bonus: string) => void;
   }
   
 export const useStudentStore = create<StudentState>((set, get) => ({ //creates a store that can be imported to other files
+    
+    //student
     name: "",
     userType: undefined,
+    clickCount: 0,
+
+    //game
     roomCode: "",
     students: [],
-    currentTime: 30,
-    clickCount: 0,
-    isClickable: false,
     deckID: -1,
+
+    //status
+    currentTime: 30,
+    isClickable: false,
     startedGame: false,
     allStudentsAnswered: false,
     currQuestionNum: 0,
@@ -69,12 +100,31 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     correctIndex: [],
     answerChoices: [],
     bonus: "",
+
+
+    //student
     setName: (name) => {
         console.log("Name: ", name);
         set({ name })},
     setUserType: (userType) => {
         set({ userType });
     },
+    incClickCount: (by: number) => {
+        set((state) => {
+            const newCount = state.clickCount + by;
+            // WebSocketService.sendMessage(JSON.stringify({
+            //     type: "updateScore",
+            //     data: {
+            //         name: state.name,
+            //         clickCount: newCount,
+            //     }
+            // }));
+            return { clickCount: newCount };
+        });
+    },
+
+
+    //game
     setRoomCode: (roomCode) => {
         set({ roomCode });
     },
@@ -82,42 +132,20 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
         set({students: []});
     },
     addStudent: (newStudent) => {
-        set((state) => ({ students: [...state.students, newStudent]}));
-    },
-    incClickCount: (by) => {
-        (set((state) => ({ clickCount: state.clickCount + by })));
-    },
-    setIsClickable: (clickable) => {
-        (set((state) => ({ isClickable: clickable })));
+        set((state) => ({
+            students: [...state.students, { name: newStudent, clickCount: 0 }]
+        }));
+        console.log("students array: ", get().students);
     },
     setDeckID: (deckID) => {
         console.log("deckID: ", deckID);
         set({deckID});
     },
-    setStartedGame: (startedGame) => {
-        console.log("startedGame?: ", startedGame);
-        set({startedGame});
-    },
-    setAllStudentsAnswered: (allStudentsAnswered) => {
-        set({allStudentsAnswered});
-    },
     removeStudent: (studentName) => {
-        let currentStudents = get().students;
-        let newStudents = currentStudents.filter(student => {
-            return student !== studentName;
-        })
-        set({students: newStudents});
-    },
-    setCurrQuestionNum: (currQuestionNum) => {
-        set({currQuestionNum});
-    },
-    setAnsCorrectness: (ansCorrectness) => {
-        set ({ansCorrectness});
-    },
-    setTotalQuestions: (totalQuestions) => {
-        console.log("Setting total questions to: ", totalQuestions);
-        set ({totalQuestions});
-    },
+        set((state) => ({
+            students: state.students.filter((student) => student.name !== studentName)
+        }));
+    },  
     resetGame: () => {
         set({name: "",
             roomCode: "",
@@ -136,6 +164,36 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
             gameEnded: false,
             completedReading: false,
         })
+    },
+    updateStudentScore: (name: string, newCount: number) => {
+        set((state) => ({
+            students: state.students.map(student =>
+                student.name === name ? { ...student, clickCount: newCount } : student
+            )
+        }));
+    }, 
+
+
+    //status
+    setIsClickable: (clickable) => {
+        (set((state) => ({ isClickable: clickable })));
+    },
+    setStartedGame: (startedGame) => {
+        console.log("startedGame?: ", startedGame);
+        set({startedGame});
+    },
+    setAllStudentsAnswered: (allStudentsAnswered) => {
+        set({allStudentsAnswered});
+    },
+    setCurrQuestionNum: (currQuestionNum) => {
+        set({currQuestionNum});
+    },
+    setAnsCorrectness: (ansCorrectness) => {
+        set ({ansCorrectness});
+    },
+    setTotalQuestions: (totalQuestions) => {
+        console.log("Setting total questions to: ", totalQuestions);
+        set ({totalQuestions});
     },
     setCompletedReading: (completedReading) => {
         console.log("reading done");
