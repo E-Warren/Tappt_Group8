@@ -731,25 +731,14 @@ const joinRoom = async (data) => { //function to create the student name
   }
 };
  
-const games = []; //stores all of the games
+const games = [{
+  room: "Lobby",
+  gameState: {},
+  websocketList: [],
+  intervals: null, 
+}]; //stores all of the games (created a lobby to handle websocket connections for students and teachers who are not in a game)
 const websockets = []; //stores the websocket connections
 
-// const gameState = {
-//   studentsInRoom: ["yellow goose", "pink giraffe"],
-//   deckID: 12345,
-//   currentQuestion: 2,
-//   answers: [{
-//     studentName: "yellow goose",
-//     studentAnswer: "A",
-//     questionID: 1,
-//     clickCount: 100,
-//   }, {
-//     studentName: "pink giraffe",
-//     studentAnswer: "B",
-//     questionID: 2,
-//     clickCount: 150,
-//   }]
-// }
 const gameState = {
   studentsInRoom: [],
   deckID: undefined,
