@@ -8,6 +8,7 @@ import { CommonActions } from "@react-navigation/native";
 const GameSummaryScreen = () => {
   const playerName = useStudentStore((state) => state.name);
   const gameEnded = useStudentStore((state) => state.gameEnded);
+  const clickCount = useStudentStore(state => state.clickCount);
 
   const reviewPress = () => {
     router.replace("/review");
@@ -26,20 +27,18 @@ const GameSummaryScreen = () => {
     WebSocketService.sendMessage(JSON.stringify({
       type: "gameEnded",
       name: playerName,
-      
     }));
-    router.push("/login");
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.logo}>Tappt</Text>
-        <Text style={styles.username}>pink goose</Text>
+        <Text style={styles.username}>{playerName}</Text>
       </View>
       <Text style={styles.title}>Great game!</Text>
       <Text style={styles.description}>
-        You earned <Text style={styles.boldText}>12,345</Text> points and
+        You earned <Text style={styles.boldText}>{clickCount}</Text> points and
       </Text>
       <Text style={styles.description}>
         answered <Text style={styles.boldText}>12</Text> out of <Text style={styles.boldText}>13</Text> questions correctly.
