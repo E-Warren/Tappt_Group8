@@ -801,10 +801,10 @@ const bonusDecider = async (name, qNum) => {
     else if (bonusProb > 45 && bonusProb <= 60) {
       yourBonus = "20% Bonus";
     }
-    else if (bonusProb > 60 && bonusProb <= 85) {
+    else if (bonusProb > 60 && bonusProb <= 95) {
       yourBonus = "+1 points per click";
     }
-    else if (bonusProb > 85) {
+    else if (bonusProb > 95) {
       yourBonus = "+2 points per click";
     }
     else {
@@ -821,10 +821,10 @@ const bonusDecider = async (name, qNum) => {
     else if (bonusProb > 35 && bonusProb <= 60) {
       yourBonus = "20% Bonus";
     }
-    else if (bonusProb > 60 && bonusProb <= 75) {
+    else if (bonusProb > 60 && bonusProb <= 90) {
       yourBonus = "+1 points per click";
     }
-    else if (bonusProb > 75) {
+    else if (bonusProb > 90) {
       yourBonus = "+2 points per click";
     }
     else {
