@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
 import { useStudentStore } from "./useWebSocketStore";
@@ -7,8 +7,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const roundScorersScreen = () => {
+const students = useStudentStore(state => state.students)
 //load leaderboard
 const [topStudents, setTopStudents] = useState<{name:string, clickCount:number}[]>([]);
+
 useEffect(() => {
   const getLeaderboard = async () => {
     try {

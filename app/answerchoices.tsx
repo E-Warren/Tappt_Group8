@@ -63,7 +63,36 @@ const AnswerChoiceScreen: React.FC<AnswerChoiceScreenProps> = () => {
   const studentAnwered = useStudentStore(state => state.hasAnswered);
 
   //click count!!!!!!!!
-  const clickCount = useStudentStore(state => state.clickCount);
+  let clickCount = useStudentStore(state => state.clickCount);
+
+  //bonus yus
+  const bonus = useStudentStore(state => state.bonus);
+
+ 
+  //this is where i calculate your bonus for you
+  //only happens next round so hopefully you get the second to last question correct so you can use it
+  useEffect(() => {
+    if (bonus !== "") {
+      if (bonus === "10% Bonus") {
+        clickCount *= 1.10;
+      }
+      else if (bonus === "15% Bonus") {
+        clickCount *= 1.15;
+      }
+      else if (bonus === "20% Bonus") {
+        clickCount *= 1.20;
+      }
+      else {
+        console.log("invalid bonus:", bonus)
+      }
+      //round up bonus because we don't want fractional clickCount (I think it's funny)
+      clickCount = Math.round(clickCount);
+      console.log("here new clickcount after bonus -> ", clickCount);
+      useStudentStore.setState({ clickCount: clickCount })
+      useStudentStore.setState({ bonus: ""});
+    }
+  }, [clickCount, bonus])
+
   useEffect(() => {
     console.log("UPDATING STUDENT SCORE");
     console.log("student with name ", playername, " has click count of ", clickCount);

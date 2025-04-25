@@ -790,8 +790,8 @@ const bonusDecider = async (name, qNum) => {
     yourBonus = "failed";
   }
   else if (name === firstPlace[0].studentName) { //if first place
-    //colors
     console.log(name, "is first place with", topClicks, "clicks")
+
     if (bonusProb <= 25) {
       yourBonus = "10% Bonus";
     }
@@ -812,26 +812,20 @@ const bonusDecider = async (name, qNum) => {
     }
   }
   else {  //if not first place
-    if (bonusProb <= 20) {
+    if (bonusProb <= 15) {
       yourBonus = "10% Bonus";
     }
-    else if (bonusProb > 20 && bonusProb <= 35) {
+    else if (bonusProb > 15 && bonusProb <= 35) {
       yourBonus = "15% Bonus";
     }
-    else if (bonusProb > 35 && bonusProb <= 45) {
+    else if (bonusProb > 35 && bonusProb <= 60) {
       yourBonus = "20% Bonus";
     }
-    else if (bonusProb > 45 && bonusProb <= 65) {
+    else if (bonusProb > 60 && bonusProb <= 75) {
       yourBonus = "1.5x Multiplier";
     }
-    else if (bonusProb > 65 && bonusProb <= 75) {
+    else if (bonusProb > 75) {
       yourBonus = "2x Multiplier";
-    }
-    else if (bonusProb > 75 && bonusProb <= 90) {
-      yourBonus = "5% Steal";
-    }
-    else if (bonusProb > 90) {
-      yourBonus = "10% Steal";
     }
     else {
       yourBonus = "failed";

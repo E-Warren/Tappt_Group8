@@ -105,9 +105,6 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
             useStudentStore.setState({ nextQuestion: false });
             useStudentStore.setState({ currQuestionNum: questionNumber + 1})
 
-            //bonus resetting
-            useStudentStore.setState({ bonus: ""});
-
             console.log("go to next question is set to: ", useStudentStore.getState().nextQuestion);
             console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);
             console.log("resetting correctness... rerouting to /answerchoices");

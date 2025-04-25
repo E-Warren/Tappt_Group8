@@ -104,7 +104,6 @@ const ReviewScreen = () => {
       type: "gameEnded",
       name: playerName,
     }));
-    router.push("/slogin");
   };
 
   return (
