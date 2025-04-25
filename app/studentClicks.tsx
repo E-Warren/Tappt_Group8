@@ -12,6 +12,9 @@ export default function studentClicksScreen() {
   const setIsClickable = useStudentStore(state => state.setIsClickable) //fxn to turn click listening on/off
   const clickIncrement = useStudentStore(state => state.incClickCount); //fxn for clickcount + inc value
 
+  const pointsPer = useStudentStore(state => state.pointsPerClick);         //for multiplier bonus
+  console.log("this student gets ", pointsPer, " points per click.");
+
   //for when reading is completed
   const completedReading = useStudentStore(state => state.completedReading);
   const setCompletedReading = useStudentStore(state => state.setCompletedReading);
@@ -36,7 +39,7 @@ export default function studentClicksScreen() {
       if(isClickable){
         //console.log("Is clickable!");
         const handleClick = () => {
-          clickIncrement(1);
+          clickIncrement(pointsPer);
         };
 
         document.addEventListener('click', handleClick);
@@ -55,7 +58,7 @@ export default function studentClicksScreen() {
     if(isClickable){
       const handleSpace = (event: KeyboardEvent) => {
         if (event.code === "Space") {
-          clickIncrement(1);
+          clickIncrement(pointsPer);
         }
       };
 
