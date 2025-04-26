@@ -11,6 +11,7 @@ import { router } from 'expo-router';
 import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
 import Config from './config';
+import * as Speech from 'expo-speech';
 
 //interface setup for correct answers
 interface correctAnswers {
@@ -33,6 +34,11 @@ interface incorrectAnswers {
 const ReviewScreen = () => {
   const [incorrectDeck, setIncorrectDecks] = useState<incorrectAnswers[]>([]);
   const [correctDeck, setCorrectDecks] = useState<correctAnswers[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentSection, setCurrentSection] = useState<"correct" | "incorrect">("correct");
+  const [correctIntroSpoken, setCorrectIntroSpoken] = useState(false);
+  const [incorrectIntroSpoken, setIncorrectIntroSpoken] = useState(false);
+  const [actionTrigger, setActionTrigger] = useState(0);
   const totalQuestions = correctDeck.length + incorrectDeck.length;
   const correctCount = correctDeck.length;
   const gameEnded = useStudentStore((state) => state.gameEnded);
@@ -89,6 +95,73 @@ const ReviewScreen = () => {
     }
 
     getReview();
+  }, []);
+
+  //TTS function
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'f') {
+        setActionTrigger(prev => prev + 1); 
+      }
+    };
+  
+    window.addEventListener("keydown", handleKeyPress);
+  
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, []); 
+
+  useEffect(() => {
+    if (actionTrigger === 0) return; 
+  
+    Speech.stop();
+  
+    const currentDeck = currentSection === "correct" ? correctDeck : incorrectDeck;
+  
+    if (currentDeck.length === 0) {
+      console.log("There is no question set!");
+      return;
+    }
+  
+    if (currentSection === "correct" && !correctIntroSpoken) {
+      Speech.speak("Correct.");
+      setCorrectIntroSpoken(true);
+      return;
+    }
+  
+    if (currentSection === "incorrect" && !incorrectIntroSpoken) {
+      Speech.speak("Incorrect.");
+      setIncorrectIntroSpoken(true);
+      return;
+    }
+  
+    const currentQuestion = currentDeck[currentIndex];
+    const textToRead = `Question ${currentQuestion.questionNumber}. ${currentQuestion.question}. You answered ${currentQuestion.userAnswer}. Correct answer ${currentQuestion.correctAnswer.join(', ')}`;
+    Speech.speak(textToRead);
+  
+    const isLastInSection = currentIndex + 1 >= currentDeck.length;
+    if (isLastInSection) {
+      if (currentSection === "correct" && incorrectDeck.length > 0) {
+        setCurrentSection("incorrect");
+        setCurrentIndex(0);
+      } else {
+        setCurrentSection("correct");
+        setCurrentIndex(0);
+        setCorrectIntroSpoken(false);
+        setIncorrectIntroSpoken(false);
+      }
+    } else {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  
+  }, [actionTrigger]);
+
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
   }, []);
 
   //to handle routing back to student login
