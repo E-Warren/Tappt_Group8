@@ -12,16 +12,17 @@ const TopScorersScreen = () => {
   const firstPlaceAnim = useRef(new Animated.Value(0)).current;
   const secondPlaceAnim = useRef(new Animated.Value(0)).current;
   const thirdPlaceAnim = useRef(new Animated.Value(0)).current;
+  const roomCode = useStudentStore(state => state.roomCode);
 
   //load leaderboard
   const [topStudents, setTopStudents] = useState<{name:string, clickCount:number}[]>([]);
   useEffect(() => {
     const getLeaderboard = async () => {
       try {
-        const value = await AsyncStorage.getItem('topStudents');
+        const value = await AsyncStorage.getItem(`topStudents-${roomCode}`);
         if (value !== null) {
           setTopStudents(JSON.parse(value));
-          await AsyncStorage.removeItem('topStudents'); // cleanup here
+          await AsyncStorage.removeItem(`topStudents-${roomCode}`); // cleanup here
           console.log("DELETED LEADERBOARD AFTER USE --> LEADERBOARD: ", getLeaderboard());
         }
       } catch (e) {

@@ -731,28 +731,31 @@ const joinRoom = async (data) => { //function to create the student name
   }
 };
  
-const games = [{
+let games = [{
   room: "Lobby",
-  gameState: {},
-  websocketList: [],
+  gameState: {
+    studentsInRoom: [],
+    deckID: undefined,
+    currentQuestion: undefined,
+    answers: [],
+    hasStarted: false,
+  },
+  websockets: [],
   intervals: null, 
 }]; //stores all of the games (created a lobby to handle websocket connections for students and teachers who are not in a game)
-const websockets = []; //stores the websocket connections
+//const websockets = []; //stores the websocket connections
+// const gameState = {
+//   studentsInRoom: [],
+//   deckID: undefined,
+//   currentQuestion: undefined,
+//   answers: [],
+//   hasStarted: false,
+// }
 
-const gameState = {
-  studentsInRoom: [],
-  deckID: undefined,
-  currentQuestion: undefined,
-  answers: [],
-  hasStarted: false,
-}
-
-const resetGameState = async () => {
-  gameState.answers = [];
-  gameState.deckID = undefined;
-  gameState.currentQuestion = undefined;
-  gameState.studentsInRoom = [];
-  gameState.hasStarted = false;
+const deleteGameState = async (room) => {
+  console.log("The games before deletion is: ", games);
+  games = games.filter(element => element.room !== room)
+  console.log("The games after deletion is: ", games);
 }
 
 //for generating bonus probability
@@ -761,89 +764,96 @@ const getProbabilityInt = async () => {
   return Math.floor(Math.random() * 100) + 1;
 }
 
-const bonusDecider = async (name, qNum) => {
+const bonusDecider = async (name, qNum, gameRoom) => {
   //finding the first place person -> first find max clicks
-  const topClicks = Math.max(...gameState.answers.map(max => max.studentClicks));
-
-  //comparing max clicks person to websocket person name
-  const firstPlace = gameState.answers.filter(person => person.studentClicks === topClicks && person.questionNum === qNum);
-
-  //ya bonus probability
-  const bonusProb = await getProbabilityInt();
-  let yourBonus = "";
-  console.log("bonus probability: ", bonusProb);
-
-  //doing bonus selection based on if person is first place or not
-  //if failed to find the first place
-  if (firstPlace.length === 0) {
-    yourBonus = "failed";
-  }
-  else if (name === firstPlace[0].studentName) { //if first place
-    //colors
-    console.log(name, "is first place with", topClicks, "clicks")
-    if (bonusProb <= 25) {
-      yourBonus = "10% Bonus";
-    }
-    else if (bonusProb > 25 && bonusProb <= 45) {
-      yourBonus = "15% Bonus";
-    }
-    else if (bonusProb > 45 && bonusProb <= 60) {
-      yourBonus = "20% Bonus";
-    }
-    else if (bonusProb > 60 && bonusProb <= 85) {
-      yourBonus = "1.5x Multiplier";
-    }
-    else if (bonusProb > 85) {
-      yourBonus = "2x Multiplier";
-    }
-    else {
+  
+    const topClicks = Math.max(...gameRoom.gameState.answers.map(max => max.studentClicks));
+    //comparing max clicks person to websocket person name
+    console.log("The current game state answer is: ", gameRoom.gameState.answers);
+    const firstPlace = gameRoom.gameState.answers.filter(person => person.studentClicks === topClicks && person.questionNum === qNum);
+    console.log("The first place array holds the following people: ", firstPlace);
+    //ya bonus probability
+    const bonusProb = await getProbabilityInt();
+    let yourBonus = "";
+    console.log("bonus probability: ", bonusProb);
+  
+    //doing bonus selection based on if person is first place or not
+    //if failed to find the first place
+    if (firstPlace.length === 0) {
       yourBonus = "failed";
     }
-  }
-  else {  //if not first place
-    if (bonusProb <= 20) {
-      yourBonus = "10% Bonus";
+    else if (name === firstPlace[0].studentName) { //if first place
+      //colors
+      console.log(name, "is first place with", topClicks, "clicks")
+      if (bonusProb <= 25) {
+        yourBonus = "10% Bonus";
+      }
+      else if (bonusProb > 25 && bonusProb <= 45) {
+        yourBonus = "15% Bonus";
+      }
+      else if (bonusProb > 45 && bonusProb <= 60) {
+        yourBonus = "20% Bonus";
+      }
+      else if (bonusProb > 60 && bonusProb <= 85) {
+        yourBonus = "1.5x Multiplier";
+      }
+      else if (bonusProb > 85) {
+        yourBonus = "2x Multiplier";
+      }
+      else {
+        yourBonus = "failed";
+      }
     }
-    else if (bonusProb > 20 && bonusProb <= 35) {
-      yourBonus = "15% Bonus";
+    else {  //if not first place
+      if (bonusProb <= 20) {
+        yourBonus = "10% Bonus";
+      }
+      else if (bonusProb > 20 && bonusProb <= 35) {
+        yourBonus = "15% Bonus";
+      }
+      else if (bonusProb > 35 && bonusProb <= 45) {
+        yourBonus = "20% Bonus";
+      }
+      else if (bonusProb > 45 && bonusProb <= 65) {
+        yourBonus = "1.5x Multiplier";
+      }
+      else if (bonusProb > 65 && bonusProb <= 75) {
+        yourBonus = "2x Multiplier";
+      }
+      else if (bonusProb > 75 && bonusProb <= 90) {
+        yourBonus = "5% Steal";
+      }
+      else if (bonusProb > 90) {
+        yourBonus = "10% Steal";
+      }
+      else {
+        yourBonus = "failed";
+      }
     }
-    else if (bonusProb > 35 && bonusProb <= 45) {
-      yourBonus = "20% Bonus";
-    }
-    else if (bonusProb > 45 && bonusProb <= 65) {
-      yourBonus = "1.5x Multiplier";
-    }
-    else if (bonusProb > 65 && bonusProb <= 75) {
-      yourBonus = "2x Multiplier";
-    }
-    else if (bonusProb > 75 && bonusProb <= 90) {
-      yourBonus = "5% Steal";
-    }
-    else if (bonusProb > 90) {
-      yourBonus = "10% Steal";
-    }
-    else {
-      yourBonus = "failed";
-    }
-  }
-
-  return yourBonus;
+  
+    return yourBonus;
 }
 
-const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
+const handleRemoveAll = async (studentName, type, leavingRoomCode,fromRoom)=> {
   console.log("Removing websocket connection");
 
   if (type === "student"){
-    gameState.studentsInRoom = gameState.studentsInRoom.filter(student => student.name !== studentName);
-    websockets.forEach((websocket) => {
+    fromRoom.gameState.studentsInRoom = fromRoom.gameState.studentsInRoom.filter(student => student.name !== studentName);
+
+
+    if (fromRoom.websockets.length === 0){
+      deleteGameState(leavingRoomCode);
+    }
+
+    fromRoom.websockets.forEach((websocket) => {
       websocket.socket.send(JSON.stringify({
         type: "studentLeft",
         studentName, //return the time left
       }))
     })
 
-    gameState.studentsInRoom = gameState.studentsInRoom.filter(student => student.name !== studentName);
-    console.log("Students when one person leaves", gameState.studentsInRoom);
+    //fromRoom.gameState.studentsInRoom = fromRoom.gameState.studentsInRoom.filter(student => student.name !== studentName);
+    console.log("Students when one person leaves", fromRoom.gameState.studentsInRoom);
 
     try {
       const studentLeftQuery = `DELETE FROM room_students.tbl_room
@@ -867,12 +877,13 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
 
   } else {
     //deleted EVERYTHING if host leaves
-    resetGameState();
-    //handle when teacher leaves
+    if (fromRoom.websockets.length === 0){
+      deleteGameState(leavingRoomCode);
+    }
 
-    //TODO: When I have new game state, remove the teacher connection
 
-    websockets.forEach((websocket) => {
+
+    fromRoom.websockets.forEach((websocket) => {
       websocket.socket.send(JSON.stringify({
         type: "hostLeft",
       }))
@@ -890,11 +901,14 @@ const handleRemoveAll = async (studentName, type, leavingRoomCode)=> {
 
 }
 
-let intervals;
+//let intervals;
 
 app.ws('/join', function(ws, req) {
   const socketConnection = {socket: ws};
-  websockets.push(socketConnection); //adds connection to array
+  const userID = crypto.randomUUID(); //randomly generate a unique identifier for the user socket connection (used to move websockets between rooms)
+  socketConnection.webID = userID;
+  const joinLobby = games.find(roomCode => roomCode.room === "Lobby");
+  joinLobby.websockets.push(socketConnection); //adds connection to array
   let studentName; 
   let type;
   let leavingRoomCode;
@@ -911,16 +925,32 @@ app.ws('/join', function(ws, req) {
         socketConnection.userName = returnedName;
         type = "student";
         leavingRoomCode = userMessage.data.code;
-        gameState.studentsInRoom.push({ name: returnedName, clickCount: 0 });
-        ws.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
-        const listOfStudents = gameState.studentsInRoom; //stores the list of students in the game
 
-          websockets.forEach((websocket) => { //will update the students in the game (sends to each websocket)
-            websocket.socket.send(JSON.stringify({
-              type: "studentsInGame",
-              data: listOfStudents
-            }));
-          })
+        //move websocket from the lobby to the room:
+        const removeFromLobby = games.find(element => element.room === "Lobby"); //find the lobby game
+        const WebsocketToRemove = removeFromLobby.websockets.find(element => element.webID === userID); //find the websocket connection to remove
+        removeFromLobby.websockets = removeFromLobby.websockets.filter(element => element.webID !== userID); //remove the websocket from the lobby
+        console.log("Websockets in the lobby: ", removeFromLobby.websockets);
+        const joinRoomCode = games.find((element) => element.room === userMessage.data.code); //find the room to add the student to
+        if (joinRoomCode){
+          joinRoomCode.websockets.push(socketConnection); //add the websocket connection to the new game
+  
+          console.log("The websockets in the current room are: ", joinRoomCode.websockets);
+
+          console.log("Going to send a message to everyone that the student joined the room yay!");
+          joinRoomCode.gameState.studentsInRoom.push({ name: returnedName, clickCount: 0 });
+          ws.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
+          const listOfStudents = joinRoomCode.gameState.studentsInRoom; //stores the list of students in the game
+  
+            joinRoomCode.websockets.forEach((websocket) => { //will update the students in the game (sends to each websocket)
+              websocket.socket.send(JSON.stringify({
+                type: "studentsInGame",
+                data: listOfStudents
+              }));
+            })
+        } else {
+          console.log("Could not find the room to join in join message");
+        }
       }
 
       if (userMessage.type === "host"){ //called when the teacher hits host deck
@@ -930,8 +960,32 @@ app.ws('/join', function(ws, req) {
         leavingRoomCode = returnedRoom;
         console.log("Teacher connected");
 
-        gameState.deckID = userMessage.deck; // edit: now saves deckID from frontend! yay!
-        console.log("hosted deckID:", gameState.deckID)
+        //remove teacher websocket from the lobby and add to the new game"
+        const removeTeachFromLobby = games.find(element => element.room === "Lobby");
+        const teachWebsocketInLobby = removeTeachFromLobby.websockets.find(element => element.webID === userID);
+        removeTeachFromLobby.websockets = removeTeachFromLobby.websockets.filter(element => element.webID !== userID);
+        console.log("Websockets in the lobby: ", removeTeachFromLobby.websockets);
+        games.push({
+          room: returnedRoom,
+          gameState: {
+            studentsInRoom: [],
+            deckID: undefined,
+            currentQuestion: undefined,
+            answers: [],
+            hasStarted: false,
+          },
+          websockets: [],
+          intervals: null,
+        });
+        const createNewRoom = games.find(element => element.room === returnedRoom);
+      
+        if (createNewRoom){
+          createNewRoom.websockets.push(socketConnection);
+          createNewRoom.gameState.deckID = userMessage.deck; // edit: now saves deckID from frontend! yay!
+          console.log("hosted deckID:", createNewRoom.gameState.deckID)
+        } else {
+          console.log("Could not find the correct room to host");
+        }
         
         console.log("Returning the room code: ", returnedRoom);
 
@@ -945,11 +999,12 @@ app.ws('/join', function(ws, req) {
       //if teacher has begun the game
       if (userMessage.type === "gameStarted") {
         console.log("Teacher has started the game!")
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
 
-        gameState.hasStarted = true
+        gameRoom.gameState.hasStarted = true
 
         //send that the game has started to all sockets
-        websockets.forEach((websocket) => {
+        gameRoom.websockets.forEach((websocket) => {
           websocket.socket.send(JSON.stringify({
             type: "gameHasBegun",
             data: true,
@@ -960,11 +1015,12 @@ app.ws('/join', function(ws, req) {
 
       //sends deckID to every socket so that students can load questions/answers on their end
       if (userMessage.type === "sendDeckID") {
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
         //send that the game has started to all sockets
-        websockets.forEach((websocket) => {
+        gameRoom.websockets.forEach((websocket) => {
           websocket.socket.send(JSON.stringify({
             type: "sentDeckID",
-            data: gameState.deckID,
+            data: gameRoom.gameState.deckID,
           }))
         });
       }
@@ -982,21 +1038,27 @@ app.ws('/join', function(ws, req) {
         const correctAnswer = userMessage.correctAnswer;
         const code = userMessage.code;
 
-        gameState.currentQuestion = currentQuestion;
-        gameState.questionID = questionID;
-        console.log("current question: ", gameState.currentQuestion);
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
 
-        gameState.answers.push({
-          studentName,
-          studentAnswer,
-          questionID,
-          studentClicks,
-          correctness,
-          questionNum,
-          correctAnswer,
-          currentQuestion,  //adding this here so backend can send allStudentsAnsweredQuestion when all students answered -> should we change this? its redundant
-          location,
-        });
+        if (gameRoom){
+          gameRoom.gameState.currentQuestion = currentQuestion;
+          gameRoom.gameState.questionID = questionID;
+          console.log("current question: ", gameRoom.gameState.currentQuestion);
+  
+          gameRoom.gameState.answers.push({
+            studentName,
+            studentAnswer,
+            questionID,
+            studentClicks,
+            correctness,
+            questionNum,
+            correctAnswer,
+            currentQuestion,  //adding this here so backend can send allStudentsAnsweredQuestion when all students answered -> should we change this? its redundant
+            location,
+          });
+        } else {
+          console.log("Could not find the room to add the answers to");
+        }
 
         //for database query so that it can hopefully run and catch errors successfully
         try {
@@ -1011,23 +1073,23 @@ app.ws('/join', function(ws, req) {
           console.log("error:", error);
         }
 
-        console.log("student sent in the following game data: ", gameState.answers[gameState.answers.length - 1]);
+        console.log("student sent in the following game data: ", gameRoom.gameState.answers[gameRoom.gameState.answers.length - 1]);
 
         //UPDATE: it actually works! but is a little finicky (it keeps previous games' students sometimes)
         //To find if all students have answered:
-        let numStudentsWhoAnswered = gameState.answers.filter(function (element) {
+        let numStudentsWhoAnswered = gameRoom.gameState.answers.filter(function (element) {
           //return the students who have answered the current question
-          return (element.currentQuestion === gameState.currentQuestion && element.questionID === gameState.questionID);
+          return (element.currentQuestion === gameRoom.gameState.currentQuestion && element.questionID === gameRoom.gameState.questionID);
         })
 
         console.log("students who have answered: ", numStudentsWhoAnswered.length)
-        console.log("number of students in the room: ", gameState.studentsInRoom.length)
-        console.log("students in the room: ", gameState.studentsInRoom)
+        console.log("number of students in the room: ", gameRoom.gameState.studentsInRoom.length)
+        console.log("students in the room: ", gameRoom.gameState.studentsInRoom)
 
-        if (gameState.studentsInRoom.length == numStudentsWhoAnswered.length){
+        if (gameRoom.gameState.studentsInRoom.length == numStudentsWhoAnswered.length){
           console.log("Going to stop the timer now!")
-          clearInterval(intervals); //stop the interval cause all students answered
-          websockets.forEach((websocket) => {
+          clearInterval(gameRoom.intervals); //stop the interval cause all students answered
+          gameRoom.websockets.forEach((websocket) => {
             websocket.socket.send(JSON.stringify({
               type: "allStudentsAnsweredQuestion",
             }))
@@ -1043,7 +1105,9 @@ app.ws('/join', function(ws, req) {
 
         //finding student's answer correctness (if correct or not)
         //i know this code is yucky looking
-        let found = gameState.answers.filter(function (element) {
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
+
+        let found = gameRoom.gameState.answers.filter(function (element) {
           if (element.studentName === name && element.questionNum === currQNum) {
             console.log("for question:", currQNum, "student", name, " answer correctness is", element.correctness);
             console.log("found student!");
@@ -1082,19 +1146,20 @@ app.ws('/join', function(ws, req) {
 
       if (userMessage.type === "countdownStarted"){ //sent when the timer starts on frontend
         let timeLeft = 30;
-        intervals = setInterval(decrementSecond, 1000);
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
+        gameRoom.intervals = setInterval(decrementSecond, 1000);
         function decrementSecond () {
           timeLeft -= 1; //decrement the time
           if (timeLeft <= 0){ //means time is up!
-            clearInterval(intervals); //stop the interval
-            websockets.forEach((websocket) => {
+            clearInterval(gameRoom.intervals); //stop the interval
+            gameRoom.websockets.forEach((websocket) => {
               websocket.socket.send(JSON.stringify({
                 type: "timeUp", //send a message to everyone that time is up
                 data: true
               }))
             })
           } else { //else means there is still time left on the countdown
-            websockets.forEach((websocket) => {
+            gameRoom.websockets.forEach((websocket) => {
               websocket.socket.send(JSON.stringify({
                 type: "newCountdown",
                 timeLeft, //return the time left
@@ -1106,7 +1171,8 @@ app.ws('/join', function(ws, req) {
 
       //send to next question
       if (userMessage.type === "sendToNextQuestion"){
-        websockets.forEach((websocket) => {
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
+        gameRoom.websockets.forEach((websocket) => {
           websocket.socket.send(JSON.stringify({
             type: "sendToNextAnswer"
           }))
@@ -1116,7 +1182,10 @@ app.ws('/join', function(ws, req) {
       //bonus probability handler
       //sends bonus after bonus is calculated
       if (userMessage.type === "sendBonus") {
-        const yourBonus = await bonusDecider(userMessage.name, userMessage.qNum);
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
+        console.log("The game room state before sending to bonus is: ", gameRoom);
+
+        const yourBonus = await bonusDecider(userMessage.name, userMessage.qNum, gameRoom);
 
         //colored yellow console.log
         console.log(userMessage.name, "got bonus:", yourBonus);
@@ -1132,7 +1201,8 @@ app.ws('/join', function(ws, req) {
       //when reading is done -> help route to answerchoices because clicking done
       if (userMessage.type === "completedReading") {
         console.log("recieved message that reading was completed...");
-        websockets.forEach((websocket) => {
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
+        gameRoom.websockets.forEach((websocket) => {
           websocket.socket.send(JSON.stringify({
             type: "clickingOver"
           }))
@@ -1140,21 +1210,32 @@ app.ws('/join', function(ws, req) {
       }
 
       if (userMessage.type === "gameEnded"){
-        handleRemoveAll(studentName, type, leavingRoomCode);
-        const endSocketGame = websockets.find(user => user.userName === userMessage.name);
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
+        
+        const endSocketGame = gameRoom.websockets.find(user => user.userName === userMessage.name);
         if (endSocketGame) {
           endSocketGame.socket.send(JSON.stringify({
             type: "gameHasEnded"
           }))
         }
+        //move websocket connection back to the lobby:
+        const lobbyRoom = games.find(element => element.room === "Lobby"); //find the lobby game
+        const findWebsocket = gameRoom.websockets.find(element => element.webID === userID); // find the websocket connection to move to lobby
+        lobbyRoom.websockets.push(socketConnection); //add websocket back to the lobby
+        gameRoom.websockets = gameRoom.websockets.filter(element => element.webID !== userID) //remove the websocket connection from the previous game
+
+        
+        handleRemoveAll(studentName, type, leavingRoomCode, gameRoom);
+        leavingRoomCode = "Lobby"; //reset the roomCode
       }
 
       if (userMessage.type === "sendAnswerDist"){
         let sendAnswers = [];
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
 
-        let currentAnswers = gameState.answers.filter(function (element) {
+        let currentAnswers = gameRoom.gameState.answers.filter(function (element) {
           //return the students who have answered the current question
-          return (element.currentQuestion === gameState.currentQuestion && element.questionID === gameState.questionID);
+          return (element.currentQuestion === gameRoom.gameState.currentQuestion && element.questionID === gameRoom.gameState.questionID);
         })
 
         console.log("Going to check the following answers: ", currentAnswers);
@@ -1186,7 +1267,7 @@ app.ws('/join', function(ws, req) {
         } else {
           sendAnswers.push(top, left, right, bottom);
         }
-        const findTeacher = websockets.filter(teach => teach.userName === "teacher");
+        const findTeacher = gameRoom.websockets.filter(teach => teach.userName === "teacher");
         console.log("The teachers who will recieve the message are: ", findTeacher);
         if (findTeacher){
           console.log("Going to return the following array of numbers: ", sendAnswers);
@@ -1201,9 +1282,9 @@ app.ws('/join', function(ws, req) {
 
       if (userMessage.type === "scoreUpdate") {
         const { playername, clickCount } = userMessage.data;
-      
+        const gameRoom = games.find(element => element.room === leavingRoomCode);
         // Send update to all connected clients
-        websockets.forEach((websocket) => {
+        gameRoom.websockets.forEach((websocket) => {
           websocket.socket.send(JSON.stringify({
             type: "updateAllScores", // this is what frontend clients will receive
             data: {
@@ -1217,7 +1298,14 @@ app.ws('/join', function(ws, req) {
     });
 
     ws.on('close', async (code, reason) => {
-      handleRemoveAll(studentName, type, leavingRoomCode);
+      const leaveRoom = games.find(element => element.room === leavingRoomCode);
+      if (leavingRoomCode !== "Lobby"){
+        handleRemoveAll(studentName, type, leavingRoomCode, leaveRoom);
+      } else {
+        const lobbyRoom = games.find(element => element.room === "Lobby");
+        lobbyRoom.websockets = lobbyRoom.websockets.filter(element => element.webID === userID);
+      }
+      //leavingRoomCode = "Lobby";
       ws.close();
     });
   });

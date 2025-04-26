@@ -20,10 +20,12 @@ export const WebSocketService = {
             webSocket.onmessage = (ev) => {
                 const message = JSON.parse(ev.data);
                 if (message.type === "newStudentName"){ //used when the backend sends the student name
+                    console.log("The new student message was recieved!");
                     useStudentStore.setState({ name: message.data }); //updates the student's name
                     useStudentStore.setState({ roomCode: message.code }); //update's the students room code
                 }
                 else if (message.type === "studentsInGame"){ //backend sends a list of students in the game
+                    console.log("The students in game message was recieved!");
                     useStudentStore.setState({ students: message.data }); //updates the list of students in the game
                 }
                 else if (message.type === "generatedRoomCode"){ //used when the backend sends the room code to the teacher
@@ -49,6 +51,7 @@ export const WebSocketService = {
                 }
                 else if (message.type === "hostLeft"){
                     //remove all students from the game
+                    console.log("Recieved the host left message");
                     useStudentStore.getState().resetStudents();
                 } 
                 else if (message.type === "timeUp"){
