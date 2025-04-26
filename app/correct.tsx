@@ -14,7 +14,7 @@ interface CorrectScreenProps {
   onBonusSelect: (bonus: string) => void;
 }
 
-const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect }) => {
+const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = "", onBonusSelect }) => {
   const [selectedBonus, setSelectedBonus] = useState<string | null>(null);
   const questionNumber = useStudentStore(state => state.currQuestionNum);
   const totalQuestions = useStudentStore(state => state.totalQuestions);
@@ -43,7 +43,19 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
     }
   }, [bonus])
 
+  //for multipliers
+  const setPointsPer = useStudentStore(state => state.setPointsPerClick);
+  const pointsPer = useStudentStore(state => state.pointsPerClick);
+  useEffect(() => {
+    if(bonus === "+1 points per click"){
+      setPointsPer(pointsPer+1);
+    }
+    else if(bonus === "+2 points per click"){
+      setPointsPer(pointsPer+2);
+    }
+  }, [bonus])
 
+  
   const handleBonusSelect = (bonus: string) => {
     setSelectedBonus(bonus);
     // Was throwing an error when onBonusSelect was not a function, added check against until it is implemented
@@ -104,9 +116,6 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = 13, onBonusSelect
             useStudentStore.setState({ currQuestionNum: questionNumber + 1}) //update the current question number (student side)
             useStudentStore.setState({ nextQuestion: false });
             useStudentStore.setState({ currQuestionNum: questionNumber + 1})
-
-            //bonus resetting
-            useStudentStore.setState({ bonus: ""});
 
             console.log("go to next question is set to: ", useStudentStore.getState().nextQuestion);
             console.log("Everyone answered is now set to: ", useStudentStore.getState().allStudentsAnswered);

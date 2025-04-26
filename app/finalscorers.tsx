@@ -112,9 +112,9 @@ const TopScorersScreen = () => {
           <View style={styles.headerLeft}>
             <Text style={styles.logo}>Tappt</Text>
           </View>
-          <View style={styles.headerRight}>
-            <Text style={styles.playerCountText}>17 players</Text>
-          </View>
+          {/* {<View style={styles.headerRight}>
+            <Text style={styles.playerCountText}>{totalPlayers} players</Text>
+          </View>} */}
         </View>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerText}>Top Scorers</Text>

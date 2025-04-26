@@ -27,7 +27,7 @@ async function playSound(e: any) {
   }, 1500);
 }
 
-const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
+const ReadingScreen: React.FC<ReadingScreenProps> = () => {
   const [isReadingComplete, setIsReadingComplete] = useState(false);
 
   const navigation = useNavigation(); // <- Hook into navigation
@@ -43,6 +43,11 @@ const ReadingScreen: React.FC<ReadingScreenProps> = ({ playerCount = 17 }) => {
   //testing
   const nextQ = useStudentStore(state => state.nextQuestion);
   const setNextQuestion = useStudentStore(state => state.setNextQuestion);
+
+
+  //player count for header
+  const players = useStudentStore((state) => state.students);
+  const totalPlayers = players.length;
 
   //------------ Setting up the questions -----------------
 const deckID = useStudentStore(state => state.deckID);
@@ -260,7 +265,7 @@ if (isReadingComplete) {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Tappt</Text>
-      <Text style={styles.players}>{playerCount} players</Text>
+      <Text style={styles.players}>{totalPlayers} players</Text>
       <Text style={styles.readingText}>Reading...</Text>
     </View>
   );

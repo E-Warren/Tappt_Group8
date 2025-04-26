@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Link, router } from "expo-router";
 import { useStudentStore } from "./useWebSocketStore";
@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const roundScorersScreen = () => {
+const students = useStudentStore(state => state.students)
 //load leaderboard
 const [topStudents, setTopStudents] = useState<{name:string, clickCount:number}[]>([]);
 const roomCode = useStudentStore(state => state.roomCode);
@@ -36,6 +37,10 @@ useEffect(() => {
     router.replace("/reading");
   };
 
+  //player count for header
+  const players = useStudentStore((state) => state.students);
+  const totalPlayers = players.length;
+
   //function called for front end formatting for top 4 students
   const ScoreRow = ({ label, clicks, color }) => {
     return (
@@ -54,7 +59,7 @@ useEffect(() => {
             <Text style={styles.logo}>Tappt</Text>
           </View>
           <View style={styles.headerRight}>
-            <Text style={styles.playerCountText}>17 players</Text>
+            <Text style={styles.playerCountText}>{totalPlayers} players</Text>
           </View>
         </View>
         <View style={styles.headerTitleContainer}>
@@ -67,7 +72,7 @@ useEffect(() => {
         {topStudents[1] && (<ScoreRow label={`2 ${topStudents[1].name}`} clicks={`${topStudents[1].clickCount} clicks`} color={"#EFB034FF"}/>)}
         {topStudents[2] && (<ScoreRow label={`3 ${topStudents[2].name}`} clicks={`${topStudents[2].clickCount} clicks`} color={"#7F55E0FF"}/>)}
         {topStudents[3] && (<ScoreRow label={`4 ${topStudents[3].name}`} clicks={`${topStudents[3].clickCount} clicks`} color={"#EA916EFF"}/>)}
-        {topStudents.length === 0 && (<Text>No players on leaderboard.</Text>)}
+        {topStudents.length === 0 && (<Text style={styles.noPlayersText}>No players on leaderboard.</Text>)}
 
         <TouchableOpacity style={[styles.button]} onPress={handlePress}>
           <Text style={[styles.buttonText]}>Continue →</Text>
@@ -122,6 +127,13 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 70,
     fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  noPlayersText: {
+    marginTop: 50,
+    marginBottom: 50,
+    fontSize: 40,
+    fontWeight: "normal",
     color: "#FFFFFF",
   },
   scoreRow: {

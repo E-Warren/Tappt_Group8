@@ -82,6 +82,7 @@ export const WebSocketService = {
                         totalQuestions: 0,
                         currQuestionNum: 0,
                         clickCount: 0,
+                        pointsPerClick: 1,
                         students: [],
                         deckID: -1,
                         roomCode: "",

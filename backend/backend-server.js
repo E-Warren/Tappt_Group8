@@ -766,72 +766,65 @@ const getProbabilityInt = async () => {
 
 const bonusDecider = async (name, qNum, gameRoom) => {
   //finding the first place person -> first find max clicks
-  
-    const topClicks = Math.max(...gameRoom.gameState.answers.map(max => max.studentClicks));
-    //comparing max clicks person to websocket person name
-    console.log("The current game state answer is: ", gameRoom.gameState.answers);
-    const firstPlace = gameRoom.gameState.answers.filter(person => person.studentClicks === topClicks && person.questionNum === qNum);
-    console.log("The first place array holds the following people: ", firstPlace);
-    //ya bonus probability
-    const bonusProb = await getProbabilityInt();
-    let yourBonus = "";
-    console.log("bonus probability: ", bonusProb);
-  
-    //doing bonus selection based on if person is first place or not
-    //if failed to find the first place
-    if (firstPlace.length === 0) {
+  const topClicks = Math.max(...gameRoom.gameState.answers.map(max => max.studentClicks));
+  //comparing max clicks person to websocket person name
+  console.log("The current game state answer is: ", gameRoom.gameState.answers);
+  const firstPlace = gameRoom.gameState.answers.filter(person => person.studentClicks === topClicks && person.questionNum === qNum);
+  console.log("The first place array holds the following people: ", firstPlace);
+  //ya bonus probability
+  const bonusProb = await getProbabilityInt();
+  let yourBonus = "";
+  console.log("bonus probability: ", bonusProb);
+
+  //doing bonus selection based on if person is first place or not
+  //if failed to find the first place
+  if (firstPlace.length === 0) {
+    yourBonus = "failed";
+  }
+  else if (name === firstPlace[0].studentName) { //if first place
+    console.log(name, "is first place with", topClicks, "clicks")
+
+    if (bonusProb <= 25) {
+      yourBonus = "10% Bonus";
+    }
+    else if (bonusProb > 25 && bonusProb <= 45) {
+      yourBonus = "15% Bonus";
+    }
+    else if (bonusProb > 45 && bonusProb <= 60) {
+      yourBonus = "20% Bonus";
+    }
+    else if (bonusProb > 60 && bonusProb <= 95) {
+      yourBonus = "+1 points per click";
+    }
+    else if (bonusProb > 95) {
+      yourBonus = "+2 points per click";
+    }
+    else {
       yourBonus = "failed";
     }
-    else if (name === firstPlace[0].studentName) { //if first place
-      //colors
-      console.log(name, "is first place with", topClicks, "clicks")
-      if (bonusProb <= 25) {
-        yourBonus = "10% Bonus";
-      }
-      else if (bonusProb > 25 && bonusProb <= 45) {
-        yourBonus = "15% Bonus";
-      }
-      else if (bonusProb > 45 && bonusProb <= 60) {
-        yourBonus = "20% Bonus";
-      }
-      else if (bonusProb > 60 && bonusProb <= 85) {
-        yourBonus = "1.5x Multiplier";
-      }
-      else if (bonusProb > 85) {
-        yourBonus = "2x Multiplier";
-      }
-      else {
-        yourBonus = "failed";
-      }
+  }
+  else {  //if not first place
+    if (bonusProb <= 15) {
+      yourBonus = "10% Bonus";
     }
-    else {  //if not first place
-      if (bonusProb <= 20) {
-        yourBonus = "10% Bonus";
-      }
-      else if (bonusProb > 20 && bonusProb <= 35) {
-        yourBonus = "15% Bonus";
-      }
-      else if (bonusProb > 35 && bonusProb <= 45) {
-        yourBonus = "20% Bonus";
-      }
-      else if (bonusProb > 45 && bonusProb <= 65) {
-        yourBonus = "1.5x Multiplier";
-      }
-      else if (bonusProb > 65 && bonusProb <= 75) {
-        yourBonus = "2x Multiplier";
-      }
-      else if (bonusProb > 75 && bonusProb <= 90) {
-        yourBonus = "5% Steal";
-      }
-      else if (bonusProb > 90) {
-        yourBonus = "10% Steal";
-      }
-      else {
-        yourBonus = "failed";
-      }
+    else if (bonusProb > 15 && bonusProb <= 35) {
+      yourBonus = "15% Bonus";
     }
-  
-    return yourBonus;
+    else if (bonusProb > 35 && bonusProb <= 60) {
+      yourBonus = "20% Bonus";
+    }
+    else if (bonusProb > 60 && bonusProb <= 90) {
+      yourBonus = "+1 points per click";
+    }
+    else if (bonusProb > 90) {
+      yourBonus = "+2 points per click";
+    }
+    else {
+      yourBonus = "failed";
+    }
+  }
+
+  return yourBonus;
 }
 
 const handleRemoveAll = async (studentName, type, leavingRoomCode,fromRoom)=> {
