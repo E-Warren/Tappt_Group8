@@ -115,24 +115,44 @@ const ReviewScreen = () => {
 
   useEffect(() => {
     if (actionTrigger === 0) return; 
-  
+    
     Speech.stop();
-  
+    
     const currentDeck = currentSection === "correct" ? correctDeck : incorrectDeck;
   
     if (currentDeck.length === 0) {
-      console.log("There is no question set!");
-      return;
+      if (currentSection === "correct" && incorrectDeck.length > 0) {
+        Speech.speak("No correct answers.");
+        setCurrentSection("incorrect");
+        setCurrentIndex(0);
+        setCorrectIntroSpoken(true);
+        setIncorrectIntroSpoken(false);
+        return;
+      } else if (currentSection === "incorrect" && correctDeck.length > 0) {
+        Speech.speak("No incorrect answers.");
+        setCurrentSection("correct");
+        setCurrentIndex(0);
+        setIncorrectIntroSpoken(true);
+        setCorrectIntroSpoken(false);
+        return;
+      } else {
+        console.log("No questions in both sections!");
+        return;
+      }
     }
   
     if (currentSection === "correct" && !correctIntroSpoken) {
-      Speech.speak("Correct.");
+      const correctCount = correctDeck.length;
+      const correctText = `Correct. You have ${correctCount} correct ${correctCount === 1 ? "answer" : "answers"}.`;
+      Speech.speak(correctText);
       setCorrectIntroSpoken(true);
       return;
     }
   
     if (currentSection === "incorrect" && !incorrectIntroSpoken) {
-      Speech.speak("Incorrect.");
+      const incorrectCount = incorrectDeck.length;
+      const incorrectText = `Incorrect. You have ${incorrectCount} incorrect ${incorrectCount === 1 ? "answer" : "answers"}.`;
+      Speech.speak(incorrectText);
       setIncorrectIntroSpoken(true);
       return;
     }
@@ -146,6 +166,8 @@ const ReviewScreen = () => {
       if (currentSection === "correct" && incorrectDeck.length > 0) {
         setCurrentSection("incorrect");
         setCurrentIndex(0);
+        setCorrectIntroSpoken(false);
+        setIncorrectIntroSpoken(false);
       } else {
         setCurrentSection("correct");
         setCurrentIndex(0);
