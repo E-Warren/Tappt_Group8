@@ -13,8 +13,8 @@ export const WebSocketService = {
                 console.log("Successfull!")
                 resolve();
             }
-            webSocket.onerror = () => { //websocket has errors
-                console.log("Failed :(");
+            webSocket.onerror = (event) => { //websocket has errors
+                console.log("Failed :(", event);
                 reject();
             }
             webSocket.onmessage = (ev) => {

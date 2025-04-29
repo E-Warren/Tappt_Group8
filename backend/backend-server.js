@@ -829,6 +829,9 @@ const bonusDecider = async (name, qNum, gameRoom) => {
 
 const handleRemoveAll = async (studentName, type, leavingRoomCode,fromRoom)=> {
   console.log("Removing websocket connection");
+  if (type === undefined){
+    return;
+  }
 
   if (type === "student"){
     fromRoom.gameState.studentsInRoom = fromRoom.gameState.studentsInRoom.filter(student => student.name !== studentName);
@@ -932,15 +935,20 @@ app.ws('/join', function(ws, req) {
 
           console.log("Going to send a message to everyone that the student joined the room yay!");
           joinRoomCode.gameState.studentsInRoom.push({ name: returnedName, clickCount: 0 });
-          ws.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
+          socketConnection.socket.send(JSON.stringify({type: "newStudentName", data: returnedName, code: userMessage.data.code})); //will store the message in zustand
           const listOfStudents = joinRoomCode.gameState.studentsInRoom; //stores the list of students in the game
   
+          try{
             joinRoomCode.websockets.forEach((websocket) => { //will update the students in the game (sends to each websocket)
               websocket.socket.send(JSON.stringify({
                 type: "studentsInGame",
                 data: listOfStudents
               }));
             })
+          } catch (err) {
+            console.log("Error when trying to join a new room ", err);
+          }
+
         } else {
           console.log("Could not find the room to join in join message");
         }
@@ -982,7 +990,7 @@ app.ws('/join', function(ws, req) {
         
         console.log("Returning the room code: ", returnedRoom);
 
-        ws.send(JSON.stringify({ //sends the room code to zustand
+        socketConnection.socket.send(JSON.stringify({ //sends the room code to zustand
           type: "generatedRoomCode",
           data: returnedRoom,
         }))
