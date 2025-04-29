@@ -13,8 +13,8 @@ export const WebSocketService = {
                 console.log("Successfull!")
                 resolve();
             }
-            webSocket.onerror = (event) => { //websocket has errors
-                console.log("Failed :(", event);
+            webSocket.onerror = () => { //websocket has errors
+                console.log("Failed :(");
                 reject();
             }
             webSocket.onmessage = (ev) => {
@@ -35,6 +35,7 @@ export const WebSocketService = {
                     useStudentStore.setState({ currentTime: message.timeLeft });
                 }
                 else if (message.type === "gameHasBegun") {  //backend sends to students that the game has begun
+                    console.log("Recieved the game has begun message!!");
                     useStudentStore.setState({ startedGame : message.data });
                 }
                 else if (message.type === "sentDeckID") {
@@ -107,6 +108,9 @@ export const WebSocketService = {
                 else if (message.type === "updateAllScores") {
                     const { playername, clickCount } = message.data;
                     useStudentStore.getState().updateStudentScore(playername, clickCount);
+                }
+                else if (message.type === "keepAlive"){
+                    //do nothing this is just to keep the websocket open
                 }
                 
                 console.log(message);

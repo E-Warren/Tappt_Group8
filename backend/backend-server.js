@@ -911,7 +911,13 @@ app.ws('/join', function(ws, req) {
   //put UUID here
     ws.on('message', async function(msg) { //get the message
       console.log(msg);
-      const userMessage = JSON.parse(msg);
+      let userMessage;
+      try{
+        userMessage = JSON.parse(msg);
+      } catch (err) {
+        console.log("Recieved a weird message", err);
+        return;
+      }
       
 
       if (userMessage.type === 'join'){ //called when a student joins the room
@@ -1307,7 +1313,6 @@ app.ws('/join', function(ws, req) {
         lobbyRoom.websockets = lobbyRoom.websockets.filter(element => element.webID === userID);
       }
       //leavingRoomCode = "Lobby";
-      ws.close();
     });
   });
 
@@ -1334,6 +1339,19 @@ app.ws('/join', function(ws, req) {
         res.status(500).json(err)
     }
   });
+
+  //trying to keep the connection open for more than 1 minute for safari
+  setInterval(() => {
+    games.forEach(game => {
+      game.websockets.forEach( websocket => {
+        if (websocket.socket.readyState === WebSocket.OPEN) {
+          websocket.socket.send(JSON.stringify({
+            type: "keepAlive"
+          }))
+        }
+      })
+    })
+  }, 50000)
 
 
 // -------------------- RUNNING SERVER --------------------------- 

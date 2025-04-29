@@ -46,7 +46,7 @@ export default function DecksScreen() {
       const token = localStorage.getItem("token");
       if (!token) {
         alert("Missing token. Please log in.");
-        router.push("/login");
+        router.replace("/login");
         return;
       }
 
@@ -62,6 +62,7 @@ export default function DecksScreen() {
 
         if (!response.ok) {
           alert("Access denied: please log in and try again.");
+          router.replace("/login")
           return;
         }
 
