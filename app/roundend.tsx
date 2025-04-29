@@ -27,6 +27,7 @@ const ResultsScreen = ({
     { original: styles.diamondPink, grey: styles.diamondPinkGrey },
   ];
   const numberCorrect = useRef(0);
+  const roomCode = useStudentStore(state => state.roomCode);
 
 //get leaderboard
 const students = useStudentStore(state => state.students);
@@ -49,7 +50,7 @@ console.log("TOP STUDENTS ARE: ", topStudents);
 useEffect(() => {
 const saveLeaderboard = async (topStudents: {name:string, clickCount:number}[]) => {
   try {
-    await AsyncStorage.setItem('topStudents', JSON.stringify(topStudents));
+    await AsyncStorage.setItem(`topStudents-${roomCode}`, JSON.stringify(topStudents));
   } catch (e) {
     console.error("Failed to save leaderboard", e);
   }

@@ -4,24 +4,26 @@ import { Link } from 'expo-router';
 import { useStudentStore } from "./useWebSocketStore";
 import { WebSocketService } from "./webSocketService";
 import { Audio } from 'expo-av';
-import tadaSound from '../assets/sound/tada-fanfare-a-6313.mp3';
+//import tadaSound from '../assets/sound/tada-fanfare-a-6313.mp3';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TopScorersScreen = () => {
 
+  const tadaSound = require('../assets/sound/tada-fanfare-a-6313.mp3');
   const firstPlaceAnim = useRef(new Animated.Value(0)).current;
   const secondPlaceAnim = useRef(new Animated.Value(0)).current;
   const thirdPlaceAnim = useRef(new Animated.Value(0)).current;
+  const roomCode = useStudentStore(state => state.roomCode);
 
   //load leaderboard
   const [topStudents, setTopStudents] = useState<{name:string, clickCount:number}[]>([]);
   useEffect(() => {
     const getLeaderboard = async () => {
       try {
-        const value = await AsyncStorage.getItem('topStudents');
+        const value = await AsyncStorage.getItem(`topStudents-${roomCode}`);
         if (value !== null) {
           setTopStudents(JSON.parse(value));
-          await AsyncStorage.removeItem('topStudents'); // cleanup here
+          await AsyncStorage.removeItem(`topStudents-${roomCode}`); // cleanup here
           console.log("DELETED LEADERBOARD AFTER USE --> LEADERBOARD: ", getLeaderboard());
         }
       } catch (e) {

@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { useNavigation } from "@react-navigation/native"; // or "expo-router" if using Expo Router
 import { WebSocketService } from "./webSocketService";
 import Config from './config';
-import timerSound from "../assets/sound/timer-with-chime-101253.mp3";
+//import timerSound from "../assets/sound/timer-with-chime-101253.mp3";
 import { Audio } from "expo-av"; 
 
 interface QuestionWithTimerScreenProps {
@@ -17,6 +17,7 @@ const QuestionWithTimerScreen: React.FC<QuestionWithTimerScreenProps> = ({
   playerCount = 17,
 }) => {
   const timer = useStudentStore((state) => state.currentTime);
+  const timerSound = require('../assets/sound/timer-with-chime-101253.mp3');
 
   const timerIsUp = useStudentStore((state) => state.isTimeUp)
   const haveAllStudentsAnswered = useStudentStore(state => state.allStudentsAnswered);

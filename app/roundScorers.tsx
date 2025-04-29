@@ -10,11 +10,11 @@ const roundScorersScreen = () => {
 const students = useStudentStore(state => state.students)
 //load leaderboard
 const [topStudents, setTopStudents] = useState<{name:string, clickCount:number}[]>([]);
-
+const roomCode = useStudentStore(state => state.roomCode);
 useEffect(() => {
   const getLeaderboard = async () => {
     try {
-      const value = await AsyncStorage.getItem('topStudents');
+      const value = await AsyncStorage.getItem(`topStudents-${roomCode}`);
       if (value !== null) {
         setTopStudents(JSON.parse(value));
       }
