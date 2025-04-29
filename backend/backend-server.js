@@ -921,6 +921,14 @@ app.ws('/join', function(ws, req) {
       
 
       if (userMessage.type === 'join'){ //called when a student joins the room
+        const joinRoomCode = games.find((element) => element.room === userMessage.data.code); //find the room to add the student to
+        if (joinRoomCode.gameState.hasStarted){
+          socketConnection.socket.send(JSON.stringify({
+            type: "gameAlreadyStarted"
+          }))
+          return;
+        }
+
         console.log("Going to join the room"); 
         const returnedName = await joinRoom(userMessage.data); //gets the randomly generated student name
         studentName = returnedName; //store student's name
@@ -933,7 +941,7 @@ app.ws('/join', function(ws, req) {
         const WebsocketToRemove = removeFromLobby.websockets.find(element => element.webID === userID); //find the websocket connection to remove
         removeFromLobby.websockets = removeFromLobby.websockets.filter(element => element.webID !== userID); //remove the websocket from the lobby
         console.log("Websockets in the lobby: ", removeFromLobby.websockets);
-        const joinRoomCode = games.find((element) => element.room === userMessage.data.code); //find the room to add the student to
+        
         if (joinRoomCode){
           joinRoomCode.websockets.push(socketConnection); //add the websocket connection to the new game
   
@@ -1217,6 +1225,7 @@ app.ws('/join', function(ws, req) {
       }
 
       if (userMessage.type === "gameEnded"){
+        console.log("Going to remove someone from the game")
         const gameRoom = games.find(element => element.room === leavingRoomCode);
         
         const endSocketGame = gameRoom.websockets.find(user => user.userName === userMessage.name);
@@ -1231,7 +1240,7 @@ app.ws('/join', function(ws, req) {
         lobbyRoom.websockets.push(socketConnection); //add websocket back to the lobby
         gameRoom.websockets = gameRoom.websockets.filter(element => element.webID !== userID) //remove the websocket connection from the previous game
 
-        
+        console.log("Right before the handleRemoveAll function")
         handleRemoveAll(studentName, type, leavingRoomCode, gameRoom);
         leavingRoomCode = "Lobby"; //reset the roomCode
       }

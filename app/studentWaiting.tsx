@@ -3,6 +3,7 @@ import { useStudentStore } from "./useWebSocketStore";
 import { useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
+import { WebSocketService } from "./webSocketService";
 
 export default function Index() {
     const studentName = useStudentStore(state => state.name); //gets the student's name from zustand
@@ -24,9 +25,23 @@ export default function Index() {
 
     }, [gameStarted]);
 
-    //useEffect (() => {
-    //    setUserType("student");
-    //}, [])
+    useEffect(() => {
+        console.log("Back arrow in student waiting is mounted")
+        const handleBackButton = (event: PopStateEvent) => {
+            console.log("Going to remove the student from the game now")
+            WebSocketService.sendMessage(JSON.stringify({
+                type: "gameEnded",
+                name: studentName
+            }))
+        };
+      
+        window.addEventListener("popstate", handleBackButton);   
+        return () => {
+          setTimeout(() => {
+            window.removeEventListener('popstate', handleBackButton);
+          }, 0);
+        };
+      }, []); 
 
     return (
       <View style={styles.container}>

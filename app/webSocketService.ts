@@ -112,6 +112,9 @@ export const WebSocketService = {
                 else if (message.type === "keepAlive"){
                     //do nothing this is just to keep the websocket open
                 }
+                else if (message.type === "gameAlreadyStarted"){
+                    alert("Cannot join: The game has already started!")
+                }
                 
                 console.log(message);
             }

@@ -22,6 +22,7 @@ export default function WaitingRoom() {
   const setUserType = useStudentStore((state) => state.setUserType);
   const RoomCode = useStudentStore((state) => state.roomCode);
   const gameStarted = useStudentStore((state) => state.startedGame);
+  const playerName = useStudentStore((state) => state.name)
 
   // Track the new student's identifier.
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
@@ -50,6 +51,23 @@ export default function WaitingRoom() {
       soundRef.current = null;
     }
   }
+
+  useEffect(() => {
+    const handleBackArrow = () => {
+      WebSocketService.sendMessage(JSON.stringify({
+        type: 'gameEnded',
+        name: playerName
+      }))
+      router.replace("/view-decks")
+    };
+  
+    window.addEventListener("popstate", handleBackArrow);
+  
+    return () => {
+      window.removeEventListener("popstate", handleBackArrow);
+    };
+  }, []); 
+
 
   // Start sound on mount and clean up on unmount.
   useEffect(() => {
@@ -97,8 +115,14 @@ export default function WaitingRoom() {
       <Link
         href="/view-decks"
         style={styles.backButton}
-        onPress={() => {
+        onPress={(event) => {
+          event.preventDefault();
           stopSound();
+          WebSocketService.sendMessage(JSON.stringify({
+            type: 'gameEnded',
+            name: playerName
+          }))
+          router.replace("/view-decks")
         }}
       >
         <Text style={styles.backButtonText}>← Back</Text>
