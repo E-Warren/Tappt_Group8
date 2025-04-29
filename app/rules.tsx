@@ -1,49 +1,51 @@
-import { View, Text, ScrollView, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 
 export default function Index() {
   return (
     <View style={styles.container}>
-      {/* Left Side - Rules */}
-      <View style={styles.section}>
-        <Text style={styles.title}>rules ⭐ </Text>
-        <ScrollView>
-          <Text style={styles.creatorName}>1. Enter game pin to join the classroom </Text>
-          <Text style={styles.creatorName}>2. Wait for the host to start the game</Text>
-          <Text style={styles.creatorName}>3. Read each question carefully before answering</Text>
-          <Text style={styles.creatorName}>4. Earn power-ups for correct answers </Text>
-          <Text style={styles.creatorName}>5. Have loads of fun!</Text>
-        </ScrollView>
+      {/* Top Bar */}
+      <View style={styles.topBar}>
+        <Text style={styles.topBarText}>◇ Tappt</Text>
       </View>
 
-      {/* Right Side - About the Creators */}
-      <View style={styles.section}>
-        <Text style={styles.title}>about the creators 😁 </Text>
-        <ScrollView>
-          <View style={styles.creatorBox}>
-            <Text style={styles.creatorName}>Emily</Text>
-            <Text style={styles.creatorDesc}>Scrum Master & Team Lead</Text>
+      {/* Main Card */}
+      <View style={styles.card}>
+        <Text style={styles.title}>How to play</Text>
+        <View style={styles.blocksContainer}>
+          {/* Green Block */}
+          <View style={[styles.block, { backgroundColor: "#20c997" }]}>
+            <View style={styles.headingContainer}>
+              <Text style={styles.blockHeading}>LISTEN!</Text>
+            </View>
+            <Text style={styles.blockText}>
+              1. Enter game pin to join classroom{"\n"}
+              2. Wait for host to start the game{"\n"}
+              3. Listen to the question as it is read aloud before answering
+            </Text>
           </View>
-          <View style={styles.creatorBox}>
-            <Text style={styles.creatorName}>Carlie</Text>
-            <Text style={styles.creatorDesc}>Back-end Dev</Text>
+
+          {/* Yellow Block */}
+          <View style={[styles.block, { backgroundColor: "#f0ad4e" }]}>
+            <View style={styles.headingContainer}>
+              <Text style={styles.blockHeading}>CLICK!</Text>
+            </View>
+            <Text style={styles.blockText}>
+              1. Earn points for clicks during the read aloud period{"\n"}
+              2. Earn powerups for correct answers
+            </Text>
           </View>
-          <View style={styles.creatorBox}>
-            <Text style={styles.creatorName}>Madison</Text>
-            <Text style={styles.creatorDesc}>Fullstack</Text>
+
+          {/* Blue Block */}
+          <View style={[styles.block, { backgroundColor: "#3498db" }]}>
+            <View style={styles.headingContainer}>
+              <Text style={styles.blockHeading}>LEARN!</Text>
+            </View>
+            <Text style={styles.blockText}>
+              1. Review incorrect answers after the game ends{"\n"}
+              2. Retain information long term with repeated games
+            </Text>
           </View>
-          <View style={styles.creatorBox}>
-            <Text style={styles.creatorName}>Sualeha</Text>
-            <Text style={styles.creatorDesc}>Front-end Dev</Text>
-          </View>
-          <View style={styles.creatorBox}>
-            <Text style={styles.creatorName}>Sulha</Text>
-            <Text style={styles.creatorDesc}>API Integration</Text>
-          </View>
-          <View style={styles.creatorBox}>
-            <Text style={styles.creatorName}>Alec</Text>
-            <Text style={styles.creatorDesc}>Front-end Dev</Text>
-          </View>
-        </ScrollView>
+        </View>
       </View>
     </View>
   );
@@ -52,44 +54,80 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#e35b8b",
+    alignItems: "center",
+    paddingTop: 20, // less padding to maximize space
+    paddingHorizontal: 10,
+  },
+  topBar: {
+    width: "100%",
     flexDirection: "row",
-    backgroundColor: "#5a60ea",
-    paddingTop: 40,
-    paddingHorizontal: 20,
+    justifyContent: "flex-start",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingBottom: 10,
   },
-  section: {
-    flex: 1,
-    marginHorizontal: 10,
-  },
-  title: {
+  topBarText: {
     fontSize: 24,
     color: "#fff",
+  },
+  card: {
+    width: "98%", // << almost full width
+    height: "90%", // << almost full height
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 10, // a little padding
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  title: {
+    fontSize: 65, // slightly smaller title for balance
     fontWeight: "bold",
     marginBottom: 10,
-    textTransform: "uppercase",
+    color: "#000",
+    textAlign: "center",
   },
-  item: {
-    // This style is now unused but kept just in case
-    fontSize: 16,
-    color: "#fff",
-    marginBottom: 10,
-    lineHeight: 22,
+  blocksContainer: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "space-evenly", // distribute space evenly
+    alignItems: "stretch", // make blocks stretch vertically
+    width: "100%",
+    paddingHorizontal: 10,
   },
-  creatorBox: {
-    marginBottom: 20,
+  block: {
+    flex: 1,
+    marginHorizontal: 6,
+    borderRadius: 10,
+    overflow: "hidden",
     padding: 10,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    borderRadius: 8,
+    backgroundColor: "#ccc",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
-  creatorName: {
-    fontSize: 18,
+  headingContainer: {
+    height: 80,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  blockHeading: {
+    fontSize: 60,
     color: "#fff",
     fontWeight: "bold",
-    marginBottom: 10, // added for spacing between rule lines
+    textAlign: "center",
+    textShadowColor: "rgba(255, 255, 255, 0.6)",
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
-  creatorDesc: {
-    fontSize: 14,
+  blockText: {
+    fontSize: 40, // cleaner readable size
     color: "#fff",
-    marginTop: 4,
+    textAlign: "center",
+    lineHeight: 61,
   },
 });
