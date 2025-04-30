@@ -6,6 +6,7 @@ import { WebSocketService } from "./webSocketService";
 import { router } from "expo-router";
 import { Audio } from "expo-av";
 import { useIsFocused } from "@react-navigation/native";
+import * as Speech from "expo-speech";
 
 interface CorrectScreenProps {
   timer?: number;
@@ -69,43 +70,113 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = "", onBonusSelect
   //sound!!!!
   const soundRef = useRef<Audio.Sound | null>(null);
 
-  async function playSound() {
+  async function playCorrectSound() {
     try {
       const { sound } = await Audio.Sound.createAsync(
         require("../assets/sound/correct.mp3"),
         { shouldPlay: true, isLooping: true }
       );
       soundRef.current = sound;
-      console.log("Playing Sound");
-      await sound.setRateAsync(0.9,true);
+      console.log("Playing Correct Sound");
+  
+      await sound.setRateAsync(0.9, true);
       await sound.playAsync();
-
-      setTimeout(() => {
-        stopSound();
-      }, 1100); 
+  
+      setTimeout(async () => {
+        await stopSound();
+      }, 1100);
+  
     } catch (error) {
-      console.error("Error Playing sound:", error);
+      console.error("Error Playing correct sound:", error);
     }
   }
+  
+  async function playBonusSound(selectedBonus: string) {
+    try {
+      if (!selectedBonus) return;
+  
+      let bonusSoundAsset: any = null;
+  
+      if (selectedBonus === "10% Bonus") {
+        bonusSoundAsset = require("../assets/sound/ten.mp3");
+      } else if (selectedBonus === "15% Bonus") {
+        bonusSoundAsset = require("../assets/sound/fifteen.mp3");
+      } else if (selectedBonus === "20% Bonus") {
+        bonusSoundAsset = require("../assets/sound/twenty.mp3");
+      } else if (selectedBonus === "+1 points per click") {
+        bonusSoundAsset = require("../assets/sound/cute-level-up-2-189851.mp3");
+      } else if (selectedBonus === "+2 points per click") {
+        bonusSoundAsset = require("../assets/sound/cute-level-up-3-189853.mp3");
+      }
+  
+      if (bonusSoundAsset) {
+        const { sound: bonusSound } = await Audio.Sound.createAsync(
+          bonusSoundAsset,
+          { shouldPlay: true, isLooping: false }
+        );
+        console.log("Playing Bonus Sound");
+  
+        await bonusSound.playAsync(); 
+  
+        bonusSound.setOnPlaybackStatusUpdate(async (status) => {
+          if (status.didJustFinish) {
+            console.log("Bonus Sound Finished");
+            await bonusSound.unloadAsync();
+            Speech.speak(selectedBonus); 
+          }
+        });
+      } else {
+        Speech.speak(selectedBonus); 
+      }
+    } catch (error) {
+      console.error("Error Playing bonus sound:", error);
+    }
+  }
+  
   async function stopSound() {
     if (soundRef.current) {
       console.log("Stopping Sound");
-      await soundRef.current.stopAsync();
-      await soundRef.current.unloadAsync();
+      const status = await soundRef.current.getStatusAsync();
+      if (status.isLoaded) {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+      } else {
+        console.log("Sound not loaded, skipping stop/unload");
+      }
       soundRef.current = null;
     }
   }
+  
   useEffect(() => {
-    const soundTimer = setTimeout(() => {
-      playSound();
+    const correctTimer = setTimeout(() => {
+      playCorrectSound();
     }, 500);
-
+  
     return () => {
-      clearTimeout(soundTimer);
+      clearTimeout(correctTimer);
       stopSound();
     };
   }, []);
   
+ 
+  useEffect(() => {
+    if (!bonus) return;
+  
+    const bonusTimer = setTimeout(() => {
+      playBonusSound(bonus);
+    }, 2000); 
+  
+    return () => {
+      clearTimeout(bonusTimer);
+    };
+  }, [bonus]); 
+
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
     //***temporary*** => substitute until we have teacher frontend routed to this point
     //setting timeout for 5 seconds so that student can see incorrect page
     useEffect(() => {
