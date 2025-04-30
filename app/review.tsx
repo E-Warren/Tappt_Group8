@@ -80,6 +80,14 @@ const ReviewScreen = () => {
           isCorrect: deck.fld_correctness,
         }));
 
+        //sort correct & incorrect data in ascending order (if it exists)
+        if (insertCorrectDecks.length > 0) {
+          insertCorrectDecks.sort((a,b) => a.questionNumber - b.questionNumber);
+        }
+        if (insertIncorrectDecks.length > 0) {
+          insertIncorrectDecks.sort((a,b) => a.questionNumber - b.questionNumber);
+        }
+
         setCorrectDecks(insertCorrectDecks);
         setIncorrectDecks(insertIncorrectDecks);
       }
