@@ -168,9 +168,10 @@ useEffect(() => {
       });
       console.log("Going to set the correct array to: ", correctOptions );
       useStudentStore.setState({ correctIndex: correctOptions});
+      useStudentStore.setState({ displayQuestion: currQuestion.question })
     }
     useStudentStore.setState({ answerChoices: aChoices });
-    useStudentStore.setState({ displayQuestion: currQuestion.question })
+    
   }, [questions])
 
 
