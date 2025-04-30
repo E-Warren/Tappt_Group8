@@ -45,6 +45,11 @@ jobs:
             echo "CONFIG FILE WRITTEN. SEE /app:"
             ls app
 
+            # unit testing
+            echo "UNIT TESTING"
+            npm install regenerator-runtime
+            CI=true npm test
+
             # build the frontend
             echo "BUILDING APP"
             pwd
