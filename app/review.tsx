@@ -80,6 +80,14 @@ const ReviewScreen = () => {
           isCorrect: deck.fld_correctness,
         }));
 
+        //sort correct & incorrect data in ascending order (if it exists)
+        if (insertCorrectDecks.length > 0) {
+          insertCorrectDecks.sort((a,b) => a.questionNumber - b.questionNumber);
+        }
+        if (insertIncorrectDecks.length > 0) {
+          insertIncorrectDecks.sort((a,b) => a.questionNumber - b.questionNumber);
+        }
+
         setCorrectDecks(insertCorrectDecks);
         setIncorrectDecks(insertIncorrectDecks);
       }
@@ -245,6 +253,21 @@ const ReviewScreen = () => {
           You answered {correctCount} out of {totalQuestions} questions correctly
         </Text>
 
+        <Text style={styles.sectionTitle}>Incorrect</Text>
+        {incorrectDeck.length > 0 ? (
+          incorrectDeck.map((item, idx) => (
+            <AnswerCard
+              key={`incorrect-${idx}`}
+              questionNumber={item.questionNumber}
+              question={item.question}
+              userAnswer={item.userAnswer}
+              correctAnswer={item.correctAnswer}
+              isCorrect={item.isCorrect}
+            />
+          ))
+        ) : (
+          <Text style={styles.emptyMessage}>No incorrect answers!</Text>
+        )}
 
         <Text style={styles.sectionTitle}>Correct</Text>
         {correctDeck.length > 0 ? (
@@ -262,21 +285,6 @@ const ReviewScreen = () => {
           <Text style={styles.emptyMessage}>No correct answers...</Text>
         )}
 
-        <Text style={styles.sectionTitle}>Incorrect</Text>
-        {incorrectDeck.length > 0 ? (
-          incorrectDeck.map((item, idx) => (
-            <AnswerCard
-              key={`incorrect-${idx}`}
-              questionNumber={item.questionNumber}
-              question={item.question}
-              userAnswer={item.userAnswer}
-              correctAnswer={item.correctAnswer}
-              isCorrect={item.isCorrect}
-            />
-          ))
-        ) : (
-          <Text style={styles.emptyMessage}>No incorrect answers!</Text>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
