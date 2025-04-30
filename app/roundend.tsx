@@ -18,6 +18,7 @@ const ResultsScreen = ({
   const currentNumber = useStudentStore((state) => state.currQuestionNum);
   const totalNumQuestions = useStudentStore((state) => state.totalQuestions);
   const diamondData = useStudentStore((state) => state.answerChoices);
+  const displayCurrQuestion = useStudentStore((state) => state.displayQuestion)
   const [blackedOut, setBlackedOut] = useState<boolean[]>([]);
   const [animatedValues, setAnimatedValues] = useState<Animated.Value[]>([]);
   const diamondColors = [
@@ -61,6 +62,7 @@ console.log("SAVED LEADERBOARD TOP 4");
 });
 
   useEffect(() => {
+    console.log("The question that will be displayed is: ", displayCurrQuestion)
     if (isFocused){
       WebSocketService.sendMessage(JSON.stringify({
             type: "sendAnswerDist",

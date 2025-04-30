@@ -170,6 +170,7 @@ useEffect(() => {
       useStudentStore.setState({ correctIndex: correctOptions});
     }
     useStudentStore.setState({ answerChoices: aChoices });
+    useStudentStore.setState({ displayQuestion: currQuestion.question })
   }, [questions])
 
 
