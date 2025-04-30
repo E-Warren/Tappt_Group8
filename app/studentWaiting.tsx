@@ -33,6 +33,7 @@ export default function Index() {
                 type: "gameEnded",
                 name: studentName
             }))
+            router.dismissTo("/slogin")
         };
       
         window.addEventListener("popstate", handleBackButton);   

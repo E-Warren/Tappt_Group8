@@ -6,11 +6,10 @@ import { WebSocketService } from './webSocketService';
 import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
-const ResultsScreen = ({
-}) => {
+const ResultsScreen = () => {
   const cIndex = useStudentStore((state) => state.correctIndex);
   const deckID = useStudentStore((state) => state.deckID);
+  const roomCode = useStudentStore((state) => state.roomCode);
   const isFocused = useIsFocused();
   const data = useStudentStore((state) => state.answerDist);
   const players = useStudentStore((state) => state.students);
@@ -18,80 +17,68 @@ const ResultsScreen = ({
   const currentNumber = useStudentStore((state) => state.currQuestionNum);
   const totalNumQuestions = useStudentStore((state) => state.totalQuestions);
   const diamondData = useStudentStore((state) => state.answerChoices);
+  const displayCurrQuestion = useStudentStore((state) => state.displayQuestion)
+  //const currentQuestion = useStudentStore((state) => state.currentQuestion);
+
   const [blackedOut, setBlackedOut] = useState<boolean[]>([]);
   const [animatedValues, setAnimatedValues] = useState<Animated.Value[]>([]);
+  const numberCorrect = useRef(0);
+
   const diamondColors = [
     { original: styles.diamondPurple, grey: styles.diamondPurpleGrey },
     { original: styles.diamondOrange, grey: styles.diamondOrangeGrey },
     { original: styles.diamondBlue, grey: styles.diamondBlueGrey },
     { original: styles.diamondPink, grey: styles.diamondPinkGrey },
   ];
-  const numberCorrect = useRef(0);
-  const roomCode = useStudentStore(state => state.roomCode);
 
-//get leaderboard
-const students = useStudentStore(state => state.students);
+  // compute top 4 leaderboard
+  const topStudents = useMemo(() => {
+    return [...players]
+      .sort((a, b) => (b.clickCount - a.clickCount) || a.name.localeCompare(b.name))
+      .slice(0, 4);
+  }, [players]);
 
-console.log("all students are: ", students);
-
-const topStudents = useMemo(() => {
-  return [...students]
-    .sort((a, b) => {
-      if (b.clickCount !== a.clickCount) {
-        return b.clickCount - a.clickCount;
-      }
-      return a.name.localeCompare(b.name);
-    })
-    .slice(0, 4);
-}, [students]);
-console.log("TOP STUDENTS ARE: ", topStudents);
-
-//save leaderboard
-useEffect(() => {
-const saveLeaderboard = async (topStudents: {name:string, clickCount:number}[]) => {
-  try {
-    await AsyncStorage.setItem(`topStudents-${roomCode}`, JSON.stringify(topStudents));
-  } catch (e) {
-    console.error("Failed to save leaderboard", e);
-  }
-};
-saveLeaderboard(topStudents);
-
-console.log("SAVED LEADERBOARD TOP 4");
-});
-
+  // save top 4 on every change
   useEffect(() => {
+    const saveLeaderboard = async () => {
+      try {
+        await AsyncStorage.setItem(`topStudents-${roomCode}`, JSON.stringify(topStudents));
+      } catch (e) {
+        console.error('Failed to save leaderboard', e);
+      }
+    };
+    saveLeaderboard();
+  }, [topStudents, roomCode]);
+
+  // request updated answer distribution when screen focuses
+  useEffect(() => {
+    console.log("The question that will be displayed is: ", displayCurrQuestion)
     if (isFocused){
       WebSocketService.sendMessage(JSON.stringify({
             type: "sendAnswerDist",
       }))
     }
-  }, [])
+  }, [isFocused]);
 
+  // initialize blackedOut flags when data or correct index changes
   useEffect(() => {
-    if (data.length > 0 && isFocused){
-      const setBlackOut = new Array(4).fill(true);
-      if (cIndex.length > 0){
-        for (const num of cIndex){
-          setBlackOut[num] = false;
-        }
-      }
-      setBlackedOut(setBlackOut);
-      console.log("Blacked out is now: ", setBlackOut);
+    if (data.length > 0) {
+      const flags = Array(4).fill(true);
+      cIndex.forEach((i) => { flags[i] = false; });
+      setBlackedOut(flags);
     }
-  }, [animatedValues])
+  }, [data, cIndex]);
 
-  //const animatedValues = useRef(data.map(() => new Animated.Value(0))).current;
+  // initialize animated values whenever data arrives
   useEffect(() => {
-    if (data.length > 0 && isFocused){
-      const updatedVals = data.map(() => new Animated.Value(0));
-      setAnimatedValues(updatedVals);
+    if (data.length > 0) {
+      setAnimatedValues(data.map(() => new Animated.Value(0)));
     }
   }, [data]);
 
+  // run the bar animations
   useEffect(() => {
-    console.log("The current value of data distribution is: ", data);
-    if (data.length > 0 && isFocused){
+    if (animatedValues.length === data.length) {
       const animations = data.map((val, i) =>
         Animated.timing(animatedValues[i], {
           toValue: val,
@@ -101,63 +88,50 @@ console.log("SAVED LEADERBOARD TOP 4");
       );
       Animated.parallel(animations).start();
     }
-  }, [animatedValues]);
+  }, [animatedValues, data]);
 
-  useEffect (() => {
-    if (cIndex.length > 0 && data.length > 0 && isFocused){
-      console.log("The numbers being checked are: ", cIndex);
-      console.log("The data being checked is: ", data);
-      cIndex.forEach(value =>{
-        console.log("The number being checked is: ", value);
-        console.log("Going to add this amount to the number correct: ", data[value]);
-        numberCorrect.current += data[value];
-        console.log("Inside the for loop, the number correct is now: ", numberCorrect.current);
-      })
-    }
-    console.log('The total number of people who got it correct is: ', numberCorrect.current);
-  }, [data])
-
-  
+  // compute numberCorrect total
+  useEffect(() => {
+    numberCorrect.current = 0;
+    cIndex.forEach((i) => {
+      numberCorrect.current += data[i] || 0;
+    });
+  }, [data, cIndex]);
 
   const maxVal = Math.max(...data, 1);
-  const barHeights = animatedValues.map(animVal =>
-    animVal.interpolate({
-      inputRange: [0, maxVal],
-      outputRange: [0, 240],
-      extrapolate: 'clamp',
-    })
+  const barHeights = animatedValues.map((av) =>
+    av.interpolate({ inputRange: [0, maxVal], outputRange: [0, 240], extrapolate: 'clamp' })
   );
 
   const handlePress = () => {
-    console.log("Current question is: ", currentNumber+1, " total questions is: ", totalNumQuestions);
     setAnimatedValues([]);
-     if ((currentNumber + 1) !== totalNumQuestions){
-       router.replace('/roundScorers');
-     } else {
-
-      WebSocketService.sendMessage(
-        JSON.stringify({
-          type: "sendToNextQuestion",
-        })
-      )
-      WebSocketService.sendMessage(
-        JSON.stringify({
-          type: "gameEnded",
-        })
-      )
-
-       router.replace('/finalscorers');
-       useStudentStore.setState({ gameEnded: false });
-     }
-     numberCorrect.current = 0;
-   }
+    if (currentNumber + 1 !== totalNumQuestions) {
+      router.replace('/roundScorers');
+    } else {
+      WebSocketService.sendMessage(JSON.stringify({ type: 'sendToNextQuestion' }));
+      WebSocketService.sendMessage(JSON.stringify({ type: 'gameEnded' }));
+      router.replace('/finalscorers');
+      useStudentStore.setState({ gameEnded: false });
+    }
+    numberCorrect.current = 0;
+  };
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Tappt</Text>
         <Text style={styles.headerText}>{totalPlayers} players</Text>
       </View>
+
+      {/* Question Banner */}
+      <View style={styles.questionContainer}>
+        <Text style={styles.questionText}>
+          {displayCurrQuestion}
+        </Text>
+      </View>
+
+      {/* Chart & Diamonds */}
       <View style={styles.contentRow}>
         <View style={[styles.cardWrapper, { marginRight: '5%' }]}>
           <View style={styles.card}>
@@ -190,56 +164,20 @@ console.log("SAVED LEADERBOARD TOP 4");
           </Text>
         </View>
         <View style={styles.diamondContainer}>
-          <Diamond
-            data={diamondData[0]}
-            blackedOut={blackedOut[0]}
-            containerStyle={[styles.diamondPosition, styles.topDiamond]}
-            diamondColorStyle={diamondColors[0]}
-          />
-          <Diamond
-            data={diamondData[1]}
-            blackedOut={blackedOut[1]}
-            containerStyle={[styles.diamondPosition, styles.leftDiamond]}
-            diamondColorStyle={diamondColors[1]}
-          />
-          <Diamond
-            data={diamondData[2]}
-            blackedOut={blackedOut[2]}
-            containerStyle={[styles.diamondPosition, styles.rightDiamond]}
-            diamondColorStyle={diamondColors[2]}
-          />
-          <Diamond
-            data={diamondData[3]}
-            blackedOut={blackedOut[3]}
-            containerStyle={[styles.diamondPosition, styles.bottomDiamond]}
-            diamondColorStyle={diamondColors[3]}
-          />
+          {diamondData.map((d, i) => (
+            <View key={`diamond-${i}`} style={[styles.diamondPosition, styles[`diamond${['Top','Left','Right','Bottom'][i]}`]]}>
+              <View style={[styles.diamondBase, blackedOut[i] ? diamondColors[i].grey : diamondColors[i].original]}>
+                <Text style={styles.diamondText}>{d}</Text>
+              </View>
+            </View>
+          ))}
         </View>
       </View>
-      <Pressable onPress={handlePress} style={styles.continueButton}>
-          <Text style={styles.continueText}>Continue →</Text>
-      </Pressable>
-    </View>
-  );
-};
 
-const Diamond = ({
-  data,
-  blackedOut,
-  containerStyle,
-  diamondColorStyle,
-}: {
-  data: string;
-  blackedOut: boolean;
-  containerStyle: any;
-  diamondColorStyle: { original: any; grey: any };
-}) => {
-  const effectiveStyle = blackedOut ? diamondColorStyle.grey : diamondColorStyle.original;
-  return (
-    <View style={containerStyle}>
-      <View style={[styles.diamondBase, effectiveStyle]}>
-        <Text style={styles.diamondText}>{data}</Text>
-      </View>
+      {/* Continue Button */}
+      <Pressable onPress={handlePress} style={styles.continueButton}>
+        <Text style={styles.continueText}>Continue →</Text>
+      </Pressable>
     </View>
   );
 };
@@ -252,16 +190,29 @@ const styles = StyleSheet.create({
     backgroundColor: '#2EC4B6',
   },
   header: {
-    position: "absolute",
+    position: 'absolute',
     top: 10,
     left: 20,
     right: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   headerText: {
     color: '#fff',
     fontSize: 40,
+  },
+  questionContainer: {
+    width: '90%',
+    alignSelf: 'center',
+    marginTop: 80,
+    marginBottom: 20,
+    paddingHorizontal: '5%',
+  },
+  questionText: {
+    color: '#2D6F62',
+    fontSize: 38,
+    textAlign: 'center',
+    fontWeight: '600',
   },
   contentRow: {
     flexDirection: 'row',
@@ -325,22 +276,10 @@ const styles = StyleSheet.create({
     width: '30%',
     aspectRatio: 1,
   },
-  topDiamond: {
-    top: '10%',
-    left: '35%',
-  },
-  leftDiamond: {
-    top: '35%',
-    left: '10%',
-  },
-  rightDiamond: {
-    top: '35%',
-    right: '10%',
-  },
-  bottomDiamond: {
-    bottom: '10%',
-    left: '35%',
-  },
+  diamondTop: { top: '10%', left: '35%' },
+  diamondLeft: { top: '35%', left: '10%' },
+  diamondRight: { top: '35%', right: '10%' },
+  diamondBottom: { bottom: '10%', left: '35%' },
   diamondBase: {
     flex: 1,
     transform: [{ rotate: '45deg' }],
@@ -355,30 +294,14 @@ const styles = StyleSheet.create({
     fontSize: 25,
     transform: [{ rotate: '-45deg' }],
   },
-  diamondPurple: {
-    backgroundColor: '#7340F2',
-  },
-  diamondOrange: {
-    backgroundColor: '#C62F2F',
-  },
-  diamondBlue: {
-    backgroundColor: '#105EDA',
-  },
-  diamondPink: {
-    backgroundColor: '#CD3280',
-  },
-  diamondPurpleGrey: {
-    backgroundColor: '#717171',
-  },
-  diamondOrangeGrey: {
-    backgroundColor: '#9F9F9F',
-  },
-  diamondBlueGrey: {
-    backgroundColor: '#9E9E9E',
-  },
-  diamondPinkGrey: {
-    backgroundColor: '#A1A1A1',
-  },
+  diamondPurple: { backgroundColor: '#7340F2' },
+  diamondOrange: { backgroundColor: '#C62F2F' },
+  diamondBlue: { backgroundColor: '#105EDA' },
+  diamondPink: { backgroundColor: '#CD3280' },
+  diamondPurpleGrey: { backgroundColor: '#717171' },
+  diamondOrangeGrey: { backgroundColor: '#9F9F9F' },
+  diamondBlueGrey: { backgroundColor: '#9E9E9E' },
+  diamondPinkGrey: { backgroundColor: '#A1A1A1' },
   continueButton: {
     position: 'absolute',
     right: '4%',

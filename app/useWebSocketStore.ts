@@ -42,6 +42,7 @@ interface StudentState {
     correctIndex: number[];
     answerChoices: string[];
     bonus: string;
+    displayQuestion: string;
 
 
     //sets - student properties
@@ -102,6 +103,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({ //creates a
     correctIndex: [],
     answerChoices: [],
     bonus: "",
+    displayQuestion: "This is a test question",
 
 
     //student
