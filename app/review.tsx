@@ -34,11 +34,6 @@ interface incorrectAnswers {
 const ReviewScreen = () => {
   const [incorrectDeck, setIncorrectDecks] = useState<incorrectAnswers[]>([]);
   const [correctDeck, setCorrectDecks] = useState<correctAnswers[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentSection, setCurrentSection] = useState<"correct" | "incorrect">("correct");
-  const [correctIntroSpoken, setCorrectIntroSpoken] = useState(false);
-  const [incorrectIntroSpoken, setIncorrectIntroSpoken] = useState(false);
-  const [actionTrigger, setActionTrigger] = useState(0);
   const totalQuestions = correctDeck.length + incorrectDeck.length;
   const correctCount = correctDeck.length;
   const gameEnded = useStudentStore((state) => state.gameEnded);
@@ -96,90 +91,124 @@ const ReviewScreen = () => {
 
     getReview();
   }, []);
-
-  //TTS function
-
+  
+  //TTS
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentSection, setCurrentSection] = useState<'correct' | 'incorrect' | 'review-complete' | 'done'>('correct');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  
   useEffect(() => {
+    const speak = (text: string, callback?: () => void) => {
+      Speech.stop();
+      setIsSpeaking(true);
+      Speech.speak(text, {
+        onDone: () => {
+          setIsSpeaking(false);
+          if (callback) callback();
+        },
+      });
+    };
+  
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === 'f') {
-        setActionTrigger(prev => prev + 1); 
+      if (event.key.toLowerCase() !== 'f') return;
+  
+      Speech.stop();
+      setIsSpeaking(false);
+  
+      const totalQuestions = correctDeck.length + incorrectDeck.length;
+      let nextIndex = currentIndex;
+  
+      if (currentSection === 'done') {
+        setCurrentSection('correct');
+        setCurrentIndex(0);
+        return;
+      }
+  
+      if (currentSection === 'correct') {
+        if (nextIndex === 0) {
+          speak(`You got ${correctDeck.length} out of ${totalQuestions} correct.`);
+          setCurrentIndex(1);
+          return;
+        }
+  
+        if (nextIndex === 1) {
+          speak("Correct answers.");
+          if (correctDeck.length === 0) {
+            setCurrentIndex(2); 
+          } else {
+            setCurrentIndex(100); 
+          }
+          return;
+        }
+  
+        if (nextIndex === 2 && correctDeck.length === 0) {
+          speak("There is no correct answer.");
+          setCurrentSection("incorrect");
+          setCurrentIndex(0);
+          return;
+        }
+  
+        const deckIndex = nextIndex - 100;
+        if (deckIndex < correctDeck.length) {
+          const q = correctDeck[deckIndex];
+          speak(`Question ${q.questionNumber}. ${q.question}. You answered ${q.userAnswer}. Correct answer is ${q.correctAnswer.join(', ')}.`);
+          setCurrentIndex(prev => prev + 1);
+          return;
+        } else {
+          setCurrentSection("incorrect");
+          setCurrentIndex(0);
+          return;
+        }
+      }
+  
+      if (currentSection === 'incorrect') {
+        if (nextIndex === 0) {
+          speak("Incorrect answers.");
+          if (incorrectDeck.length === 0) {
+            setCurrentIndex(1);
+          } else {
+            setCurrentIndex(100);
+          }
+          return;
+        }
+      
+        if (nextIndex === 1 && incorrectDeck.length === 0) {
+          speak("There is no incorrect answer.");
+          setCurrentSection("review-complete");
+          setCurrentIndex(0);
+          return;
+        }
+      
+        const deckIndex = nextIndex - 100;
+        if (deckIndex < incorrectDeck.length) {
+          const q = incorrectDeck[deckIndex];
+          speak(`Question ${q.questionNumber}. ${q.question}. You answered ${q.userAnswer}. Correct answer is ${q.correctAnswer.join(', ')}.`);
+          setCurrentIndex(prev => prev + 1);
+          return;
+        }
+      
+        if (deckIndex === incorrectDeck.length) {
+          setCurrentSection("review-complete");
+          setCurrentIndex(0);
+          return;
+        }
+      }
+  
+      if (currentSection === 'review-complete') {
+        if (nextIndex === 0) {
+          speak("Review complete.", () => {
+            setCurrentSection("done");
+            setCurrentIndex(0);
+          });
+        }
+        return;
       }
     };
   
-    window.addEventListener("keydown", handleKeyPress);
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [correctDeck, incorrectDeck, currentIndex, currentSection, isSpeaking]);
   
-    return () => {
-      window.removeEventListener("keydown", handleKeyPress);
-    };
-  }, []); 
-
-  useEffect(() => {
-    if (actionTrigger === 0) return; 
-    
-    Speech.stop();
-    
-    const currentDeck = currentSection === "correct" ? correctDeck : incorrectDeck;
-  
-    if (currentDeck.length === 0) {
-      if (currentSection === "correct" && incorrectDeck.length > 0) {
-        Speech.speak("No correct answers.");
-        setCurrentSection("incorrect");
-        setCurrentIndex(0);
-        setCorrectIntroSpoken(true);
-        setIncorrectIntroSpoken(false);
-        return;
-      } else if (currentSection === "incorrect" && correctDeck.length > 0) {
-        Speech.speak("No incorrect answers.");
-        setCurrentSection("correct");
-        setCurrentIndex(0);
-        setIncorrectIntroSpoken(true);
-        setCorrectIntroSpoken(false);
-        return;
-      } else {
-        console.log("No questions in both sections!");
-        return;
-      }
-    }
-  
-    if (currentSection === "correct" && !correctIntroSpoken) {
-      const correctCount = correctDeck.length;
-      const correctText = `Correct. You have ${correctCount} correct ${correctCount === 1 ? "answer" : "answers"}.`;
-      Speech.speak(correctText);
-      setCorrectIntroSpoken(true);
-      return;
-    }
-  
-    if (currentSection === "incorrect" && !incorrectIntroSpoken) {
-      const incorrectCount = incorrectDeck.length;
-      const incorrectText = `Incorrect. You have ${incorrectCount} incorrect ${incorrectCount === 1 ? "answer" : "answers"}.`;
-      Speech.speak(incorrectText);
-      setIncorrectIntroSpoken(true);
-      return;
-    }
-  
-    const currentQuestion = currentDeck[currentIndex];
-    const textToRead = `Question ${currentQuestion.questionNumber}. ${currentQuestion.question}. You answered ${currentQuestion.userAnswer}. Correct answer ${currentQuestion.correctAnswer.join(', ')}`;
-    Speech.speak(textToRead);
-  
-    const isLastInSection = currentIndex + 1 >= currentDeck.length;
-    if (isLastInSection) {
-      if (currentSection === "correct" && incorrectDeck.length > 0) {
-        setCurrentSection("incorrect");
-        setCurrentIndex(0);
-        setCorrectIntroSpoken(false);
-        setIncorrectIntroSpoken(false);
-      } else {
-        setCurrentSection("correct");
-        setCurrentIndex(0);
-        setCorrectIntroSpoken(false);
-        setIncorrectIntroSpoken(false);
-      }
-    } else {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  
-  }, [actionTrigger]);
-
   useEffect(() => {
     return () => {
       Speech.stop();

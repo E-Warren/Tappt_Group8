@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useStudentStore } from "./useWebSocketStore";
@@ -56,7 +56,7 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = "", onBonusSelect
     }
   }, [bonus])
 
-
+  
   const handleBonusSelect = (bonus: string) => {
     setSelectedBonus(bonus);
     // Was throwing an error when onBonusSelect was not a function, added check against until it is implemented
@@ -103,9 +103,9 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = "", onBonusSelect
         bonusSoundAsset = require("../assets/sound/fifteen.mp3");
       } else if (selectedBonus === "20% Bonus") {
         bonusSoundAsset = require("../assets/sound/twenty.mp3");
-      } else if (selectedBonus === "1.5x Multiplier") {
+      } else if (selectedBonus === "+1 points per click") {
         bonusSoundAsset = require("../assets/sound/cute-level-up-2-189851.mp3");
-      } else if (selectedBonus === "2x Multiplier") {
+      } else if (selectedBonus === "+2 points per click") {
         bonusSoundAsset = require("../assets/sound/cute-level-up-3-189853.mp3");
       }
   
@@ -170,7 +170,13 @@ const CorrectScreen: React.FC<CorrectScreenProps> = ({ timer = "", onBonusSelect
       clearTimeout(bonusTimer);
     };
   }, [bonus]); 
-  
+
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
     //***temporary*** => substitute until we have teacher frontend routed to this point
     //setting timeout for 5 seconds so that student can see incorrect page
     useEffect(() => {
