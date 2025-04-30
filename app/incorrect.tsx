@@ -106,7 +106,7 @@ const IncorrectScreen: React.FC<IncorrectScreenProps> = ({ timer = 13}) => {
       <Text style={styles.incorrectText}>That is incorrect</Text>
       <Text style={styles.tryAgainText}>Better luck next time...</Text>
 
-      <Text style={styles.timer}>{timer}</Text>
+      {/* <Text style={styles.timer}>{timer}</Text> */}
       <Text style={styles.questionCounter}>Question {questionNumber + 1} / {totalQuestions}</Text>
     </View>
   );

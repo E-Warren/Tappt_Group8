@@ -535,7 +535,7 @@ const styles = StyleSheet.create({
     color: "white",
   },
   question: {
-    fontSize: 24,
+    fontSize: 60,
     fontWeight: "bold",
     color: "white",
     textAlign: "center",
@@ -559,19 +559,22 @@ const styles = StyleSheet.create({
   top: {
     top: 0,
     left: "28%",
+    fontSize:30,
   },
   left: {
     top: "28%",
     left: 0,
+    fontSize:30,
   },
   right: {
     bottom: "35%",
     right: "7%",
-    
+    fontSize:30,
   },
   bottom: {
     bottom: "7%",
     right: "35%",
+    fontSize:30,
   },
   choiceContent: {
     transform: [{ rotate: "-45deg" }],
