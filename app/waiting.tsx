@@ -106,10 +106,10 @@ const TransitionScreen: React.FC<TransitionScreenProps> = ({ /* got username as 
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>◇ Tappt</Text>
+      <Text style={styles.header}>Tappt</Text>
       <Text style={styles.username}>{playername}</Text>
 
-      <Text style={styles.message}>Pure genius or guesswork?</Text>
+      <Text style={styles.message}>Got it! Now we wait...</Text>
     </View>
   );
 };
@@ -124,21 +124,21 @@ const styles = StyleSheet.create({
   },
   header: {
     position: "absolute",
-    top: 15,
+    top: 10,
     left: 15,
-    fontSize: 24,
+    fontSize: 40,
     color: "white",
   },
   username: {
     position: "absolute",
-    top: 15,
+    top: 10,
     right: 15,
-    fontSize: 20,
+    fontSize: 40,
     color: "white",
     fontWeight: "bold",
   },
   message: {
-    fontSize: 28,
+    fontSize: 35,
     fontWeight: "bold",
     color: "white",
     textAlign: "center",
