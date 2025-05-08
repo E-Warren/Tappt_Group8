@@ -4,6 +4,7 @@ import { Link, router } from "expo-router";
 import { WebSocketService } from "./webSocketService";
 import { useStudentStore } from "./useWebSocketStore";
 import Config from "./config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Deck {
   id: string;
@@ -46,7 +47,9 @@ export default function DecksScreen() {
       const token = localStorage.getItem("token");
       if (!token) {
         alert("Missing token. Please log in.");
-        router.replace("/login");
+        setTimeout(() => {
+          router.push("/login");
+        }, 0);
         return;
       }
 
@@ -80,7 +83,7 @@ export default function DecksScreen() {
     };
 
     getDeck();
-  }, []);
+  }, [router]);
 
   const handleRemoveDeck = async (deckId: string) => {
     const token = localStorage.getItem("token");
@@ -99,10 +102,17 @@ export default function DecksScreen() {
     }
   };
 
-  const handleLogout = () => { /*
+  const [userInfo, setUserInfo] = useState(null);
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("user");
+    setUserInfo(null);
     localStorage.removeItem("token");
-    router.push("/login");
-    console.log("Logged out!") */
+    
+    setTimeout(() => {
+      router.push("/login");
+    }, 0);
+
+    console.log("Logged out!");
     
   };
 

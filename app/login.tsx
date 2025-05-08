@@ -55,12 +55,12 @@ export default function LoginScreen() {
     }
   };
 
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem("user");
-    setUserInfo(null);
-    localStorage.removeItem('token'); //delete jwt token
-    console.log("Logged out!")
-  };
+  // const handleLogout = async () => {
+  //   await AsyncStorage.removeItem("user");
+  //   setUserInfo(null);
+  //   localStorage.removeItem('token'); //delete jwt token
+  //   console.log("Logged out!")
+  // };
 
   const sendEmailToServer = async (email: string) => {
     try {
@@ -283,11 +283,11 @@ const [password, onChangePassword] = useState('');
               Are you a student? Join a game here!
             </Link>
       {/*Logout button at the bottom right */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
       style={styles.logoutButton}
       onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Logout</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }
@@ -465,17 +465,16 @@ const styles = StyleSheet.create({
   whitespace: {
     height: 90, //formerly 200; this is all in one screen/cleaner
   },
-  logoutButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#FF4B4B',
-    padding: 10,
-    borderRadius: 6,
-  },
-  logoutButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
+  // logoutButton: {
+  //   position: 'absolute',
+  //   bottom: 20,
+  //   right: 20,
+  //   backgroundColor: '#FF4B4B',
+  //   padding: 10,
+  //   borderRadius: 6,
+  // },
+  // logoutButtonText: {
+  //   color: '#FFFFFF',
+  //   fontSize: 14,
+  // },
 });
-
